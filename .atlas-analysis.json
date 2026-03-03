@@ -1,0 +1,179 @@
+{
+  "projectType": "framework",
+  "projectName": "Flet",
+  "projectDescription": "Build multi-platform apps in Python with no frontend experience required",
+  "theme": "palm",
+  "primaryColor": "#3B82F6",
+  "lightColor": "#60A5FA",
+  "darkColor": "#2563EB",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/architecture",
+              "concepts/page-and-controls",
+              "concepts/events-and-state",
+              "concepts/routing",
+              "concepts/theming"
+            ]
+          },
+          {
+            "group": "Building Apps",
+            "pages": [
+              "guides/desktop-apps",
+              "guides/mobile-apps",
+              "guides/web-apps",
+              "guides/packaging",
+              "guides/deployment"
+            ]
+          },
+          {
+            "group": "Controls",
+            "pages": [
+              "controls/overview",
+              "controls/material",
+              "controls/cupertino",
+              "controls/layout",
+              "controls/navigation",
+              "controls/input",
+              "controls/dialogs"
+            ]
+          },
+          {
+            "group": "CLI",
+            "pages": [
+              "cli/overview",
+              "cli/run",
+              "cli/build",
+              "cli/create",
+              "cli/publish"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/components",
+              "advanced/hooks",
+              "advanced/authentication",
+              "advanced/testing",
+              "advanced/extensions"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core",
+            "pages": [
+              "api/page",
+              "api/control",
+              "api/component",
+              "api/app"
+            ]
+          },
+          {
+            "group": "Material Controls",
+            "pages": [
+              "api/material/button",
+              "api/material/textfield",
+              "api/material/container",
+              "api/material/card",
+              "api/material/appbar",
+              "api/material/dialog"
+            ]
+          },
+          {
+            "group": "Cupertino Controls",
+            "pages": [
+              "api/cupertino/button",
+              "api/cupertino/textfield",
+              "api/cupertino/alert-dialog",
+              "api/cupertino/navigation-bar"
+            ]
+          },
+          {
+            "group": "Layout Controls",
+            "pages": [
+              "api/layout/column",
+              "api/layout/row",
+              "api/layout/stack",
+              "api/layout/listview",
+              "api/layout/gridview"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "api/services/clipboard",
+              "api/services/file-picker",
+              "api/services/battery",
+              "api/services/connectivity",
+              "api/services/sensors"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "api/utilities/hooks",
+              "api/utilities/theme",
+              "api/utilities/colors",
+              "api/utilities/icons"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Single codebase for web, mobile, and desktop",
+    "150+ built-in Material and Cupertino controls",
+    "Real-time UI updates with server-driven architecture",
+    "Built-in packaging for all platforms",
+    "WebAssembly support for client-side web apps",
+    "Component-based architecture with hooks",
+    "Flutter-powered native performance",
+    "Rich authentication and state management"
+  ],
+  "publicApiSurface": [
+    "flet.Page",
+    "flet.Control",
+    "flet.Component",
+    "flet.app()",
+    "flet.run()",
+    "flet.Row",
+    "flet.Column",
+    "flet.Container",
+    "flet.Text",
+    "flet.Button",
+    "flet.TextField",
+    "flet.AppBar",
+    "flet.Card",
+    "flet.Icon",
+    "flet.Image",
+    "flet.ListView",
+    "flet.GridView",
+    "flet.AlertDialog",
+    "flet.BottomSheet",
+    "flet.use_state",
+    "flet.use_effect",
+    "flet.use_ref",
+    "flet.FilePicker",
+    "flet.Clipboard",
+    "flet.CupertinoButton",
+    "flet.CupertinoTextField"
+  ]
+}
