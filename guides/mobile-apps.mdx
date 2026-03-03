@@ -1,0 +1,496 @@
+---
+title: Building Mobile Applications
+description: Create native iOS and Android apps from your Flet Python application.
+---
+
+Flet enables you to build native mobile applications for iOS and Android from a single Python codebase. Your app runs with an embedded Python runtime and Flutter UI framework.
+
+## Platform Support
+
+| Command | Can Build On | Output |
+|---------|--------------|--------|
+| `flet build apk` | Windows, macOS, Linux | Android APK file |
+| `flet build aab` | Windows, macOS, Linux | Android App Bundle |
+| `flet build ipa` | macOS only | iOS App Package |
+| `flet build ios-simulator` | macOS only | iOS Simulator bundle |
+
+<Note>
+iOS builds require macOS with Xcode installed. Android builds work on any platform with Android SDK.
+</Note>
+
+## Android Applications
+
+### Building APK (Android Package)
+
+APK files can be installed directly on Android devices for testing or distributed outside of Google Play Store.
+
+```bash
+flet build apk
+```
+
+Output: `build/apk/app-release.apk`
+
+#### Split APKs by ABI
+
+Generate separate APKs for each CPU architecture to reduce download size:
+
+```bash
+flet build apk --split-per-abi
+```
+
+This creates multiple APKs:
+- `app-armeabi-v7a-release.apk` (32-bit ARM)
+- `app-arm64-v8a-release.apk` (64-bit ARM)
+- `app-x86_64-release.apk` (64-bit Intel)
+
+### Building AAB (Android App Bundle)
+
+AAB is the recommended format for publishing to Google Play Store:
+
+```bash
+flet build aab
+```
+
+Output: `build/aab/app-release.aab`
+
+<Note>
+Google Play Store uses AAB to generate optimized APKs for each device configuration, reducing download size.
+</Note>
+
+### Android Configuration
+
+Configure your Android app in `pyproject.toml`:
+
+```toml pyproject.toml
+[project]
+name = "my-mobile-app"
+version = "1.0.0"
+description = "My Flet mobile application"
+
+[tool.flet]
+product = "My Mobile App"
+artifact = "my-mobile-app"
+org = "com.mycompany"
+bundle_id = "com.mycompany.mymobileapp"
+build_number = 1
+
+[tool.flet.android]
+artifact = "my-mobile-app"
+```
+
+Command-line example:
+
+```bash
+flet build apk \
+  --project "my_mobile_app" \
+  --product "My Mobile App" \
+  --org "com.mycompany" \
+  --bundle-id "com.mycompany.mymobileapp" \
+  --build-version "1.0.0" \
+  --build-number 1
+```
+
+### Android Permissions
+
+Declare required permissions in your configuration:
+
+```toml pyproject.toml
+[tool.flet.android.permission]
+"android.permission.CAMERA" = true
+"android.permission.RECORD_AUDIO" = true
+"android.permission.ACCESS_FINE_LOCATION" = true
+"android.permission.INTERNET" = true  # Added by default
+```
+
+Or use command-line flags:
+
+```bash
+flet build apk \
+  --android-permissions "android.permission.CAMERA=True" \
+  --android-permissions "android.permission.RECORD_AUDIO=True"
+```
+
+#### Cross-Platform Permissions
+
+For common permissions, use the simplified `--permissions` flag:
+
+```bash
+flet build apk --permissions camera microphone location
+```
+
+Available options:
+- `camera` - Camera access
+- `microphone` - Audio recording
+- `location` - GPS location
+- `photo_library` - Photo/media access
+
+### Android Features
+
+Declare hardware features your app requires or optionally uses:
+
+```toml pyproject.toml
+[tool.flet.android.feature]
+"android.hardware.camera" = true  # Requires camera
+"android.hardware.location.gps" = false  # Optional GPS
+```
+
+Command-line:
+
+```bash
+flet build apk \
+  --android-features "android.hardware.camera=True" \
+  --android-features "android.hardware.location.gps=False"
+```
+
+### Android Metadata
+
+Add custom metadata to your AndroidManifest.xml:
+
+```toml pyproject.toml
+[tool.flet.android.meta_data]
+"com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-1234567890123456~1234567890"
+```
+
+Command-line:
+
+```bash
+flet build apk \
+  --android-meta-data "com.google.android.gms.ads.APPLICATION_ID=ca-app-pub-1234~1234"
+```
+
+### Android App Signing
+
+For release builds, sign your app with a keystore:
+
+<Steps>
+
+<Step title="Create a keystore">
+
+```bash
+keytool -genkey -v -keystore my-app.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-app-key
+```
+
+</Step>
+
+<Step title="Configure signing in pyproject.toml">
+
+```toml pyproject.toml
+[tool.flet.android.signing]
+key_store = "path/to/my-app.jks"
+key_alias = "my-app-key"
+```
+
+Store passwords in environment variables:
+```bash
+export FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD="store_password"
+export FLET_ANDROID_SIGNING_KEY_PASSWORD="key_password"
+```
+
+</Step>
+
+<Step title="Build signed release">
+
+```bash
+flet build aab
+```
+
+</Step>
+
+</Steps>
+
+Or use command-line options:
+
+```bash
+flet build aab \
+  --android-signing-key-store "my-app.jks" \
+  --android-signing-key-alias "my-app-key" \
+  --android-signing-key-store-password "$KEYSTORE_PASS" \
+  --android-signing-key-password "$KEY_PASS"
+```
+
+<Warning>
+Never commit keystore files or passwords to version control. Use environment variables or secure secret storage.
+</Warning>
+
+### Android Icons
+
+Place Android-specific icons in your assets directory:
+
+```
+my-app/
+├── assets/
+│   ├── icon_android.png  # 512x512 or larger
+│   └── icon.png          # Fallback icon
+└── pyproject.toml
+```
+
+Configure adaptive icon background color:
+
+```bash
+flet build apk --android-adaptive-icon-background "#FF6B35"
+```
+
+## iOS Applications
+
+### Building IPA (iOS App Package)
+
+<Warning>
+iOS builds require macOS with Xcode installed and a valid Apple Developer account for production builds.
+</Warning>
+
+```bash
+flet build ipa
+```
+
+Output: `build/ipa/my_app.ipa` (if signed) or `build/ios/archive/` (if unsigned)
+
+### Building for iOS Simulator
+
+For testing on iOS Simulator without signing:
+
+```bash
+flet build ios-simulator
+```
+
+Output: `build/ios-simulator/Runner.app`
+
+Install to simulator:
+```bash
+xcrun simctl install booted build/ios-simulator/Runner.app
+```
+
+### iOS Configuration
+
+```toml pyproject.toml
+[tool.flet]
+product = "My iOS App"
+org = "com.mycompany"
+bundle_id = "com.mycompany.myiosapp"
+
+[tool.flet.ios]
+artifact = "MyApp"
+```
+
+### iOS Permissions (Info.plist)
+
+iOS requires usage descriptions for sensitive permissions:
+
+```toml pyproject.toml
+[tool.flet.ios.info]
+NSCameraUsageDescription = "This app needs camera access to take photos"
+NSMicrophoneUsageDescription = "This app needs microphone access to record audio"
+NSLocationWhenInUseUsageDescription = "This app needs your location to show nearby places"
+NSPhotoLibraryUsageDescription = "This app needs access to your photo library"
+```
+
+Command-line:
+
+```bash
+flet build ipa \
+  --info-plist "NSCameraUsageDescription=This app needs camera access" \
+  --info-plist "NSMicrophoneUsageDescription=This app needs microphone access"
+```
+
+Or use simplified permissions:
+
+```bash
+flet build ipa --permissions camera microphone location photo_library
+```
+
+### iOS Code Signing
+
+To create a distributable IPA, configure code signing:
+
+```toml pyproject.toml
+[tool.flet.ios]
+team_id = "ABCDE12345"  # Your Apple Developer Team ID
+provisioning_profile = "My App Distribution Profile"
+signing_certificate = "Apple Distribution: My Company (ABCDE12345)"
+export_method = "app-store"  # or "ad-hoc", "enterprise", "development"
+```
+
+Command-line:
+
+```bash
+flet build ipa \
+  --ios-team-id "ABCDE12345" \
+  --ios-provisioning-profile "My App Distribution Profile" \
+  --ios-signing-certificate "Apple Distribution: My Company" \
+  --ios-export-method "app-store"
+```
+
+#### Export Methods
+
+- `app-store` - For App Store distribution
+- `ad-hoc` - For distribution outside App Store to registered devices
+- `enterprise` - For enterprise in-house distribution
+- `development` - For development and testing
+- `debugging` - Default, creates unsigned archive
+
+### iOS Icons
+
+Place iOS-specific icons:
+
+```
+my-app/
+├── assets/
+│   ├── icon_ios.png  # 1024x1024
+│   └── icon.png      # Fallback icon
+└── pyproject.toml
+```
+
+## Splash Screens
+
+Customize splash screens for mobile apps:
+
+```
+my-app/
+├── assets/
+│   ├── splash.png           # Default splash image
+│   ├── splash_android.png   # Android-specific
+│   ├── splash_ios.png       # iOS-specific
+│   ├── splash_dark.png      # Dark mode variant
+│   └── ...
+└── pyproject.toml
+```
+
+Configure splash screen colors:
+
+```bash
+flet build apk \
+  --splash-color "#FF6B35" \
+  --splash-dark-color "#1A1A1A"
+```
+
+Or in `pyproject.toml`:
+
+```toml
+[tool.flet]
+splash_color = "#FF6B35"
+splash_dark_color = "#1A1A1A"
+```
+
+Disable splash screen:
+
+```bash
+flet build apk --no-android-splash
+flet build ipa --no-ios-splash
+```
+
+## Deep Linking
+
+Enable deep linking to open your app from URLs:
+
+```toml pyproject.toml
+[tool.flet.deep_linking]
+scheme = "myapp"  # Custom scheme: myapp://
+host = "example.com"  # Universal links: https://example.com
+```
+
+Command-line:
+
+```bash
+flet build apk \
+  --deep-linking-scheme "myapp" \
+  --deep-linking-host "example.com"
+```
+
+This enables:
+- Custom URL scheme: `myapp://path/to/page`
+- Android App Links: `https://example.com/path/to/page`
+- iOS Universal Links: `https://example.com/path/to/page`
+
+## Testing on Mobile Devices
+
+During development, use `flet run` to test on physical devices:
+
+<Steps>
+
+<Step title="Start your app">
+
+```bash
+flet run main.py
+```
+
+</Step>
+
+<Step title="Scan QR code">
+
+A QR code appears in the terminal. Scan it with:
+- **iOS**: Camera app (requires Flet iOS client app)
+- **Android**: Custom URL handler (requires Flet Android client app)
+
+</Step>
+
+</Steps>
+
+Or connect to specific devices:
+
+```bash
+# Run on iOS device
+flet run main.py --ios
+
+# Run on Android device
+flet run main.py --android
+```
+
+## Build Options Common to All Platforms
+
+```bash
+flet build apk \
+  --build-version "1.2.3" \     # Version shown to users
+  --build-number 42 \            # Internal build number (must increment)
+  -o ./dist/mobile \             # Output directory
+  --exclude "tests/**" \         # Exclude files from package
+  --clear-cache                  # Clear build cache
+```
+
+## Advanced: Flutter Build Arguments
+
+Pass additional arguments to underlying Flutter build command:
+
+```toml pyproject.toml
+[tool.flet.flutter]
+build_args = ["--dart-define=API_KEY=abc123", "--verbose"]
+```
+
+Command-line:
+
+```bash
+flet build apk --flutter-build-args "--dart-define=API_KEY=abc123"
+```
+
+## Troubleshooting
+
+### Android SDK Not Found
+
+If you get "Android SDK not found" error:
+
+```bash
+flet doctor
+```
+
+This command checks your environment and provides installation instructions.
+
+### iOS Build Fails
+
+Ensure you have:
+1. Xcode installed (from Mac App Store)
+2. Xcode command-line tools: `xcode-select --install`
+3. CocoaPods installed: `sudo gem install cocoapods`
+
+### Checking Connected Devices
+
+```bash
+# List iOS and Android devices
+flet devices
+
+# List Android emulators
+flet emulators
+```
+
+## Next Steps
+
+- Learn about [Packaging Apps](/guides/packaging) for distribution
+- Explore [Desktop Apps](/guides/desktop-apps) for Windows, macOS, and Linux
+- Read about [Deployment](/guides/deployment) options

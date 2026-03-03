@@ -1,0 +1,451 @@
+---
+title: Building Web Applications
+description: Create web applications with Flet, both server-side and WebAssembly-based.
+---
+
+Flet enables you to build web applications in two different modes: server-side (dynamic) and WebAssembly-based (static). Both modes use the same Python codebase.
+
+## Web Application Modes
+
+### Server-Side Web Apps
+
+Server-side apps run Python on a web server, with real-time communication to the browser via WebSockets. This mode supports:
+
+- Full Python standard library
+- Database connections and server-side processing
+- Multiple concurrent users
+- Real-time updates
+- File uploads and downloads
+
+### WebAssembly (Static) Web Apps
+
+WebAssembly apps run Python entirely in the browser using Pyodide. This mode supports:
+
+- Static hosting (CDN, GitHub Pages, etc.)
+- Offline functionality
+- No server costs
+- Direct file system access (in browser)
+
+<Note>
+WebAssembly apps have limitations: slower startup, limited package support (pure Python only), and no server-side capabilities.
+</Note>
+
+## Building WebAssembly Apps
+
+The `flet build web` command creates a static web application that can be hosted on any web server or CDN.
+
+### Basic Build
+
+```bash
+flet build web
+```
+
+Output: `build/web/` directory containing static files
+
+### Configuration
+
+Configure your web app in `pyproject.toml`:
+
+```toml pyproject.toml
+[project]
+name = "my-web-app"
+version = "1.0.0"
+description = "My Flet web application"
+
+[tool.flet]
+product = "My Web App"
+
+[tool.flet.web]
+base_url = "/"  # Base URL path
+renderer = "canvaskit"  # or "auto", "skwasm"
+route_url_strategy = "path"  # or "hash"
+cdn = true  # Load resources from CDN
+wasm = true  # Enable WebAssembly build
+```
+
+### Build Options
+
+```bash
+flet build web \
+  --base-url "/my-app" \              # Serve from subdirectory
+  --web-renderer "canvaskit" \         # Web renderer type
+  --route-url-strategy "path" \        # Routing strategy
+  --no-cdn \                           # Bundle all resources
+  --no-wasm \                          # Disable WebAssembly
+  -o ./dist/web                        # Output directory
+```
+
+#### Base URL
+
+When hosting in a subdirectory:
+
+```bash
+flet build web --base-url "/my-app"
+```
+
+Your app will be accessible at `https://example.com/my-app/`
+
+#### Web Renderer
+
+Choose the Flutter web renderer:
+
+- `auto` (default) - Automatically selects best renderer
+- `canvaskit` - Better quality, larger bundle
+- `skwasm` - Experimental WebAssembly renderer
+
+```bash
+flet build web --web-renderer "canvaskit"
+```
+
+Or set via environment variable:
+```bash
+export FLET_WEB_RENDERER=canvaskit
+flet build web
+```
+
+#### Route URL Strategy
+
+Controls how routes appear in the browser URL:
+
+- `path` (default) - Clean URLs: `example.com/page1`
+- `hash` - Hash-based URLs: `example.com/#/page1`
+
+```bash
+flet build web --route-url-strategy "hash"
+```
+
+Use `hash` strategy for hosting on servers that don't support URL rewriting.
+
+#### CDN Mode
+
+By default, Flet loads CanvasKit, Pyodide, and fonts from CDN for faster loading:
+
+```bash
+# Disable CDN (bundle everything)
+flet build web --no-cdn
+```
+
+Use `--no-cdn` for:
+- Offline applications
+- Air-gapped environments
+- Complete control over resources
+
+<Warning>
+Using `--no-cdn` significantly increases bundle size (~100MB+).
+</Warning>
+
+#### WASM Build
+
+Disable WebAssembly to build server-side web app template only:
+
+```bash
+flet build web --no-wasm
+```
+
+### Progressive Web App (PWA) Configuration
+
+Make your web app installable:
+
+```bash
+flet build web \
+  --pwa-background-color "#ffffff" \  # Splash background color
+  --pwa-theme-color "#2196F3"         # Browser UI color
+```
+
+Or in `pyproject.toml`:
+
+```toml pyproject.toml
+[tool.flet.web]
+pwa_background_color = "#ffffff"
+pwa_theme_color = "#2196F3"
+```
+
+### Custom App Metadata
+
+```bash
+flet build web \
+  --product "My Web Application" \     # App name
+  --description "A web app built with Flet"
+```
+
+## Publishing Static Web Apps
+
+The `flet publish` command creates a static web app optimized for distribution:
+
+```bash
+flet publish main.py
+```
+
+Output: `dist/` directory with deployable static files
+
+### Publish Options
+
+```bash
+flet publish main.py \
+  --app-name "My Application" \           # Full app name
+  --app-short-name "MyApp" \              # Short name for home screen
+  --app-description "Built with Flet" \   # App description
+  --base-url "/app" \                     # Base URL path
+  --web-renderer "canvaskit" \            # Web renderer
+  --route-url-strategy "path" \           # Routing strategy
+  --assets "./assets" \                   # Assets directory
+  --distpath "./public" \                 # Output directory
+  --no-cdn                                # Bundle all resources
+```
+
+### Including Dependencies
+
+Flet automatically detects dependencies from:
+
+1. **pyproject.toml** (recommended):
+
+```toml pyproject.toml
+[project]
+dependencies = [
+    "flet>=0.24.0",
+    "httpx",
+    "pillow"
+]
+```
+
+2. **requirements.txt**:
+
+```txt requirements.txt
+flet>=0.24.0
+httpx
+pillow
+```
+
+<Note>
+Only pure Python packages are supported in WebAssembly apps. Packages with C extensions won't work unless they're compiled for Pyodide.
+</Note>
+
+### Pre-release Packages
+
+To install pre-release packages:
+
+```bash
+flet publish main.py --pre
+```
+
+## Serving Web Apps Locally
+
+After building, test your web app locally:
+
+```bash
+flet serve
+```
+
+By default, serves `build/web/` on `http://localhost:8000`
+
+### Serve Options
+
+```bash
+flet serve ./dist/web --port 3000
+```
+
+- First argument: directory to serve (default: `./build/web`)
+- `--port`, `-p`: Port number (default: `8000`)
+
+<Note>
+`flet serve` includes the necessary CORS headers for WebAssembly to work properly.
+</Note>
+
+## Running Server-Side Web Apps
+
+For development with hot reload:
+
+```bash
+flet run main.py --web
+```
+
+This starts a development server and opens your app in a browser.
+
+### Server-Side Options
+
+```bash
+flet run main.py \
+  --web \                    # Run as web app
+  --port 8080 \              # Custom port
+  --host "*" \               # Listen on all interfaces
+  --name "my-app"            # App name/path
+```
+
+- `--port`, `-p`: TCP port (default: random)
+- `--host`: Host interface (`*` for all IPs)
+- `--name`: App path for multi-app hosting
+- `--assets`, `-a`: Assets directory
+
+### Multi-User Server-Side Apps
+
+Flet automatically handles multiple concurrent users:
+
+```python main.py
+import flet as ft
+
+def main(page: ft.Page):
+    page.title = "Multi-User App"
+    
+    # Each user gets their own page instance
+    user_id = page.session_id
+    
+    page.add(
+        ft.Text(f"Your session: {user_id}")
+    )
+
+ft.app(target=main, view=ft.AppView.WEB_BROWSER)
+```
+
+Each browser connection gets an isolated `page` instance.
+
+## Deployment Examples
+
+### GitHub Pages
+
+<Steps>
+
+<Step title="Build with correct base URL">
+
+```bash
+flet build web --base-url "/repository-name"
+```
+
+</Step>
+
+<Step title="Deploy to gh-pages branch">
+
+```bash
+cd build/web
+git init
+git add .
+git commit -m "Deploy to GitHub Pages"
+git push -f git@github.com:username/repository-name.git main:gh-pages
+```
+
+</Step>
+
+</Steps>
+
+### Netlify / Vercel
+
+1. Build your app:
+
+```bash
+flet build web -o dist
+```
+
+2. Create `netlify.toml` or `vercel.json`:
+
+```toml netlify.toml
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+```
+
+```json vercel.json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}
+```
+
+3. Deploy:
+
+```bash
+netlify deploy --prod --dir=dist
+# or
+vercel --prod
+```
+
+### Docker (Server-Side)
+
+Create a `Dockerfile` for server-side apps:
+
+```dockerfile Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["python", "main.py"]
+```
+
+```python main.py
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(ft.Text("Hello from Docker!"))
+
+ft.app(
+    target=main,
+    view=ft.AppView.WEB_BROWSER,
+    port=8000,
+    host="0.0.0.0"  # Listen on all interfaces
+)
+```
+
+Build and run:
+
+```bash
+docker build -t my-flet-app .
+docker run -p 8000:8000 my-flet-app
+```
+
+## Environment Variables
+
+Control web app behavior with environment variables:
+
+```bash
+export FLET_WEB_RENDERER=canvaskit
+export FLET_WEB_ROUTE_URL_STRATEGY=hash
+export FLET_WEB_NO_CDN=true
+
+flet build web
+```
+
+Available variables:
+- `FLET_WEB_RENDERER` - Web renderer (`auto`, `canvaskit`, `skwasm`)
+- `FLET_WEB_ROUTE_URL_STRATEGY` - Routing strategy (`path`, `hash`)
+- `FLET_WEB_NO_CDN` - Disable CDN (`true`/`false`)
+
+## WebAssembly Limitations
+
+<Warning>
+WebAssembly apps have several limitations compared to server-side apps:
+</Warning>
+
+- **Packages**: Only pure Python packages work. No C extensions (unless compiled for Pyodide)
+- **Startup Time**: Initial load is slower (~5-10 seconds) due to Pyodide initialization
+- **Memory**: Limited by browser memory
+- **File System**: Virtual file system in browser, not persistent
+- **Networking**: CORS restrictions apply
+
+For complex applications with database access or intensive processing, use server-side mode.
+
+## Choosing the Right Mode
+
+| Feature | Server-Side | WebAssembly |
+|---------|-------------|-------------|
+| **Hosting** | Requires Python server | Static hosting |
+| **Cost** | Server costs | Free (CDN/static) |
+| **Offline** | No | Yes |
+| **Startup** | Fast | Slow (initial) |
+| **Packages** | All Python packages | Pure Python only |
+| **Database** | Yes | No (browser only) |
+| **File System** | Real file system | Virtual (browser) |
+| **Multi-User** | Built-in | Single user |
+| **Best For** | Enterprise apps, dashboards | Calculators, tools, demos |
+
+## Next Steps
+
+- Learn about [Deployment](/guides/deployment) strategies
+- Explore [Desktop Apps](/guides/desktop-apps) for offline-first applications
+- Read about [Mobile Apps](/guides/mobile-apps) for native mobile experiences

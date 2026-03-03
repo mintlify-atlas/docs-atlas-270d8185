@@ -1,0 +1,518 @@
+---
+title: Navigation Controls
+description: Controls for navigating between views and screens in your Flet app
+---
+
+Navigation controls help users move through different sections and views of your application. Flet provides both Material and Cupertino navigation controls to match your design system.
+
+## Navigation Overview
+
+<CardGroup cols={2}>
+  <Card title="AppBar" icon="window-maximize">
+    Top application bar with title and actions
+  </Card>
+  <Card title="NavigationBar" icon="bars">
+    Bottom navigation bar (Material)
+  </Card>
+  <Card title="NavigationRail" icon="sidebar">
+    Side navigation panel
+  </Card>
+  <Card title="NavigationDrawer" icon="bars-staggered">
+    Sliding drawer menu
+  </Card>
+  <Card title="Tabs" icon="folder-tree">
+    Tabbed content navigation
+  </Card>
+</CardGroup>
+
+## AppBar
+
+The AppBar appears at the top of the screen and typically contains the app title, navigation icons, and action buttons.
+
+### Material AppBar
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.appbar = ft.AppBar(
+        leading=ft.Icon(ft.Icons.MENU),
+        leading_width=40,
+        title=ft.Text("My Application"),
+        center_title=True,
+        bgcolor=ft.Colors.SURFACE_VARIANT,
+        actions=[
+            ft.IconButton(ft.Icons.SEARCH),
+            ft.IconButton(ft.Icons.NOTIFICATIONS),
+            ft.PopupMenuButton(
+                items=[
+                    ft.PopupMenuItem(text="Settings"),
+                    ft.PopupMenuItem(text="About"),
+                    ft.PopupMenuItem(text="Logout"),
+                ]
+            ),
+        ],
+    )
+    
+    page.add(ft.Text("App content here"))
+
+ft.app(target=main)
+```
+
+### Cupertino AppBar
+
+```python
+import flet as ft
+from flet import cupertino_icons
+
+def main(page: ft.Page):
+    page.appbar = ft.CupertinoAppBar(
+        leading=ft.Icon(cupertino_icons.BACK),
+        middle=ft.Text("My App"),
+        trailing=ft.Icon(cupertino_icons.ELLIPSIS),
+        bgcolor=ft.Colors.SURFACE_VARIANT,
+    )
+    
+    page.add(ft.Text("App content here"))
+
+ft.app(target=main)
+```
+
+### Dynamic AppBar
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def toggle_theme(e):
+        page.theme_mode = (
+            ft.ThemeMode.DARK
+            if page.theme_mode == ft.ThemeMode.LIGHT
+            else ft.ThemeMode.LIGHT
+        )
+        page.update()
+    
+    page.appbar = ft.AppBar(
+        title=ft.Text("Dynamic AppBar"),
+        actions=[
+            ft.IconButton(
+                ft.Icons.LIGHT_MODE,
+                on_click=toggle_theme,
+            ),
+        ],
+    )
+    
+    page.add(ft.Text("Toggle theme from AppBar"))
+
+ft.app(target=main)
+```
+
+## NavigationBar
+
+Bottom navigation bar for switching between primary destinations in the app.
+
+### Material NavigationBar
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def on_navigation_change(e):
+        selected_index = e.control.selected_index
+        content_area.content = ft.Text(f"Showing view {selected_index}")
+        page.update()
+    
+    content_area = ft.Container(
+        content=ft.Text("Showing view 0"),
+        expand=True,
+    )
+    
+    page.navigation_bar = ft.NavigationBar(
+        destinations=[
+            ft.NavigationBarDestination(
+                icon=ft.Icons.HOME,
+                label="Home",
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.EXPLORE,
+                label="Explore",
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.FAVORITE,
+                label="Favorites",
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.PERSON,
+                label="Profile",
+            ),
+        ],
+        on_change=on_navigation_change,
+    )
+    
+    page.add(content_area)
+
+ft.app(target=main)
+```
+
+### Cupertino NavigationBar
+
+```python
+import flet as ft
+from flet import cupertino_icons
+
+def main(page: ft.Page):
+    def on_tab_change(e):
+        selected_index = e.control.selected_index
+        content_area.content = ft.Text(f"Tab {selected_index}")
+        page.update()
+    
+    content_area = ft.Container(
+        content=ft.Text("Tab 0"),
+        expand=True,
+    )
+    
+    page.navigation_bar = ft.CupertinoNavigationBar(
+        destinations=[
+            ft.NavigationBarDestination(
+                icon=cupertino_icons.HOME,
+                label="Home",
+            ),
+            ft.NavigationBarDestination(
+                icon=cupertino_icons.SEARCH,
+                label="Search",
+            ),
+            ft.NavigationBarDestination(
+                icon=cupertino_icons.HEART,
+                label="Favorites",
+            ),
+            ft.NavigationBarDestination(
+                icon=cupertino_icons.PERSON,
+                label="Profile",
+            ),
+        ],
+        on_change=on_tab_change,
+    )
+    
+    page.add(content_area)
+
+ft.app(target=main)
+```
+
+## NavigationRail
+
+Side navigation for desktop and tablet layouts.
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def on_rail_change(e):
+        selected_index = e.control.selected_index
+        content_area.content = ft.Text(
+            f"Content for section {selected_index}",
+            size=24,
+        )
+        page.update()
+    
+    rail = ft.NavigationRail(
+        selected_index=0,
+        label_type=ft.NavigationRailLabelType.ALL,
+        min_width=100,
+        min_extended_width=200,
+        destinations=[
+            ft.NavigationRailDestination(
+                icon=ft.Icons.HOME_OUTLINED,
+                selected_icon=ft.Icons.HOME,
+                label="Home",
+            ),
+            ft.NavigationRailDestination(
+                icon=ft.Icons.BOOKMARK_OUTLINED,
+                selected_icon=ft.Icons.BOOKMARK,
+                label="Bookmarks",
+            ),
+            ft.NavigationRailDestination(
+                icon=ft.Icons.SETTINGS_OUTLINED,
+                selected_icon=ft.Icons.SETTINGS,
+                label="Settings",
+            ),
+        ],
+        on_change=on_rail_change,
+    )
+    
+    content_area = ft.Container(
+        content=ft.Text("Content for section 0", size=24),
+        expand=True,
+        padding=20,
+    )
+    
+    page.add(
+        ft.Row(
+            controls=[rail, ft.VerticalDivider(width=1), content_area],
+            expand=True,
+        )
+    )
+
+ft.app(target=main)
+```
+
+## NavigationDrawer
+
+Sliding drawer menu, typically accessed from the AppBar.
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def close_drawer(e):
+        drawer.open = False
+        page.update()
+    
+    def navigate(e, section):
+        content_area.content = ft.Text(f"Viewing: {section}", size=24)
+        drawer.open = False
+        page.update()
+    
+    drawer = ft.NavigationDrawer(
+        controls=[
+            ft.Container(height=12),
+            ft.NavigationDrawerDestination(
+                icon=ft.Icons.HOME_OUTLINED,
+                selected_icon=ft.Icons.HOME,
+                label="Home",
+            ),
+            ft.Divider(thickness=2),
+            ft.NavigationDrawerDestination(
+                icon=ft.Icons.EMAIL_OUTLINED,
+                selected_icon=ft.Icons.EMAIL,
+                label="Messages",
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.Icons.CALENDAR_MONTH,
+                selected_icon=ft.Icons.CALENDAR_MONTH,
+                label="Calendar",
+            ),
+            ft.Divider(thickness=2),
+            ft.NavigationDrawerDestination(
+                icon=ft.Icons.SETTINGS_OUTLINED,
+                selected_icon=ft.Icons.SETTINGS,
+                label="Settings",
+            ),
+        ],
+    )
+    
+    page.overlay.append(drawer)
+    
+    page.appbar = ft.AppBar(
+        title=ft.Text("Navigation Drawer"),
+        leading=ft.IconButton(
+            ft.Icons.MENU,
+            on_click=lambda e: (setattr(drawer, 'open', True), page.update()),
+        ),
+    )
+    
+    content_area = ft.Container(
+        content=ft.Text("Select from drawer", size=24),
+        expand=True,
+    )
+    
+    page.add(content_area)
+
+ft.app(target=main)
+```
+
+## Tabs
+
+Tabbed navigation for organizing related content.
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    tabs = ft.Tabs(
+        selected_index=0,
+        animation_duration=300,
+        tabs=[
+            ft.Tab(
+                text="Overview",
+                icon=ft.Icons.DASHBOARD,
+                content=ft.Container(
+                    content=ft.Text("Overview Tab Content"),
+                    padding=20,
+                ),
+            ),
+            ft.Tab(
+                text="Analytics",
+                icon=ft.Icons.BAR_CHART,
+                content=ft.Container(
+                    content=ft.Text("Analytics Tab Content"),
+                    padding=20,
+                ),
+            ),
+            ft.Tab(
+                text="Settings",
+                icon=ft.Icons.SETTINGS,
+                content=ft.Container(
+                    content=ft.Text("Settings Tab Content"),
+                    padding=20,
+                ),
+            ),
+        ],
+        expand=1,
+    )
+    
+    page.add(tabs)
+
+ft.app(target=main)
+```
+
+## Page Navigation
+
+Navigate between different pages/views using routing.
+
+### Route-based Navigation
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def route_change(route):
+        page.views.clear()
+        
+        # Home view
+        page.views.append(
+            ft.View(
+                "/",
+                [
+                    ft.AppBar(title=ft.Text("Home")),
+                    ft.ElevatedButton(
+                        "Go to Details",
+                        on_click=lambda _: page.go("/details"),
+                    ),
+                ],
+            )
+        )
+        
+        # Details view
+        if page.route == "/details":
+            page.views.append(
+                ft.View(
+                    "/details",
+                    [
+                        ft.AppBar(title=ft.Text("Details")),
+                        ft.Text("This is the details page"),
+                        ft.ElevatedButton(
+                            "Back",
+                            on_click=lambda _: page.go("/"),
+                        ),
+                    ],
+                )
+            )
+        
+        page.update()
+    
+    page.on_route_change = route_change
+    page.go("/")
+
+ft.app(target=main)
+```
+
+### View Pop Handler
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def view_pop(view):
+        page.views.pop()
+        top_view = page.views[-1]
+        page.go(top_view.route)
+    
+    def route_change(route):
+        page.views.clear()
+        page.views.append(
+            ft.View(
+                "/",
+                [
+                    ft.AppBar(title=ft.Text("Home")),
+                    ft.ElevatedButton(
+                        "Settings",
+                        on_click=lambda _: page.go("/settings"),
+                    ),
+                ],
+            )
+        )
+        
+        if page.route == "/settings":
+            page.views.append(
+                ft.View(
+                    "/settings",
+                    [
+                        ft.AppBar(
+                            title=ft.Text("Settings"),
+                            automatically_imply_leading=True,
+                        ),
+                        ft.Text("Settings page"),
+                    ],
+                )
+            )
+        
+        page.update()
+    
+    page.on_route_change = route_change
+    page.on_view_pop = view_pop
+    page.go("/")
+
+ft.app(target=main)
+```
+
+## Navigation Best Practices
+
+### Use Consistent Navigation Patterns
+
+```python
+# Good: Consistent navigation across app
+page.navigation_bar = ft.NavigationBar(
+    destinations=[
+        ft.NavigationBarDestination(icon=ft.Icons.HOME, label="Home"),
+        ft.NavigationBarDestination(icon=ft.Icons.SEARCH, label="Search"),
+        ft.NavigationBarDestination(icon=ft.Icons.PERSON, label="Profile"),
+    ]
+)
+```
+
+### Highlight Active Sections
+
+```python
+# Navigation automatically highlights selected items
+rail = ft.NavigationRail(
+    selected_index=0,  # First item selected
+    destinations=[...],
+)
+```
+
+### Provide Clear Visual Feedback
+
+```python
+def on_navigation_change(e):
+    # Update content
+    content_area.content = get_view(e.control.selected_index)
+    # Provide feedback
+    page.snack_bar = ft.SnackBar(ft.Text(f"Switched to view {e.control.selected_index}"))
+    page.snack_bar.open = True
+    page.update()
+```
+
+## Next Steps
+
+- Learn about [Layout Controls](/controls/layout) to structure your views
+- Explore [Input Controls](/controls/input) for forms
+- Check [Dialogs](/controls/dialogs) for modal navigation
+
+## API Reference
+
+Detailed documentation:
+- [AppBar API](/api/material/appbar)
+- [NavigationBar API](/api/material/appbar)
+- [NavigationRail API](/api/material/appbar)
+- [NavigationDrawer API](/api/material/appbar)
+- [Tabs API](/api/material/appbar)

@@ -1,0 +1,652 @@
+---
+title: Packaging Applications
+description: Package and distribute your Flet applications for all platforms.
+---
+
+This guide covers best practices for packaging Flet applications for distribution across desktop, mobile, and web platforms.
+
+## Understanding Build Output
+
+Flet produces different package formats depending on the target platform:
+
+| Platform | Build Command | Output | Distribution |
+|----------|---------------|--------|-------------|
+| **Windows** | `flet build windows` | Executable + DLLs | Installer (MSI, NSIS) |
+| **macOS** | `flet build macos` | `.app` bundle | DMG, PKG, or App Store |
+| **Linux** | `flet build linux` | Binary + dependencies | AppImage, DEB, RPM |
+| **Android APK** | `flet build apk` | `.apk` file | Direct install or stores |
+| **Android AAB** | `flet build aab` | `.aab` bundle | Google Play Store |
+| **iOS** | `flet build ipa` | `.ipa` package | TestFlight or App Store |
+| **Web** | `flet build web` | Static files | Web server or CDN |
+
+## Desktop Application Packaging
+
+### Windows Packaging
+
+#### Step 1: Build Windows Application
+
+```bash
+flet build windows \
+  --product "My Application" \
+  --company "My Company" \
+  --copyright "Copyright (C) 2025" \
+  --build-version "1.0.0"
+```
+
+Output: `build/windows/x64/runner/Release/`
+
+#### Step 2: Create Installer
+
+Use tools like:
+
+**Inno Setup** (Recommended):
+
+```iss installer.iss
+[Setup]
+AppName=My Application
+AppVersion=1.0.0
+DefaultDirName={autopf}\MyApplication
+OutputDir=output
+OutputBaseFilename=MyApp-Setup
+
+[Files]
+Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: recursesubdirs
+
+[Icons]
+Name: "{autoprograms}\My Application"; Filename: "{app}\my_app.exe"
+Name: "{autodesktop}\My Application"; Filename: "{app}\my_app.exe"
+```
+
+Compile:
+```bash
+iscc installer.iss
+```
+
+**WiX Toolset** for MSI packages:
+
+```xml Product.wxs
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="My Application" Version="1.0.0" 
+           Manufacturer="My Company" UpgradeCode="PUT-GUID-HERE">
+    <Package InstallerVersion="200" Compressed="yes" />
+    <!-- Add components here -->
+  </Product>
+</Wix>
+```
+
+#### Step 3: Code Signing (Optional)
+
+Sign your executable with a code signing certificate:
+
+```bash
+signtool sign /f certificate.pfx /p password /t http://timestamp.digicert.com my_app.exe
+```
+
+<Note>
+Code signing prevents Windows SmartScreen warnings and builds user trust.
+</Note>
+
+### macOS Packaging
+
+#### Step 1: Build macOS Application
+
+```bash
+flet build macos \
+  --product "My Application" \
+  --org "com.mycompany" \
+  --bundle-id "com.mycompany.myapp" \
+  --build-version "1.0.0"
+```
+
+Output: `build/macos/Build/Products/Release/MyApp.app`
+
+#### Step 2: Code Signing
+
+Sign the app bundle:
+
+```bash
+codesign --deep --force --verify --verbose \
+  --sign "Developer ID Application: My Company (TEAM_ID)" \
+  --options runtime \
+  MyApp.app
+```
+
+#### Step 3: Notarization
+
+Notarize for Gatekeeper approval:
+
+<Steps>
+
+<Step title="Create a DMG">
+
+```bash
+hdiutil create -volname "My Application" -srcfolder MyApp.app \
+  -ov -format UDZO MyApp.dmg
+```
+
+</Step>
+
+<Step title="Sign the DMG">
+
+```bash
+codesign --sign "Developer ID Application: My Company (TEAM_ID)" MyApp.dmg
+```
+
+</Step>
+
+<Step title="Submit for notarization">
+
+```bash
+xcrun notarytool submit MyApp.dmg \
+  --apple-id "your@email.com" \
+  --team-id "TEAM_ID" \
+  --password "app-specific-password" \
+  --wait
+```
+
+</Step>
+
+<Step title="Staple the ticket">
+
+```bash
+xcrun stapler staple MyApp.dmg
+```
+
+</Step>
+
+</Steps>
+
+<Warning>
+macOS notarization requires an Apple Developer account ($99/year).
+</Warning>
+
+#### Creating a DMG with Custom Background
+
+Use `create-dmg` tool:
+
+```bash
+brew install create-dmg
+
+create-dmg \
+  --volname "My Application" \
+  --volicon "assets/icon.icns" \
+  --window-pos 200 120 \
+  --window-size 800 400 \
+  --icon-size 100 \
+  --icon "MyApp.app" 200 190 \
+  --hide-extension "MyApp.app" \
+  --app-drop-link 600 185 \
+  "MyApp-Installer.dmg" \
+  "MyApp.app"
+```
+
+### Linux Packaging
+
+#### Step 1: Build Linux Application
+
+```bash
+flet build linux \
+  --product "My Application" \
+  --build-version "1.0.0"
+```
+
+Output: `build/linux/x64/release/bundle/`
+
+#### AppImage (Recommended)
+
+Create a portable AppImage:
+
+<Steps>
+
+<Step title="Download AppImageTool">
+
+```bash
+wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+chmod +x appimagetool-x86_64.AppImage
+```
+
+</Step>
+
+<Step title="Create AppDir structure">
+
+```bash
+mkdir -p MyApp.AppDir/usr/bin
+mkdir -p MyApp.AppDir/usr/share/applications
+mkdir -p MyApp.AppDir/usr/share/icons/hicolor/256x256/apps
+
+cp -r build/linux/x64/release/bundle/* MyApp.AppDir/usr/bin/
+cp assets/icon.png MyApp.AppDir/usr/share/icons/hicolor/256x256/apps/myapp.png
+```
+
+</Step>
+
+<Step title="Create desktop file">
+
+```ini MyApp.AppDir/usr/share/applications/myapp.desktop
+[Desktop Entry]
+Type=Application
+Name=My Application
+Exec=my_app
+Icon=myapp
+Categories=Utility;
+```
+
+Copy to root:
+```bash
+cp MyApp.AppDir/usr/share/applications/myapp.desktop MyApp.AppDir/
+```
+
+</Step>
+
+<Step title="Build AppImage">
+
+```bash
+./appimagetool-x86_64.AppImage MyApp.AppDir MyApp-1.0.0-x86_64.AppImage
+```
+
+</Step>
+
+</Steps>
+
+#### DEB Package (Debian/Ubuntu)
+
+Create directory structure:
+
+```bash
+mkdir -p myapp_1.0.0/DEBIAN
+mkdir -p myapp_1.0.0/usr/bin
+mkdir -p myapp_1.0.0/usr/share/applications
+
+cp -r build/linux/x64/release/bundle/* myapp_1.0.0/usr/bin/
+```
+
+Create control file:
+
+```text myapp_1.0.0/DEBIAN/control
+Package: myapp
+Version: 1.0.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: My Company <support@example.com>
+Description: My Application
+ A longer description of my application.
+```
+
+Build package:
+
+```bash
+dpkg-deb --build myapp_1.0.0
+```
+
+## Mobile Application Packaging
+
+### Android APK Distribution
+
+For direct distribution outside Google Play:
+
+<Steps>
+
+<Step title="Build signed APK">
+
+```bash
+flet build apk \
+  --product "My Mobile App" \
+  --org "com.mycompany" \
+  --build-version "1.0.0" \
+  --build-number 1 \
+  --android-signing-key-store "my-app.jks" \
+  --android-signing-key-alias "my-app-key"
+```
+
+</Step>
+
+<Step title="Test APK">
+
+Install on device:
+```bash
+adb install build/apk/app-release.apk
+```
+
+</Step>
+
+<Step title="Distribute">
+
+Share the APK file directly or host on your website.
+
+</Step>
+
+</Steps>
+
+<Note>
+Users must enable "Install from Unknown Sources" in Android settings.
+</Note>
+
+### Google Play Store (AAB)
+
+<Steps>
+
+<Step title="Build AAB">
+
+```bash
+flet build aab \
+  --product "My Mobile App" \
+  --org "com.mycompany" \
+  --bundle-id "com.mycompany.mymobileapp" \
+  --build-version "1.0.0" \
+  --build-number 1 \
+  --android-signing-key-store "my-app.jks" \
+  --android-signing-key-alias "my-app-key"
+```
+
+</Step>
+
+<Step title="Test with bundletool">
+
+```bash
+# Generate APKs from AAB
+bundletool build-apks --bundle=build/aab/app-release.aab \
+  --output=my-app.apks \
+  --ks=my-app.jks \
+  --ks-key-alias=my-app-key
+
+# Install to connected device
+bundletool install-apks --apks=my-app.apks
+```
+
+</Step>
+
+<Step title="Upload to Play Console">
+
+1. Go to [Google Play Console](https://play.google.com/console)
+2. Create a new app or select existing
+3. Navigate to Production > Releases
+4. Upload `app-release.aab`
+5. Complete store listing and submit for review
+
+</Step>
+
+</Steps>
+
+### Apple App Store (iOS)
+
+<Steps>
+
+<Step title="Build IPA">
+
+```bash
+flet build ipa \
+  --product "My iOS App" \
+  --org "com.mycompany" \
+  --bundle-id "com.mycompany.myiosapp" \
+  --build-version "1.0.0" \
+  --build-number 1 \
+  --ios-team-id "TEAM_ID" \
+  --ios-provisioning-profile "My App Distribution Profile" \
+  --ios-export-method "app-store"
+```
+
+</Step>
+
+<Step title="Upload to App Store Connect">
+
+Use Xcode or Transporter app:
+
+```bash
+# Using xcrun (command line)
+xcrun altool --upload-app -f build/ipa/my_app.ipa \
+  -t ios \
+  -u "your@email.com" \
+  -p "app-specific-password"
+```
+
+Or drag IPA into Transporter app.
+
+</Step>
+
+<Step title="Submit for review">
+
+1. Go to [App Store Connect](https://appstoreconnect.apple.com)
+2. Select your app
+3. Complete app information and screenshots
+4. Submit for review
+
+</Step>
+
+</Steps>
+
+## Web Application Packaging
+
+### Static Site Deployment
+
+<Steps>
+
+<Step title="Build web app">
+
+```bash
+flet build web \
+  --product "My Web App" \
+  --base-url "/" \
+  --web-renderer "canvaskit"
+```
+
+</Step>
+
+<Step title="Optimize assets">
+
+Compress images and assets:
+```bash
+cd build/web
+find . -name '*.png' -exec optipng -o7 {} \;
+find . -name '*.jpg' -exec jpegoptim --strip-all {} \;
+```
+
+</Step>
+
+<Step title="Deploy">
+
+Copy `build/web/` to your web server or CDN.
+
+</Step>
+
+</Steps>
+
+### Docker Container (Server-Side)
+
+Create production-ready Docker image:
+
+```dockerfile Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application
+COPY . .
+
+# Create non-root user
+RUN useradd -m -u 1000 flet && chown -R flet:flet /app
+USER flet
+
+EXPOSE 8000
+
+CMD ["python", "main.py"]
+```
+
+Build and publish:
+
+```bash
+# Build image
+docker build -t my-flet-app:1.0.0 .
+
+# Tag for registry
+docker tag my-flet-app:1.0.0 myregistry.com/my-flet-app:1.0.0
+
+# Push to registry
+docker push myregistry.com/my-flet-app:1.0.0
+```
+
+## Configuration Management
+
+### Using pyproject.toml
+
+Centralize all build configuration:
+
+```toml pyproject.toml
+[project]
+name = "my-app"
+version = "1.0.0"
+description = "My cross-platform application"
+
+[tool.flet]
+product = "My Application"
+artifact = "my-app"
+company = "My Company"
+org = "com.mycompany"
+copyright = "Copyright (C) 2025 My Company"
+build_number = 1
+
+[tool.flet.app]
+path = "src"
+
+# Desktop-specific
+[tool.flet.windows]
+artifact = "MyApp.exe"
+
+[tool.flet.macos]
+bundle_id = "com.mycompany.myapp"
+
+[tool.flet.linux]
+artifact = "my-app"
+
+# Mobile-specific
+[tool.flet.android]
+bundle_id = "com.mycompany.myapp"
+
+[tool.flet.ios]
+bundle_id = "com.mycompany.myapp"
+team_id = "ABCDE12345"
+
+# Web-specific
+[tool.flet.web]
+base_url = "/"
+renderer = "canvaskit"
+```
+
+Build for any platform:
+
+```bash
+flet build windows  # Uses config from pyproject.toml
+flet build macos
+flet build apk
+flet build web
+```
+
+## Version Management
+
+Maintain consistent versioning:
+
+```toml pyproject.toml
+[project]
+version = "1.0.0"  # Semantic version
+
+[tool.flet]
+build_number = 1  # Increment for each build
+```
+
+The `build_number` must increment with each release:
+- **Android**: Required by Google Play
+- **iOS**: Required by App Store
+- **Desktop**: Optional but recommended
+
+<Warning>
+Always increment `build_number` for new releases, even if version stays the same.
+</Warning>
+
+## Asset Optimization
+
+### Exclude Unnecessary Files
+
+```bash
+flet build windows \
+  --exclude "tests/**" \
+  --exclude "docs/**" \
+  --exclude "*.md" \
+  --exclude ".git/**"
+```
+
+Or in `pyproject.toml`:
+
+```toml
+[tool.flet]
+exclude = [
+    "tests/**",
+    "docs/**",
+    "*.md",
+    ".git/**"
+]
+```
+
+### Compile Python Files
+
+Reduce package size and improve load time:
+
+```bash
+flet build windows \
+  --compile-app \         # Compile app code to .pyc
+  --compile-packages \    # Compile dependencies to .pyc
+  --cleanup-packages      # Remove unnecessary package files
+```
+
+## Distribution Checklist
+
+<Steps>
+
+<Step title="Pre-Build">
+
+- [ ] Update version in `pyproject.toml`
+- [ ] Increment `build_number`
+- [ ] Test app thoroughly
+- [ ] Update changelog/release notes
+- [ ] Optimize assets (images, icons)
+
+</Step>
+
+<Step title="Build">
+
+- [ ] Build for target platforms
+- [ ] Verify build output
+- [ ] Test built application
+- [ ] Check file sizes
+
+</Step>
+
+<Step title="Sign & Package">
+
+- [ ] Code sign (Windows/macOS)
+- [ ] Create installers/packages
+- [ ] Notarize (macOS)
+- [ ] Test installation
+
+</Step>
+
+<Step title="Distribute">
+
+- [ ] Upload to stores or hosting
+- [ ] Create release on GitHub/GitLab
+- [ ] Publish release notes
+- [ ] Monitor for issues
+
+</Step>
+
+</Steps>
+
+## Next Steps
+
+- Learn about [Deployment](/guides/deployment) strategies
+- Explore [Desktop Apps](/guides/desktop-apps) build options
+- Read about [Mobile Apps](/guides/mobile-apps) distribution

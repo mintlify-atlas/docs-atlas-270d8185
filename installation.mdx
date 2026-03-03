@@ -1,0 +1,243 @@
+---
+title: Installation
+description: Install Flet and set up your development environment for building cross-platform applications in Python.
+---
+
+# Installation
+
+Get started with Flet by installing the package and setting up your development environment.
+
+## Requirements
+
+Before installing Flet, ensure you have:
+
+- **Python 3.10 or higher** - Flet requires a modern Python version
+- **pip** or **conda** - Python package manager
+
+<Note>
+You can check your Python version by running `python --version` in your terminal.
+</Note>
+
+## Install Flet
+
+Choose your preferred package manager to install Flet:
+
+<CodeGroup>
+
+```bash pip
+pip install flet
+```
+
+```bash pip (with all extras)
+pip install 'flet[all]'
+```
+
+```bash conda
+conda install -c conda-forge flet
+```
+
+```bash uv
+uv pip install flet
+```
+
+</CodeGroup>
+
+<Info>
+The `flet[all]` option includes additional dependencies for all Flet features. Use the basic `flet` package if you want a lighter installation.
+</Info>
+
+## Verify installation
+
+Confirm that Flet is installed correctly:
+
+```bash
+python -c "import flet as ft; print(ft.__version__)"
+```
+
+You should see the Flet version number printed to your terminal.
+
+## Platform-specific setup
+
+### Windows
+
+No additional setup is required for Windows. Flet works out of the box.
+
+<Steps>
+  <Step title="Install Python">
+    Download and install Python from [python.org](https://www.python.org/downloads/) if you haven't already.
+  </Step>
+  
+  <Step title="Install Flet">
+    Open Command Prompt or PowerShell and run:
+    ```bash
+    pip install flet
+    ```
+  </Step>
+  
+  <Step title="Start building">
+    You're ready to create Flet apps on Windows!
+  </Step>
+</Steps>
+
+### macOS
+
+Flet runs natively on macOS with no additional dependencies.
+
+<Steps>
+  <Step title="Install Python">
+    Install Python using Homebrew (recommended):
+    ```bash
+    brew install python@3.10
+    ```
+  </Step>
+  
+  <Step title="Install Flet">
+    Open Terminal and run:
+    ```bash
+    pip install flet
+    ```
+  </Step>
+  
+  <Step title="Start building">
+    You're ready to create Flet apps on macOS!
+  </Step>
+</Steps>
+
+### Linux
+
+Flet works on most Linux distributions. Some systems may require additional packages.
+
+<Steps>
+  <Step title="Install system dependencies">
+    On Ubuntu/Debian:
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y python3-pip python3-dev
+    ```
+    
+    On Fedora/RHEL:
+    ```bash
+    sudo dnf install python3-pip python3-devel
+    ```
+  </Step>
+  
+  <Step title="Install Flet">
+    ```bash
+    pip install flet
+    ```
+  </Step>
+  
+  <Step title="Additional libraries (if needed)">
+    If you encounter issues running Flet apps, you may need these libraries:
+    ```bash
+    sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+    ```
+  </Step>
+</Steps>
+
+## Development tools
+
+While not required, these tools enhance your Flet development experience:
+
+### Code editor
+
+We recommend using:
+
+- **Visual Studio Code** with the Python extension
+- **PyCharm** (Community or Professional)
+- **Any editor** with Python support and autocomplete
+
+### Virtual environment
+
+Create an isolated environment for your Flet projects:
+
+<CodeGroup>
+
+```bash venv
+# Create virtual environment
+python -m venv flet-env
+
+# Activate on Windows
+flet-env\Scripts\activate
+
+# Activate on macOS/Linux
+source flet-env/bin/activate
+
+# Install Flet
+pip install flet
+```
+
+```bash conda
+# Create conda environment
+conda create -n flet-env python=3.10
+
+# Activate environment
+conda activate flet-env
+
+# Install Flet
+conda install -c conda-forge flet
+```
+
+</CodeGroup>
+
+<Note>
+Using a virtual environment is recommended to keep your Flet projects isolated and avoid dependency conflicts.
+</Note>
+
+## Mobile development setup
+
+To build and deploy Flet apps to mobile devices, you'll need additional tools:
+
+### iOS development
+
+- **macOS** is required for iOS development
+- **Xcode** - Download from the Mac App Store
+- **CocoaPods** - Install with `sudo gem install cocoapods`
+
+### Android development
+
+- **Android Studio** or **Android SDK** command-line tools
+- **Java Development Kit (JDK)** version 11 or higher
+
+<Info>
+You don't need these tools for initial development. You can build and test Flet apps on desktop and web first, then add mobile deployment later.
+</Info>
+
+## Testing on mobile devices
+
+During development, you can test your Flet app on mobile devices without building a full package:
+
+1. **Install Flet app** on your mobile device:
+   - [Flet for iOS](https://apps.apple.com/app/flet/id1624979699) from App Store
+   - [Flet for Android](https://play.google.com/store/apps/details?id=com.appveyor.flet) from Google Play
+
+2. **Run your app** with the `--ios` or `--android` flag:
+   ```bash
+   flet run --ios your_app.py
+   ```
+
+3. **Scan the QR code** displayed in your terminal with your device
+
+## Update Flet
+
+Keep Flet up to date to access the latest features and fixes:
+
+<CodeGroup>
+
+```bash pip
+pip install --upgrade flet
+```
+
+```bash conda
+conda update -c conda-forge flet
+```
+
+</CodeGroup>
+
+## Next steps
+
+Now that you have Flet installed, you're ready to build your first app:
+
+<Card title="Quick start tutorial" icon="rocket" href="/quickstart">
+  Build an interactive counter app in minutes and learn the basics of Flet.
+</Card>

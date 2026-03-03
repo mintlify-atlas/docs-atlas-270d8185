@@ -1,0 +1,399 @@
+---
+title: flet run
+description: Run Flet applications in hot reload mode for rapid development.
+---
+
+The `flet run` command runs your Flet application with hot reload enabled, automatically restarting when you modify your code. This is the primary command used during development.
+
+## Basic Usage
+
+```bash
+flet run [script] [options]
+```
+
+If no script is specified, Flet looks for `main.py` in the current directory.
+
+## Examples
+
+### Run Default Script
+
+```bash
+flet run
+```
+
+Runs `main.py` in the current directory.
+
+### Run Specific Script
+
+```bash
+flet run app.py
+```
+
+### Run as Web App
+
+```bash
+flet run --web
+```
+
+Launches the app in your default web browser.
+
+### Run as Module
+
+```bash
+flet run -m my_package.main
+```
+
+Runs a Python module instead of a file.
+
+### Watch Directory Recursively
+
+```bash
+flet run -d -r
+```
+
+Watches the script directory and all subdirectories for changes.
+
+### Run on Mobile Device
+
+```bash
+# Android
+flet run --android
+
+# iOS
+flet run --ios
+```
+
+Displays a QR code to connect from your mobile device.
+
+## Arguments
+
+<ParamField path="script" type="string" default=".">
+  Path to the Python script that starts your Flet app. If a directory is provided, Flet looks for `main.py` inside it.
+
+  ```bash
+  flet run app.py
+  flet run src/
+  ```
+</ParamField>
+
+## Options
+
+### Port and Host
+
+<ParamField path="-p, --port" type="integer">
+  Custom TCP or HTTP port to run the app on. If not specified, a random port is chosen.
+
+  ```bash
+  flet run --port 8080
+  ```
+</ParamField>
+
+<ParamField path="--host" type="string">
+  The host to run Flet web app on. Use `"*"` to listen on all network interfaces.
+
+  ```bash
+  flet run --web --host "*" --port 8080
+  ```
+
+  This makes your app accessible from other devices on your network.
+</ParamField>
+
+<ParamField path="--name" type="string">
+  A unique name for your app. Useful when running multiple apps on the same port.
+
+  ```bash
+  flet run --name my-app
+  ```
+</ParamField>
+
+### Module Mode
+
+<ParamField path="-m, --module" type="flag">
+  Treat the script as a Python module path instead of a file path.
+
+  ```bash
+  flet run -m my_app.main
+  ```
+
+  This is equivalent to `python -m my_app.main`.
+</ParamField>
+
+### Hot Reload
+
+<ParamField path="-d, --directory" type="flag">
+  Watch the directory of the script for changes and hot reload the app accordingly.
+
+  ```bash
+  flet run -d
+  ```
+
+  By default, only the main script file is watched.
+</ParamField>
+
+<ParamField path="-r, --recursive" type="flag">
+  Watch script directory and all its subdirectories recursively for file changes.
+
+  ```bash
+  flet run -r
+  ```
+
+  Use this when your app has multiple files in nested directories.
+</ParamField>
+
+<ParamField path="--ignore-dirs" type="string">
+  Comma-separated list of directory names to ignore when watching for file changes.
+
+  ```bash
+  flet run -r --ignore-dirs "build,dist,.git,__pycache__"
+  ```
+
+  This prevents unnecessary reloads when files in these directories change.
+</ParamField>
+
+### Display Modes
+
+<ParamField path="-w, --web" type="flag">
+  Launch the Flet app as a dynamic website and automatically open it in your web browser.
+
+  ```bash
+  flet run --web
+  ```
+
+  The app runs as a web server instead of a desktop window.
+</ParamField>
+
+<ParamField path="-n, --hidden" type="flag">
+  Start the application with the window hidden.
+
+  ```bash
+  flet run --hidden
+  ```
+
+  Useful for system tray applications or background processes.
+</ParamField>
+
+### Mobile Platforms
+
+<ParamField path="--android" type="flag">
+  Launch the app for testing on an Android device.
+
+  ```bash
+  flet run --android
+  ```
+
+  Displays a QR code to scan with the Flet Android app.
+</ParamField>
+
+<ParamField path="--ios" type="flag">
+  Launch the app for testing on an iOS device.
+
+  ```bash
+  flet run --ios
+  ```
+
+  Displays a QR code to scan with the Flet iOS app.
+</ParamField>
+
+### Assets
+
+<ParamField path="-a, --assets" type="string" default="assets">
+  Path to a directory containing static assets used by the app (e.g., images, fonts).
+
+  ```bash
+  flet run --assets static/
+  ```
+
+  The assets directory is served alongside your app.
+</ParamField>
+
+## Terminal Output
+
+When you run `flet run`, you'll see output like this:
+
+### Desktop Mode
+
+```
+http://localhost:53247
+```
+
+The app opens in a native window, and the URL is displayed for debugging.
+
+### Web Mode
+
+```bash
+$ flet run --web
+http://localhost:8000
+```
+
+The app opens in your default browser.
+
+### Mobile Mode (Android)
+
+```bash
+$ flet run --android
+App is running on: http://192.168.1.100:8551
+
+[QR Code displayed here]
+
+Scan QR code above with Camera app.
+```
+
+## Hot Reload Behavior
+
+When Flet detects file changes:
+
+1. The app process is automatically terminated
+2. A new process is started with the updated code
+3. The app state is reset (no state persistence between reloads)
+
+### What Triggers Reload
+
+- **Without `-d` flag**: Only changes to the main script file
+- **With `-d` flag**: Changes to any file in the script's directory
+- **With `-r` flag**: Changes to any file in the script's directory and subdirectories
+
+### Ignored Files
+
+These file types do NOT trigger reload:
+- Temporary files (`.swp`, `.tmp`)
+- Version control directories (`.git`, `.svn`)
+- Python cache (`__pycache__`, `*.pyc`)
+- Directories specified in `--ignore-dirs`
+
+## pyproject.toml Configuration
+
+You can configure default paths in `pyproject.toml`:
+
+```toml
+[tool.flet.app]
+# Override the app path
+path = "src"
+```
+
+With this configuration:
+
+```bash
+flet run
+```
+
+Will look for `src/main.py` instead of `./main.py`.
+
+## Environment Variables
+
+The `flet run` command sets these environment variables for your app:
+
+- `FLET_SERVER_PORT` - The port the Flet server is running on
+- `FLET_SERVER_IP` - The host IP address (if `--host` is specified)
+- `FLET_SERVER_UDS_PATH` - Unix domain socket path (Unix/Linux only)
+- `FLET_WEB_APP_PATH` - App name/path (if `--name` is specified)
+- `FLET_ASSETS_DIR` - Assets directory path
+- `FLET_FORCE_WEB_SERVER` - Set to `"true"` in web/mobile modes
+- `FLET_APP_STORAGE_DATA` - Path to app's persistent storage
+- `FLET_APP_STORAGE_TEMP` - Path to app's temporary storage
+
+## Common Workflows
+
+### Development with Hot Reload
+
+```bash
+flet run -d -r
+```
+
+This watches all files in your project and reloads on any change.
+
+### Testing on Mobile
+
+```bash
+flet run --android
+```
+
+1. Run the command
+2. Scan the QR code with your Android device's camera
+3. Open the link in the Flet Android app
+4. Make changes to your code - the app reloads automatically
+
+### Multi-Device Testing
+
+```bash
+flet run --web --host "*" --port 8080
+```
+
+Access from any device on your network at `http://YOUR_IP:8080`.
+
+### Package Development
+
+```bash
+flet run -m my_package.app
+```
+
+Run your app as an installed package for testing.
+
+## Troubleshooting
+
+### Port Already in Use
+
+If you see an error about the port being in use:
+
+```bash
+flet run --port 8081
+```
+
+Choose a different port number.
+
+### Hot Reload Not Working
+
+Ensure you're using the `-d` or `-r` flags:
+
+```bash
+flet run -d
+```
+
+Check that your editor is actually saving files (some IDEs have auto-save delays).
+
+### Assets Not Loading
+
+Verify the assets directory exists and specify it explicitly:
+
+```bash
+flet run --assets ./assets
+```
+
+### Module Not Found
+
+When using `-m`, ensure the package is installed or in your `PYTHONPATH`:
+
+```bash
+pip install -e .
+flet run -m my_package.main
+```
+
+## Performance Considerations
+
+### File Watching
+
+Watching large directory trees with `-r` can be slow. Use `--ignore-dirs` to exclude:
+
+```bash
+flet run -r --ignore-dirs "node_modules,venv,.venv,build,dist"
+```
+
+### Web Server Mode
+
+Web mode (`--web`) is slightly slower to start than desktop mode due to browser launch time.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Build Command" icon="hammer" href="/cli/build">
+    Build production executables
+  </Card>
+  <Card title="Assets Guide" icon="images" href="/guides/python/assets">
+    Learn about managing assets
+  </Card>
+  <Card title="Publish Command" icon="cloud-arrow-up" href="/cli/publish">
+    Deploy as a web app
+  </Card>
+  <Card title="Hot Reload" icon="rotate" href="/guides/python/hot-reload">
+    Deep dive into hot reload
+  </Card>
+</CardGroup>

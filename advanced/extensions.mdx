@@ -1,0 +1,557 @@
+---
+title: Custom Controls & Extensions
+description: Learn how to create custom Flet controls, extend existing controls, and integrate platform-specific features into your applications.
+---
+
+Flet's extension system allows you to create custom controls, extend existing ones, and integrate platform-specific functionality. This enables you to build reusable UI components tailored to your application's needs.
+
+## Custom Controls Overview
+
+There are three main approaches to creating custom controls:
+
+1. **Component-based** - Using `@ft.component` decorator (recommended)
+2. **Control inheritance** - Extending existing controls with `@ft.control` decorator
+3. **UserControl** - Legacy class-based approach
+
+## Component-Based Custom Controls
+
+The modern, functional approach using components:
+
+```python
+import flet as ft
+
+@ft.component
+def CustomCard(title: str, content: str, color: str = ft.Colors.BLUE):
+    """A reusable card component with title and content"""
+    return ft.Container(
+        content=ft.Column([
+            ft.Text(title, size=20, weight=ft.FontWeight.BOLD),
+            ft.Divider(),
+            ft.Text(content),
+        ], tight=True),
+        padding=20,
+        border_radius=10,
+        bgcolor=color,
+        shadow=ft.BoxShadow(
+            spread_radius=1,
+            blur_radius=10,
+            color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK),
+        ),
+    )
+
+# Usage
+page.add(CustomCard(
+    title="Welcome",
+    content="This is a custom card component",
+    color=ft.Colors.BLUE_100
+))
+```
+
+Components can use hooks for state management:
+
+```python
+@ft.component
+def ExpandableCard(title: str, content: str):
+    """Card that can be expanded/collapsed"""
+    expanded, set_expanded = ft.use_state(False)
+    
+    return ft.Container(
+        content=ft.Column([
+            ft.Row([
+                ft.Text(title, size=18, weight=ft.FontWeight.BOLD),
+                ft.IconButton(
+                    icon=ft.Icons.EXPAND_MORE if not expanded else ft.Icons.EXPAND_LESS,
+                    on_click=lambda _: set_expanded(not expanded),
+                ),
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ft.Text(content, visible=expanded),
+        ], tight=True),
+        padding=15,
+        border=ft.border.all(1, ft.Colors.OUTLINE),
+        border_radius=8,
+    )
+```
+
+## Extending Controls with @ft.control
+
+Create custom controls by extending existing Flet controls:
+
+**Location:** `sdk/python/examples/apps/custom_controls/custom_buttons.py:9`
+
+### Using @ft.control Decorator
+
+```python
+import flet as ft
+from dataclasses import field
+
+@ft.control
+class PrimaryButton(ft.ElevatedButton):
+    """Custom button with predefined styling"""
+    expand: int = 1
+    bgcolor: str = ft.Colors.BLUE_ACCENT
+    color: str = ft.Colors.WHITE
+    style: ft.ButtonStyle = field(
+        default_factory=lambda: ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=10),
+            elevation=5,
+        )
+    )
+
+# Usage
+page.add(
+    ft.Row([
+        PrimaryButton("Save", icon=ft.Icons.SAVE),
+        PrimaryButton("Cancel", icon=ft.Icons.CANCEL),
+    ])
+)
+```
+
+### Using Dataclass
+
+**Location:** `sdk/python/examples/apps/custom_controls/custom_buttons.py:20`
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class DangerButton(ft.ElevatedButton):
+    """Red button for destructive actions"""
+    expand: int = 1
+    bgcolor: str = ft.Colors.RED_ACCENT
+    color: str = ft.Colors.WHITE
+    style: ft.ButtonStyle = field(
+        default_factory=lambda: ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=20)
+        )
+    )
+    icon: str = ft.Icons.DELETE
+```
+
+### Using init() Method
+
+**Location:** `sdk/python/examples/apps/custom_controls/custom_buttons.py:31`
+
+```python
+@ft.control
+class IconButton(ft.ElevatedButton):
+    """Button with customizable icon and styling"""
+    
+    def init(self):
+        self.expand = 1
+        self.bgcolor = ft.Colors.GREEN_ACCENT
+        self.color = ft.Colors.WHITE
+        self.style = ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=30)
+        )
+```
+
+## Complex Custom Controls
+
+### Stateful Custom Control
+
+```python
+@ft.component
+def RatingControl(initial_rating: int = 0, on_rating_changed=None):
+    """Interactive star rating control"""
+    rating, set_rating = ft.use_state(initial_rating)
+    hover, set_hover = ft.use_state(0)
+    
+    def handle_click(star_index):
+        def on_click(_):
+            new_rating = star_index + 1
+            set_rating(new_rating)
+            if on_rating_changed:
+                on_rating_changed(new_rating)
+        return on_click
+    
+    def handle_hover(star_index):
+        return lambda _: set_hover(star_index + 1)
+    
+    def handle_hover_exit(_):
+        set_hover(0)
+    
+    stars = []
+    for i in range(5):
+        filled = i < (hover if hover > 0 else rating)
+        stars.append(
+            ft.IconButton(
+                icon=ft.Icons.STAR if filled else ft.Icons.STAR_BORDER,
+                icon_color=ft.Colors.AMBER if filled else ft.Colors.GREY,
+                on_click=handle_click(i),
+                on_hover=handle_hover(i),
+            )
+        )
+    
+    return ft.Row(
+        stars,
+        spacing=5,
+        on_hover=lambda e: handle_hover_exit(e) if not e.data == "true" else None,
+    )
+```
+
+### Form Input Group
+
+```python
+@ft.component
+def FormField(label: str, required: bool = False, error: str = None):
+    """Reusable form field with label and validation"""
+    value, set_value = ft.use_state("")
+    
+    def validate(e):
+        new_value = e.control.value
+        set_value(new_value)
+        
+        if required and not new_value:
+            e.control.error_text = f"{label} is required"
+        else:
+            e.control.error_text = None
+        e.control.update()
+    
+    return ft.Column([
+        ft.Text(
+            label + (" *" if required else ""),
+            weight=ft.FontWeight.BOLD,
+        ),
+        ft.TextField(
+            value=value,
+            on_change=validate,
+            on_blur=validate,
+            error_text=error,
+        ),
+    ], spacing=5)
+```
+
+## Custom Input Controls
+
+### Number Stepper
+
+```python
+@ft.component
+def NumberStepper(initial_value: int = 0, min_value: int = 0, max_value: int = 100, step: int = 1):
+    """Number input with increment/decrement buttons"""
+    value, set_value = ft.use_state(initial_value)
+    
+    def increment(_):
+        if value < max_value:
+            set_value(value + step)
+    
+    def decrement(_):
+        if value > min_value:
+            set_value(value - step)
+    
+    def handle_input(e):
+        try:
+            new_value = int(e.control.value)
+            if min_value <= new_value <= max_value:
+                set_value(new_value)
+            else:
+                e.control.value = str(value)
+                e.control.update()
+        except ValueError:
+            e.control.value = str(value)
+            e.control.update()
+    
+    return ft.Row([
+        ft.IconButton(
+            icon=ft.Icons.REMOVE,
+            on_click=decrement,
+            disabled=value <= min_value,
+        ),
+        ft.Container(
+            content=ft.TextField(
+                value=str(value),
+                text_align=ft.TextAlign.CENTER,
+                width=80,
+                on_change=handle_input,
+            ),
+            alignment=ft.alignment.center,
+        ),
+        ft.IconButton(
+            icon=ft.Icons.ADD,
+            on_click=increment,
+            disabled=value >= max_value,
+        ),
+    ], spacing=10)
+```
+
+### Color Picker
+
+```python
+@ft.component
+def ColorPicker(initial_color: str = ft.Colors.BLUE, on_color_changed=None):
+    """Simple color picker control"""
+    color, set_color = ft.use_state(initial_color)
+    
+    colors = [
+        ft.Colors.RED, ft.Colors.PINK, ft.Colors.PURPLE,
+        ft.Colors.BLUE, ft.Colors.CYAN, ft.Colors.GREEN,
+        ft.Colors.YELLOW, ft.Colors.ORANGE, ft.Colors.BROWN,
+    ]
+    
+    def select_color(c):
+        def on_click(_):
+            set_color(c)
+            if on_color_changed:
+                on_color_changed(c)
+        return on_click
+    
+    color_buttons = [
+        ft.Container(
+            bgcolor=c,
+            width=40,
+            height=40,
+            border_radius=20,
+            border=ft.border.all(3, ft.Colors.BLACK if c == color else ft.Colors.TRANSPARENT),
+            on_click=select_color(c),
+        )
+        for c in colors
+    ]
+    
+    return ft.Column([
+        ft.Container(
+            bgcolor=color,
+            width=100,
+            height=100,
+            border_radius=10,
+            border=ft.border.all(2, ft.Colors.OUTLINE),
+        ),
+        ft.Row(color_buttons, wrap=True, spacing=10),
+    ], spacing=15)
+```
+
+## Platform-Specific Extensions
+
+### Desktop File Picker
+
+```python
+@ft.component
+def FilePicker():
+    """File picker with selected file display"""
+    selected_file, set_selected_file = ft.use_state(None)
+    
+    file_picker = ft.use_ref()
+    
+    def handle_result(e: ft.FilePickerResultEvent):
+        if e.files:
+            set_selected_file(e.files[0].path)
+    
+    if file_picker.current is None:
+        file_picker.current = ft.FilePicker(on_result=handle_result)
+    
+    def pick_file(_):
+        file_picker.current.pick_files()
+    
+    return ft.Column([
+        file_picker.current,
+        ft.ElevatedButton(
+            "Select File",
+            icon=ft.Icons.UPLOAD_FILE,
+            on_click=pick_file,
+        ),
+        ft.Text(f"Selected: {selected_file}") if selected_file else ft.Container(),
+    ])
+```
+
+### Native Dialogs
+
+```python
+@ft.component
+def ConfirmDialog(title: str, message: str, on_confirm=None, on_cancel=None):
+    """Confirmation dialog with callbacks"""
+    open_dialog, set_open = ft.use_state(False)
+    
+    def handle_confirm(_):
+        set_open(False)
+        if on_confirm:
+            on_confirm()
+    
+    def handle_cancel(_):
+        set_open(False)
+        if on_cancel:
+            on_cancel()
+    
+    dialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text(title),
+        content=ft.Text(message),
+        actions=[
+            ft.TextButton("Cancel", on_click=handle_cancel),
+            ft.TextButton("Confirm", on_click=handle_confirm),
+        ],
+        actions_alignment=ft.MainAxisAlignment.END,
+        open=open_dialog,
+    )
+    
+    return dialog
+```
+
+## Creating Control Libraries
+
+Organize custom controls into reusable libraries:
+
+**ui_components/__init__.py:**
+```python
+from .buttons import PrimaryButton, DangerButton
+from .forms import FormField, NumberStepper
+from .cards import CustomCard, ExpandableCard
+from .pickers import ColorPicker, FilePicker
+
+__all__ = [
+    "PrimaryButton",
+    "DangerButton",
+    "FormField",
+    "NumberStepper",
+    "CustomCard",
+    "ExpandableCard",
+    "ColorPicker",
+    "FilePicker",
+]
+```
+
+**Usage:**
+```python
+import flet as ft
+from ui_components import PrimaryButton, FormField, CustomCard
+
+def main(page: ft.Page):
+    page.add(
+        CustomCard(
+            title="Registration",
+            content=ft.Column([
+                FormField(label="Name", required=True),
+                FormField(label="Email", required=True),
+                PrimaryButton("Submit", on_click=handle_submit),
+            ])
+        )
+    )
+
+ft.run(main)
+```
+
+## Extension Best Practices
+
+1. **Use components for composition** - Build complex UIs from simple components
+2. **Use @ft.control for inheritance** - Extend controls when you need inheritance
+3. **Provide sensible defaults** - Make controls easy to use out of the box
+4. **Document your controls** - Include docstrings with usage examples
+5. **Use type hints** - Help users understand expected parameters
+6. **Follow naming conventions** - Use clear, descriptive names
+7. **Keep controls focused** - Each control should do one thing well
+8. **Make controls configurable** - Use props/parameters for customization
+9. **Test your controls** - Write tests for custom functionality
+10. **Version your libraries** - Use semantic versioning for control libraries
+
+## Publishing Custom Controls
+
+Share your controls with the community:
+
+**setup.py:**
+```python
+from setuptools import setup, find_packages
+
+setup(
+    name="flet-ui-components",
+    version="0.1.0",
+    packages=find_packages(),
+    install_requires=[
+        "flet>=0.20.0",
+    ],
+    author="Your Name",
+    description="Custom UI components for Flet",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    url="https://github.com/yourusername/flet-ui-components",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    python_requires=">=3.8",
+)
+```
+
+**README.md:**
+```markdown
+# Flet UI Components
+
+Custom UI components for Flet applications.
+
+## Installation
+
+```bash
+pip install flet-ui-components
+```
+
+## Usage
+
+```python
+import flet as ft
+from flet_ui_components import PrimaryButton, CustomCard
+
+def main(page):
+    page.add(
+        CustomCard(
+            title="Hello",
+            content="World"
+        )
+    )
+
+ft.run(main)
+```
+```
+
+## Migration from UserControl
+
+If you have existing `UserControl` classes, here's how to migrate:
+
+**Old (UserControl):**
+```python
+class CustomCard(ft.UserControl):
+    def __init__(self, title, content):
+        super().__init__()
+        self.title = title
+        self.content = content
+    
+    def build(self):
+        return ft.Container(
+            content=ft.Column([
+                ft.Text(self.title, weight=ft.FontWeight.BOLD),
+                ft.Text(self.content),
+            ])
+        )
+```
+
+**New (Component):**
+```python
+@ft.component
+def CustomCard(title: str, content: str):
+    return ft.Container(
+        content=ft.Column([
+            ft.Text(title, weight=ft.FontWeight.BOLD),
+            ft.Text(content),
+        ])
+    )
+```
+
+Benefits of components:
+- Less boilerplate code
+- Built-in hook support
+- Better performance with memoization
+- Easier to test and compose
+
+## Advanced: Low-Level Control Creation
+
+For very advanced use cases, you can create controls that interface with the underlying Flutter/platform layer, but this requires:
+
+1. Understanding Flet's client-server protocol
+2. Creating corresponding Flutter/platform implementations
+3. Registering custom control types
+
+This is beyond the scope of most applications. Use components and control inheritance for 99% of use cases.
+
+## Next Steps
+
+- Build [Components](/advanced/components) with custom controls
+- Use [Hooks](/advanced/hooks) for stateful controls
+- Write [Tests](/advanced/testing) for your custom controls
+- Share your controls with the Flet community!

@@ -1,0 +1,536 @@
+---
+title: Testing Flet Applications
+description: Learn how to write integration tests for Flet applications using the testing framework, finders, and tester utilities.
+---
+
+Flet provides a comprehensive testing framework that allows you to write integration tests for your applications. The testing API is inspired by Flutter's testing framework and provides tools to interact with and verify your app's behavior.
+
+## Overview
+
+Flet testing enables you to:
+
+- Launch and interact with Flet apps programmatically
+- Find controls by text, icon, type, or key
+- Simulate user interactions (taps, text input, etc.)
+- Verify control properties and state
+- Test async operations with pump and settle
+
+**Location:** `sdk/python/packages/flet/integration_tests/`
+
+## Setup
+
+Install the testing dependencies:
+
+```bash
+pip install flet pytest pytest-asyncio
+```
+
+## Basic Test Structure
+
+Tests use `pytest` with async support:
+
+**Location:** `sdk/python/packages/flet/integration_tests/apps/counter/test_counter_app.py:1`
+
+```python
+import pytest
+import flet as ft
+import flet.testing as ftt
+
+from . import app  # Your app module
+
+@pytest.mark.parametrize(
+    "flet_app",
+    [
+        {
+            "flet_app_main": app.main,
+        }
+    ],
+    indirect=True,
+)
+class TestApp:
+    @pytest.mark.asyncio(loop_scope="module")
+    async def test_app(self, flet_app: ftt.FletTestApp):
+        tester = flet_app.tester
+        await tester.pump_and_settle()
+        
+        # Your test assertions here
+```
+
+## Finding Controls
+
+The tester provides multiple finder methods:
+
+### Find by Text
+
+```python
+@pytest.mark.asyncio(loop_scope="module")
+async def test_find_text(self, flet_app: ftt.FletTestApp):
+    tester = flet_app.tester
+    await tester.pump_and_settle()
+    
+    # Find control with exact text
+    text_finder = await tester.find_by_text("Hello World")
+    assert text_finder.count == 1
+```
+
+### Find by Icon
+
+```python
+@pytest.mark.asyncio(loop_scope="module")
+async def test_find_icon(self, flet_app: ftt.FletTestApp):
+    tester = flet_app.tester
+    await tester.pump_and_settle()
+    
+    # Find control with specific icon
+    icon_finder = await tester.find_by_icon(ft.Icons.ADD)
+    assert icon_finder.count == 1
+```
+
+### Find by Key
+
+Keys are the most reliable way to find specific controls:
+
+```python
+# In your app
+def main(page: ft.Page):
+    page.add(
+        ft.ElevatedButton(
+            "Submit",
+            key="submit_button"
+        )
+    )
+
+# In your test
+@pytest.mark.asyncio(loop_scope="module")
+async def test_find_by_key(self, flet_app: ftt.FletTestApp):
+    tester = flet_app.tester
+    await tester.pump_and_settle()
+    
+    submit_btn = await tester.find_by_key("submit_button")
+    assert submit_btn.count == 1
+```
+
+### Find by Type
+
+```python
+@pytest.mark.asyncio(loop_scope="module")
+async def test_find_by_type(self, flet_app: ftt.FletTestApp):
+    tester = flet_app.tester
+    await tester.pump_and_settle()
+    
+    # Find all text fields
+    text_fields = await tester.find_by_type(ft.TextField)
+    assert text_fields.count == 3
+```
+
+## Simulating User Interactions
+
+### Tap/Click
+
+**Location:** `sdk/python/packages/flet/integration_tests/apps/counter/test_counter_app.py:28`
+
+```python
+@pytest.mark.asyncio(loop_scope="module")
+async def test_tap(self, flet_app: ftt.FletTestApp):
+    tester = flet_app.tester
+    await tester.pump_and_settle()
+    
+    # Find and tap a button
+    button = await tester.find_by_text("Click Me")
+    await tester.tap(button)
+    await tester.pump_and_settle()
+    
+    # Verify result
+    result = await tester.find_by_text("Button clicked!")
+    assert result.count == 1
+```
+
+### Text Input
+
+```python
+@pytest.mark.asyncio(loop_scope="module")
+async def test_text_input(self, flet_app: ftt.FletTestApp):
+    tester = flet_app.tester
+    await tester.pump_and_settle()
+    
+    # Find text field and enter text
+    text_field = await tester.find_by_key("username")
+    await tester.enter_text(text_field, "john_doe")
+    await tester.pump_and_settle()
+    
+    # Verify the text was entered
+    assert text_field.value == "john_doe"
+```
+
+### Multiple Taps
+
+```python
+@pytest.mark.asyncio(loop_scope="module")
+async def test_multiple_taps(self, flet_app: ftt.FletTestApp):
+    tester = flet_app.tester
+    await tester.pump_and_settle()
+    
+    increment_btn = await tester.find_by_icon(ft.Icons.ADD)
+    
+    # Tap multiple times
+    await tester.tap(increment_btn)
+    await tester.tap(increment_btn)
+    await tester.tap(increment_btn)
+    await tester.pump_and_settle()
+    
+    counter_text = await tester.find_by_text("3")
+    assert counter_text.count == 1
+```
+
+## Pump and Settle
+
+### pump()
+
+Triggers a single frame update:
+
+```python
+@pytest.mark.asyncio(loop_scope="module")
+async def test_with_pump(self, flet_app: ftt.FletTestApp):
+    tester = flet_app.tester
+    
+    # Trigger a single frame
+    await tester.pump()
+```
+
+### pump_and_settle()
+
+Waits for all animations and async operations to complete:
+
+**Location:** `sdk/python/packages/flet/integration_tests/apps/counter/test_counter_app.py:22`
+
+```python
+@pytest.mark.asyncio(loop_scope="module")
+async def test_with_settle(self, flet_app: ftt.FletTestApp):
+    tester = flet_app.tester
+    
+    # Wait for everything to settle
+    await tester.pump_and_settle()
+    
+    # App is fully loaded and ready
+    welcome_text = await tester.find_by_text("Welcome")
+    assert welcome_text.count == 1
+```
+
+### pump_and_settle() with timeout
+
+```python
+@pytest.mark.asyncio(loop_scope="module")
+async def test_with_timeout(self, flet_app: ftt.FletTestApp):
+    tester = flet_app.tester
+    
+    # Wait up to 5 seconds for app to settle
+    await tester.pump_and_settle(timeout=5000)
+```
+
+## Testing Counter App
+
+Here's a complete example testing a counter application:
+
+**Location:** `sdk/python/packages/flet/integration_tests/apps/counter/test_counter_app.py:9`
+
+```python
+import pytest
+import flet as ft
+import flet.testing as ftt
+
+# App code
+def main(page: ft.Page):
+    page.title = "Counter App"
+    
+    count_text = ft.Text("0", size=40)
+    
+    def increment(e):
+        count_text.value = str(int(count_text.value) + 1)
+        page.update()
+    
+    def decrement(e):
+        count_text.value = str(int(count_text.value) - 1)
+        page.update()
+    
+    page.add(
+        ft.Column([
+            count_text,
+            ft.Row([
+                ft.IconButton(
+                    icon=ft.Icons.ADD,
+                    on_click=increment,
+                ),
+                ft.IconButton(
+                    icon=ft.Icons.REMOVE,
+                    key="decrement",
+                    on_click=decrement,
+                ),
+            ])
+        ])
+    )
+
+# Test code
+@pytest.mark.parametrize(
+    "flet_app",
+    [{"flet_app_main": main}],
+    indirect=True,
+)
+class TestCounterApp:
+    @pytest.mark.asyncio(loop_scope="module")
+    async def test_counter(self, flet_app: ftt.FletTestApp):
+        tester = flet_app.tester
+        await tester.pump_and_settle()
+        
+        # Verify initial state
+        zero_text = await tester.find_by_text("0")
+        assert zero_text.count == 1
+        
+        # Test increment
+        increment_btn = await tester.find_by_icon(ft.Icons.ADD)
+        assert increment_btn.count == 1
+        await tester.tap(increment_btn)
+        await tester.pump_and_settle()
+        assert (await tester.find_by_text("1")).count == 1
+        
+        # Test decrement
+        decrement_btn = await tester.find_by_key("decrement")
+        assert decrement_btn.count == 1
+        await tester.tap(decrement_btn)
+        await tester.tap(decrement_btn)
+        await tester.pump_and_settle()
+        assert (await tester.find_by_text("-1")).count == 1
+```
+
+## Testing Components
+
+Test component-based apps the same way:
+
+```python
+import pytest
+import flet as ft
+import flet.testing as ftt
+
+@ft.component
+def TodoApp():
+    todos, set_todos = ft.use_state([])
+    new_todo, set_new_todo = ft.use_state("")
+    
+    def add_todo(_):
+        if new_todo:
+            set_todos(todos + [new_todo])
+            set_new_todo("")
+    
+    return ft.Column([
+        ft.TextField(
+            key="todo_input",
+            value=new_todo,
+            on_change=lambda e: set_new_todo(e.control.value)
+        ),
+        ft.ElevatedButton(
+            "Add",
+            key="add_button",
+            on_click=add_todo
+        ),
+        ft.Column([ft.Text(todo) for todo in todos]),
+    ])
+
+def main(page: ft.Page):
+    page.render(TodoApp)
+
+@pytest.mark.parametrize(
+    "flet_app",
+    [{"flet_app_main": main}],
+    indirect=True,
+)
+class TestTodoApp:
+    @pytest.mark.asyncio(loop_scope="module")
+    async def test_add_todo(self, flet_app: ftt.FletTestApp):
+        tester = flet_app.tester
+        await tester.pump_and_settle()
+        
+        # Enter todo text
+        input_field = await tester.find_by_key("todo_input")
+        await tester.enter_text(input_field, "Buy milk")
+        await tester.pump_and_settle()
+        
+        # Click add button
+        add_btn = await tester.find_by_key("add_button")
+        await tester.tap(add_btn)
+        await tester.pump_and_settle()
+        
+        # Verify todo was added
+        todo_text = await tester.find_by_text("Buy milk")
+        assert todo_text.count == 1
+```
+
+## Testing Async Operations
+
+```python
+import pytest
+import asyncio
+import flet as ft
+import flet.testing as ftt
+
+@ft.component
+def AsyncLoader():
+    data, set_data = ft.use_state(None)
+    loading, set_loading = ft.use_state(True)
+    
+    async def load_data():
+        await asyncio.sleep(2)  # Simulate API call
+        set_data("Loaded data")
+        set_loading(False)
+    
+    ft.use_effect(lambda: asyncio.create_task(load_data()), [])
+    
+    if loading:
+        return ft.ProgressRing(key="loader")
+    return ft.Text(data, key="data")
+
+def main(page: ft.Page):
+    page.render(AsyncLoader)
+
+@pytest.mark.parametrize(
+    "flet_app",
+    [{"flet_app_main": main}],
+    indirect=True,
+)
+class TestAsyncLoader:
+    @pytest.mark.asyncio(loop_scope="module")
+    async def test_async_loading(self, flet_app: ftt.FletTestApp):
+        tester = flet_app.tester
+        await tester.pump_and_settle()
+        
+        # Verify loader is visible
+        loader = await tester.find_by_key("loader")
+        assert loader.count == 1
+        
+        # Wait for async operation to complete
+        await tester.pump_and_settle(timeout=5000)
+        
+        # Verify data is loaded
+        data_text = await tester.find_by_text("Loaded data")
+        assert data_text.count == 1
+```
+
+## Testing Authentication
+
+```python
+import pytest
+import flet as ft
+import flet.testing as ftt
+from unittest.mock import Mock, patch
+
+@pytest.mark.parametrize(
+    "flet_app",
+    [{"flet_app_main": main}],
+    indirect=True,
+)
+class TestAuth:
+    @pytest.mark.asyncio(loop_scope="module")
+    async def test_login_flow(self, flet_app: ftt.FletTestApp):
+        tester = flet_app.tester
+        await tester.pump_and_settle()
+        
+        # Find and click login button
+        login_btn = await tester.find_by_text("Login")
+        await tester.tap(login_btn)
+        await tester.pump_and_settle()
+        
+        # Mock the OAuth callback
+        # Note: Full OAuth testing requires mocking the provider
+        # or using integration testing with test credentials
+```
+
+## Test Organization
+
+Organize tests by feature:
+
+```
+tests/
+├── conftest.py              # Pytest configuration
+├── test_counter_app.py      # Counter tests
+├── test_todo_app.py         # Todo tests
+└── test_auth.py             # Auth tests
+```
+
+**conftest.py:**
+```python
+import pytest
+import flet.testing as ftt
+
+@pytest.fixture
+def flet_app(request):
+    param = request.param
+    app = ftt.FletTestApp(param["flet_app_main"])
+    yield app
+    app.close()
+```
+
+## Best Practices
+
+1. **Use keys for reliable finding** - Keys are stable across renders
+2. **Always pump_and_settle()** - Ensure app is ready before assertions
+3. **Test user flows, not implementation** - Focus on what users do
+4. **Keep tests independent** - Each test should run in isolation
+5. **Use descriptive test names** - Name tests after the behavior they verify
+6. **Mock external dependencies** - Don't call real APIs in tests
+7. **Test error states** - Verify error handling and edge cases
+8. **Use parametrize for similar tests** - Reduce code duplication
+
+## Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/test_counter_app.py
+
+# Run specific test
+pytest tests/test_counter_app.py::TestCounterApp::test_counter
+
+# Run with verbose output
+pytest -v
+
+# Run with coverage
+pytest --cov=app tests/
+```
+
+## Continuous Integration
+
+Example GitHub Actions workflow:
+
+```yaml
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov
+      
+      - name: Run tests
+        run: pytest --cov=app tests/
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+```
+
+## Next Steps
+
+- Learn about [Components](/advanced/components) for testable architecture
+- Explore [Hooks](/advanced/hooks) for stateful components
+- Build [Custom Controls](/advanced/extensions) with tests

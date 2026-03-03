@@ -1,0 +1,488 @@
+---
+title: Authentication & OAuth
+description: Implement secure authentication flows in Flet applications using OAuth providers like Google, GitHub, Azure, and Auth0.
+---
+
+Flet provides a comprehensive authentication system with built-in OAuth support for popular identity providers. You can implement secure login flows with minimal code.
+
+## Overview
+
+Flet's authentication system consists of:
+
+- **OAuth Providers** - Pre-configured providers (Google, GitHub, Azure, Auth0) and base classes for custom providers
+- **Authorization Service** - Handles OAuth flows, token management, and automatic refresh
+- **Page.login()** - Built-in page method to trigger authentication
+- **User & Token APIs** - Access user profile and token data
+
+**Location:** `flet/auth/__init__.py:1`
+
+## Quick Start
+
+Here's a minimal OAuth authentication example:
+
+```python
+import flet as ft
+from flet.auth import GoogleOAuthProvider
+
+def main(page: ft.Page):
+    provider = GoogleOAuthProvider(
+        client_id="YOUR_CLIENT_ID.apps.googleusercontent.com",
+        client_secret="YOUR_CLIENT_SECRET",
+        redirect_url="http://localhost:8550/oauth_callback",
+    )
+    
+    def login_click(e):
+        page.login(provider)
+    
+    def on_login(e):
+        if e.error:
+            print(f"Login error: {e.error_description}")
+        else:
+            print(f"Logged in as: {page.auth.user.name}")
+            page.add(ft.Text(f"Welcome, {page.auth.user.name}!"))
+    
+    page.on_login = on_login
+    
+    page.add(
+        ft.ElevatedButton("Login with Google", on_click=login_click)
+    )
+
+ft.run(main)
+```
+
+## OAuth Providers
+
+Flet includes providers for major identity platforms:
+
+### Google OAuth
+
+```python
+from flet.auth import GoogleOAuthProvider
+
+provider = GoogleOAuthProvider(
+    client_id="YOUR_CLIENT_ID.apps.googleusercontent.com",
+    client_secret="YOUR_CLIENT_SECRET",
+    redirect_url="http://localhost:8550/oauth_callback",
+)
+```
+
+**Setup:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Enable Google+ API
+4. Create OAuth 2.0 credentials
+5. Add authorized redirect URI: `http://localhost:8550/oauth_callback`
+
+### GitHub OAuth
+
+```python
+from flet.auth import GitHubOAuthProvider
+
+provider = GitHubOAuthProvider(
+    client_id="YOUR_CLIENT_ID",
+    client_secret="YOUR_CLIENT_SECRET",
+    redirect_url="http://localhost:8550/oauth_callback",
+)
+```
+
+**Setup:**
+1. Go to GitHub Settings → Developer settings → OAuth Apps
+2. Create a new OAuth App
+3. Set Authorization callback URL: `http://localhost:8550/oauth_callback`
+
+### Azure AD OAuth
+
+```python
+from flet.auth import AzureOAuthProvider
+
+provider = AzureOAuthProvider(
+    client_id="YOUR_CLIENT_ID",
+    client_secret="YOUR_CLIENT_SECRET",
+    redirect_url="http://localhost:8550/oauth_callback",
+    tenant="common",  # or your tenant ID
+)
+```
+
+### Auth0 OAuth
+
+```python
+from flet.auth import Auth0OAuthProvider
+
+provider = Auth0OAuthProvider(
+    client_id="YOUR_CLIENT_ID",
+    client_secret="YOUR_CLIENT_SECRET",
+    redirect_url="http://localhost:8550/oauth_callback",
+    domain="your-domain.auth0.com",
+)
+```
+
+## Authorization Service
+
+The `AuthorizationService` manages the complete OAuth flow:
+
+**Location:** `flet/auth/authorization_service.py:19`
+
+```python
+from flet.auth import AuthorizationService, GoogleOAuthProvider
+
+provider = GoogleOAuthProvider(
+    client_id="YOUR_CLIENT_ID",
+    client_secret="YOUR_CLIENT_SECRET",
+    redirect_url="http://localhost:8550/oauth_callback",
+)
+
+auth_service = AuthorizationService(
+    provider=provider,
+    fetch_user=True,      # Retrieve user profile
+    fetch_groups=False,   # Retrieve user groups (if supported)
+    scope=["openid", "email", "profile"],
+)
+```
+
+### Authorization Flow
+
+**Location:** `flet/auth/authorization_service.py:90`
+
+1. **Get authorization URL:**
+
+```python
+auth_url, state = auth_service.get_authorization_data()
+# Redirect user to auth_url
+```
+
+2. **Exchange code for token:**
+
+**Location:** `flet/auth/authorization_service.py:111`
+
+```python
+# After redirect callback with authorization code
+await auth_service.request_token(code)
+```
+
+3. **Access token:**
+
+**Location:** `flet/auth/authorization_service.py:78`
+
+```python
+token = await auth_service.get_token()
+print(token.access_token)
+```
+
+### Token Persistence
+
+Save and restore tokens for persistent sessions:
+
+**Location:** `flet/auth/authorization_service.py:62`
+
+```python
+# Save token
+token = await auth_service.get_token()
+token_json = token.to_json()
+# Store token_json in secure storage
+
+# Restore token
+await auth_service.dehydrate_token(token_json)
+```
+
+### Automatic Token Refresh
+
+Tokens are automatically refreshed when expired:
+
+**Location:** `flet/auth/authorization_service.py:188`
+
+```python
+# This automatically refreshes if needed
+token = await auth_service.get_token()
+```
+
+## User Profile
+
+Access authenticated user information:
+
+```python
+def on_login(e):
+    if page.auth and page.auth.user:
+        user = page.auth.user
+        print(f"User ID: {user.id}")
+        print(f"Name: {user.name}")
+        print(f"Email: {user.email}")
+        print(f"Picture: {user.picture}")
+        
+        # Raw user data from provider
+        print(f"Raw data: {user.data}")
+```
+
+## OAuth Token
+
+Access token details:
+
+```python
+async def get_token_info(page):
+    if page.auth:
+        token = await page.auth.get_token()
+        print(f"Access Token: {token.access_token}")
+        print(f"Token Type: {token.token_type}")
+        print(f"Expires At: {token.expires_at}")
+        print(f"Refresh Token: {token.refresh_token}")
+        print(f"Scopes: {token.scope}")
+```
+
+## Custom OAuth Provider
+
+Create a custom provider by extending `OAuthProvider`:
+
+**Location:** `flet/auth/oauth_provider.py:7`
+
+```python
+from flet.auth import OAuthProvider, User, Group
+
+class CustomOAuthProvider(OAuthProvider):
+    def __init__(self, client_id: str, client_secret: str, redirect_url: str):
+        super().__init__(
+            client_id=client_id,
+            client_secret=client_secret,
+            authorization_endpoint="https://example.com/oauth/authorize",
+            token_endpoint="https://example.com/oauth/token",
+            redirect_url=redirect_url,
+            scopes=["openid", "profile", "email"],
+            user_endpoint="https://example.com/api/user",
+            user_id_fn=lambda data: data["sub"],
+        )
+    
+    def _name(self):
+        return "custom"
+    
+    async def _fetch_user(self, access_token: str):
+        # Custom user fetching logic
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://example.com/api/user",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            data = resp.json()
+            return User(data, str(data["id"]))
+    
+    async def _fetch_groups(self, access_token: str) -> list[Group]:
+        # Custom group fetching logic
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://example.com/api/groups",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            groups_data = resp.json()
+            return [Group(g["id"], g["name"]) for g in groups_data]
+```
+
+## PKCE Support
+
+For public clients, use PKCE (Proof Key for Code Exchange):
+
+```python
+import secrets
+import hashlib
+import base64
+
+def generate_pkce():
+    code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')
+    code_challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(code_verifier.encode('utf-8')).digest()
+    ).decode('utf-8').rstrip('=')
+    return code_verifier, code_challenge
+
+code_verifier, code_challenge = generate_pkce()
+
+provider = GoogleOAuthProvider(
+    client_id="YOUR_CLIENT_ID",
+    client_secret="",  # Not needed for PKCE
+    redirect_url="http://localhost:8550/oauth_callback",
+    code_challenge=code_challenge,
+    code_challenge_method="S256",
+    code_verifier=code_verifier,
+)
+```
+
+## Authentication with Components
+
+Combine authentication with component-based architecture:
+
+```python
+import flet as ft
+from flet.auth import GoogleOAuthProvider
+
+# Create context for auth state
+AuthContext = ft.create_context(default_value=None)
+
+@ft.component
+def ProtectedRoute():
+    auth = ft.use_context(AuthContext)
+    
+    if not auth:
+        return ft.Text("Please log in to view this content")
+    
+    return ft.Column([
+        ft.Text(f"Welcome, {auth.user.name}!"),
+        ft.Text(f"Email: {auth.user.email}"),
+    ])
+
+@ft.component
+def App():
+    auth_state, set_auth_state = ft.use_state(None)
+    
+    provider = GoogleOAuthProvider(
+        client_id="YOUR_CLIENT_ID",
+        client_secret="YOUR_CLIENT_SECRET",
+        redirect_url="http://localhost:8550/oauth_callback",
+    )
+    
+    def login(_):
+        ft.context.page.login(provider)
+    
+    def on_login(e):
+        if not e.error:
+            set_auth_state(ft.context.page.auth)
+    
+    ft.use_effect(
+        lambda: setattr(ft.context.page, 'on_login', on_login),
+        dependencies=[]
+    )
+    
+    return AuthContext(
+        auth_state,
+        lambda: ft.Column([
+            ft.ElevatedButton("Login", on_click=login) if not auth_state else ft.Container(),
+            ProtectedRoute(),
+        ])
+    )
+
+ft.run(lambda page: page.render(App))
+```
+
+## Token Storage Best Practices
+
+1. **Never store tokens in plain text** - Use secure storage mechanisms
+2. **Encrypt tokens at rest** - Use platform-specific secure storage
+3. **Use short-lived tokens** - Rely on refresh tokens for long sessions
+4. **Implement logout** - Clear stored tokens on logout
+
+```python
+import keyring
+
+# Store token securely
+token = await auth_service.get_token()
+keyring.set_password("myapp", "oauth_token", token.to_json())
+
+# Retrieve token
+token_json = keyring.get_password("myapp", "oauth_token")
+if token_json:
+    await auth_service.dehydrate_token(token_json)
+
+# Clear token on logout
+keyring.delete_password("myapp", "oauth_token")
+```
+
+## Error Handling
+
+```python
+def on_login(e):
+    if e.error:
+        error_messages = {
+            "access_denied": "User denied access",
+            "invalid_request": "Invalid authentication request",
+            "server_error": "Authentication server error",
+        }
+        
+        message = error_messages.get(
+            e.error,
+            f"Login failed: {e.error_description}"
+        )
+        
+        page.show_snack_bar(
+            ft.SnackBar(content=ft.Text(message, color=ft.Colors.WHITE))
+        )
+    else:
+        print("Login successful!")
+```
+
+## Complete Example: Multi-Provider Auth
+
+```python
+import flet as ft
+from flet.auth import GoogleOAuthProvider, GitHubOAuthProvider
+
+def main(page: ft.Page):
+    page.title = "Multi-Provider Auth"
+    
+    providers = {
+        "google": GoogleOAuthProvider(
+            client_id="GOOGLE_CLIENT_ID",
+            client_secret="GOOGLE_CLIENT_SECRET",
+            redirect_url="http://localhost:8550/oauth_callback",
+        ),
+        "github": GitHubOAuthProvider(
+            client_id="GITHUB_CLIENT_ID",
+            client_secret="GITHUB_CLIENT_SECRET",
+            redirect_url="http://localhost:8550/oauth_callback",
+        ),
+    }
+    
+    def login_with_provider(provider_name):
+        def on_click(e):
+            page.login(providers[provider_name])
+        return on_click
+    
+    def on_login(e):
+        if e.error:
+            page.add(ft.Text(f"Error: {e.error_description}", color=ft.Colors.RED))
+        else:
+            page.clean()
+            page.add(
+                ft.Column([
+                    ft.Text(f"Welcome, {page.auth.user.name}!", size=24),
+                    ft.Text(f"Email: {page.auth.user.email}"),
+                    ft.ElevatedButton("Logout", on_click=logout),
+                ])
+            )
+    
+    def logout(e):
+        page.logout()
+        page.clean()
+        show_login_screen()
+    
+    def show_login_screen():
+        page.add(
+            ft.Column([
+                ft.Text("Login with:", size=20),
+                ft.ElevatedButton(
+                    "Google",
+                    icon=ft.Icons.ACCOUNT_CIRCLE,
+                    on_click=login_with_provider("google")
+                ),
+                ft.ElevatedButton(
+                    "GitHub",
+                    icon=ft.Icons.CODE,
+                    on_click=login_with_provider("github")
+                ),
+            ], spacing=10)
+        )
+    
+    page.on_login = on_login
+    show_login_screen()
+
+ft.run(main)
+```
+
+## Security Considerations
+
+1. **Use HTTPS in production** - Never use OAuth over HTTP
+2. **Validate redirect URLs** - Ensure redirect URLs match registered callbacks
+3. **Implement CSRF protection** - Validate the `state` parameter
+4. **Rotate client secrets** - Regularly update OAuth credentials
+5. **Limit token scope** - Request only necessary permissions
+6. **Implement token revocation** - Provide logout functionality
+7. **Monitor for suspicious activity** - Log authentication events
+
+## Next Steps
+
+- Build [Components](/advanced/components) with protected routes
+- Use [Hooks](/advanced/hooks) for auth state management
+- Implement [Testing](/advanced/testing) for auth flows

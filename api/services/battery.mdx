@@ -1,0 +1,216 @@
+---
+title: Battery
+description: Access device battery information and monitor state changes
+---
+
+The `Battery` service provides access to device battery information, including battery level, charging state, and battery save mode status.
+
+## Usage
+
+Add the `Battery` service to your page overlay and use its methods to retrieve battery information:
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    battery = ft.Battery()
+    page.overlay.append(battery)
+    
+    # Get battery level
+    level = await battery.get_battery_level()
+    print(f"Battery level: {level}%")
+    
+    # Get battery state
+    state = await battery.get_battery_state()
+    print(f"Battery state: {state.value}")
+    
+    await page.update_async()
+
+ft.app(main)
+```
+
+## Methods
+
+### `get_battery_level()`
+
+Gets the current battery level as a percentage.
+
+```python
+await battery.get_battery_level() -> Optional[int]
+```
+
+**Returns:** The battery level in the range 0 to 100, or `None` when it is unavailable on the current environment.
+
+**Example:**
+
+```python
+level = await battery.get_battery_level()
+if level is not None:
+    if level < 20:
+        print(f"Low battery: {level}%")
+    else:
+        print(f"Battery level: {level}%")
+else:
+    print("Battery level unavailable")
+```
+
+### `get_battery_state()`
+
+Returns the current battery state.
+
+```python
+await battery.get_battery_state() -> BatteryState
+```
+
+**Returns:** A `BatteryState` enum value indicating the current state.
+
+**Example:**
+
+```python
+state = await battery.get_battery_state()
+
+if state == ft.BatteryState.CHARGING:
+    print("Battery is charging")
+elif state == ft.BatteryState.FULL:
+    print("Battery is full")
+elif state == ft.BatteryState.DISCHARGING:
+    print("Battery is discharging")
+```
+
+### `is_in_battery_save_mode()`
+
+Checks if the device is currently in battery save mode.
+
+```python
+await battery.is_in_battery_save_mode() -> bool
+```
+
+**Returns:** `True` if the device is currently in battery save mode, otherwise `False`.
+
+**Example:**
+
+```python
+if await battery.is_in_battery_save_mode():
+    print("Device is in battery save mode")
+    # Reduce app functionality to save power
+else:
+    print("Normal power mode")
+```
+
+## Events
+
+### `on_state_change`
+
+Called when the battery state changes (charging, discharging, full, etc.).
+
+```python
+battery.on_state_change = handle_state_change
+```
+
+The event handler receives a `BatteryStateChangeEvent` with:
+
+- `state` (BatteryState): Current battery state
+
+**Example:**
+
+```python
+def handle_state_change(e: ft.BatteryStateChangeEvent):
+    if e.state == ft.BatteryState.CHARGING:
+        print("Device started charging")
+    elif e.state == ft.BatteryState.DISCHARGING:
+        print("Device unplugged")
+    elif e.state == ft.BatteryState.FULL:
+        print("Battery fully charged")
+
+battery.on_state_change = handle_state_change
+```
+
+## Enums
+
+### `BatteryState`
+
+Enum representing the battery state:
+
+- `CHARGING`: The battery is currently charging
+- `CONNECTED_NOT_CHARGING`: The battery is connected to a power source but not charging
+- `DISCHARGING`: The battery is discharging
+- `FULL`: The battery is fully charged
+- `UNKNOWN`: The battery state is unknown
+
+## Complete Example
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    page.title = "Battery Monitor"
+    
+    battery_level = ft.Text(size=30)
+    battery_state = ft.Text(size=20)
+    battery_save_mode = ft.Text()
+    
+    battery = ft.Battery()
+    page.overlay.append(battery)
+    
+    async def update_battery_info():
+        # Get battery level
+        level = await battery.get_battery_level()
+        if level is not None:
+            battery_level.value = f"Battery: {level}%"
+            
+            # Change color based on level
+            if level < 20:
+                battery_level.color = ft.colors.RED
+            elif level < 50:
+                battery_level.color = ft.colors.ORANGE
+            else:
+                battery_level.color = ft.colors.GREEN
+        else:
+            battery_level.value = "Battery level unavailable"
+        
+        # Get battery state
+        state = await battery.get_battery_state()
+        battery_state.value = f"State: {state.value}"
+        
+        # Check battery save mode
+        save_mode = await battery.is_in_battery_save_mode()
+        battery_save_mode.value = f"Battery save mode: {'ON' if save_mode else 'OFF'}"
+        
+        await page.update_async()
+    
+    def on_state_change(e: ft.BatteryStateChangeEvent):
+        battery_state.value = f"State: {e.state.value}"
+        page.update()
+    
+    battery.on_state_change = on_state_change
+    
+    async def refresh_clicked(e):
+        await update_battery_info()
+    
+    page.add(
+        battery_level,
+        battery_state,
+        battery_save_mode,
+        ft.ElevatedButton("Refresh", on_click=refresh_clicked),
+    )
+    
+    # Initial update
+    await update_battery_info()
+
+ft.app(main)
+```
+
+## Platform Availability
+
+The Battery service is available on all mobile and desktop platforms:
+
+| Platform | Support |
+|----------|--------|
+| Android | ✓ |
+| iOS | ✓ |
+| macOS | ✓ |
+| Windows | ✓ |
+| Linux | ✓ |
+| Web | ✓ |
+
+Note: Battery information availability may vary depending on the device and platform capabilities.

@@ -1,0 +1,437 @@
+---
+title: 'GridView'
+description: 'A scrollable 2D array of controls arranged in a grid'
+icon: 'grid'
+---
+
+## Overview
+
+GridView is a scrollable, 2D array of controls arranged in a grid pattern. It is very effective for large lists with thousands of items and provides smooth scrolling performance. GridView is preferred over wrapping Column or Row controls when you need efficient scrolling with many items.
+
+## Basic Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.GridView(
+            width=180,
+            runs_count=2,
+            spacing=8,
+            controls=[
+                ft.Container(
+                    width=50, height=50, bgcolor=ft.Colors.PRIMARY, border_radius=8
+                ),
+                ft.Container(
+                    width=50, height=50, bgcolor=ft.Colors.SECONDARY, border_radius=8
+                ),
+                ft.Container(
+                    width=50, height=50, bgcolor=ft.Colors.TERTIARY, border_radius=8
+                ),
+                ft.Container(
+                    width=50, height=50, bgcolor=ft.Colors.ERROR, border_radius=8
+                ),
+            ],
+        )
+    )
+
+ft.app(main)
+```
+
+## Class Definition
+
+```python
+class GridView(LayoutControl, ScrollableControl, AdaptiveControl):
+    controls: list[Control] = field(default_factory=list)
+    horizontal: bool = False
+    reverse: bool = False
+    runs_count: int = 1
+    max_extent: Optional[int] = None
+    spacing: Number = 10
+    run_spacing: Number = 10
+    child_aspect_ratio: Number = 1.0
+    padding: Optional[PaddingValue] = None
+    clip_behavior: Optional[ClipBehavior] = None
+    semantic_child_count: Optional[int] = None
+    cache_extent: Optional[Number] = None
+    build_controls_on_demand: bool = True
+```
+
+## Properties
+
+### controls
+
+<ParamField path="controls" type="list[Control]" default="[]">
+  A list of controls to display inside the grid. Controls are arranged in grid cells from left to right, top to bottom (or according to the scroll direction).
+</ParamField>
+
+### horizontal
+
+<ParamField path="horizontal" type="bool" default="False">
+  Whether to layout the grid items horizontally.
+  
+  - `False` (default) - Vertical scrolling grid (scrolls top to bottom)
+  - `True` - Horizontal scrolling grid (scrolls left to right)
+</ParamField>
+
+### reverse
+
+<ParamField path="reverse" type="bool" default="False">
+  Whether the scroll view scrolls in the reading direction.
+  
+  - If the reading direction is left-to-right and `horizontal` is `True`, the scroll view scrolls from left to right when `reverse` is `False` and from right to left when `reverse` is `True`.
+  
+  - If `horizontal` is `False`, the scroll view scrolls from top to bottom when `reverse` is `False` and from bottom to top when `reverse` is `True`.
+</ParamField>
+
+### runs_count
+
+<ParamField path="runs_count" type="int" default="1">
+  The number of children in the cross axis.
+  
+  - In vertical mode (default): This is the number of columns
+  - In horizontal mode: This is the number of rows
+  
+  For example, `runs_count=3` in vertical mode creates a 3-column grid.
+</ParamField>
+
+### max_extent
+
+<ParamField path="max_extent" type="int" default="None">
+  The maximum width or height of a grid item.
+  
+  When set, the grid automatically calculates the number of runs (columns or rows) based on the available space and this maximum extent, overriding `runs_count`.
+  
+  This is useful for responsive layouts where the number of columns should adapt to screen size.
+</ParamField>
+
+### spacing
+
+<ParamField path="spacing" type="Number" default="10">
+  The number of logical pixels between each child along the main axis (scroll direction).
+  
+  - In vertical mode: Vertical spacing between rows
+  - In horizontal mode: Horizontal spacing between columns
+</ParamField>
+
+### run_spacing
+
+<ParamField path="run_spacing" type="Number" default="10">
+  The number of logical pixels between each child along the cross axis.
+  
+  - In vertical mode: Horizontal spacing between columns
+  - In horizontal mode: Vertical spacing between rows
+</ParamField>
+
+### child_aspect_ratio
+
+<ParamField path="child_aspect_ratio" type="Number" default="1.0">
+  The ratio of the cross-axis to the main-axis extent of each child.
+  
+  - `1.0` - Square cells
+  - `2.0` - Cells are twice as wide as they are tall (in vertical mode)
+  - `0.5` - Cells are half as wide as they are tall (in vertical mode)
+  
+  This determines the shape of the grid cells.
+</ParamField>
+
+### padding
+
+<ParamField path="padding" type="PaddingValue" default="None">
+  The amount of space by which to inset the children.
+  
+  Can be a single number for uniform padding, or use `ft.padding.all()`, `ft.padding.symmetric()`, or `ft.padding.only()` for more control.
+</ParamField>
+
+### clip_behavior
+
+<ParamField path="clip_behavior" type="ClipBehavior" default="None">
+  The content will be clipped (or not) according to this option.
+  
+  Options:
+  - `ClipBehavior.HARD_EDGE` - Clip with hard edges
+  - `ClipBehavior.ANTI_ALIAS` - Clip with anti-aliasing
+  - `ClipBehavior.ANTI_ALIAS_WITH_SAVE_LAYER` - Clip with anti-aliasing and save layer
+  - `ClipBehavior.NONE` - No clipping
+</ParamField>
+
+### semantic_child_count
+
+<ParamField path="semantic_child_count" type="int" default="None">
+  The number of children that will contribute semantic information for accessibility.
+  
+  Useful when the actual number of children is different from the semantic count.
+</ParamField>
+
+### cache_extent
+
+<ParamField path="cache_extent" type="Number" default="None">
+  Items that fall in the cache area (before or after the visible area) are laid out even though they are not yet visible on screen.
+  
+  The `cache_extent` describes how many pixels the cache area extends before the leading edge and after the trailing edge of the viewport.
+  
+  The total extent covered is: `cache_extent` before + extent of main axis + `cache_extent` after.
+  
+  A larger cache extent improves scrolling smoothness but uses more memory.
+</ParamField>
+
+### build_controls_on_demand
+
+<ParamField path="build_controls_on_demand" type="bool" default="True">
+  Whether the controls should be built lazily/on-demand.
+  
+  When `True` (default), controls are only rendered when they're about to become visible. This dramatically improves performance when dealing with a large number of controls.
+</ParamField>
+
+## Layout Behavior
+
+### How Children Are Arranged
+
+1. **Grid Pattern**: Children are arranged in a grid with `runs_count` columns (in vertical mode) or rows (in horizontal mode).
+
+2. **Main Axis (Scroll Direction)**: Items scroll along this axis (vertical by default).
+
+3. **Cross Axis**: Items are arranged across this axis according to `runs_count`.
+
+4. **Cell Size**: Each cell's size is determined by:
+   - Available space divided by `runs_count`
+   - Adjusted by `child_aspect_ratio`
+   - Or limited by `max_extent` if set
+
+5. **Spacing**: `spacing` controls main-axis gaps, `run_spacing` controls cross-axis gaps.
+
+### Scrolling
+
+GridView inherits from `ScrollableControl` and is scrollable by default:
+
+```python
+ft.GridView(
+    scroll=ft.ScrollMode.ADAPTIVE,  # or AUTO, ALWAYS, HIDDEN
+    controls=[...],
+)
+```
+
+## Examples
+
+### Basic 3-Column Grid
+
+```python
+ft.GridView(
+    width=400,
+    height=400,
+    runs_count=3,
+    spacing=10,
+    run_spacing=10,
+    controls=[
+        ft.Container(
+            bgcolor=ft.Colors.AMBER,
+            border_radius=8,
+            alignment=ft.alignment.center,
+            content=ft.Text(str(i)),
+        )
+        for i in range(1, 13)
+    ],
+)
+```
+
+### Image Gallery
+
+```python
+ft.GridView(
+    width=600,
+    height=600,
+    runs_count=3,
+    spacing=5,
+    run_spacing=5,
+    child_aspect_ratio=1.0,  # Square images
+    controls=[
+        ft.Image(
+            src=f"https://picsum.photos/200/200?random={i}",
+            fit=ft.BoxFit.COVER,
+            border_radius=8,
+        )
+        for i in range(1, 21)
+    ],
+)
+```
+
+### Responsive Grid with max_extent
+
+```python
+ft.GridView(
+    expand=True,
+    max_extent=150,  # Auto-calculate columns based on 150px max width
+    spacing=10,
+    run_spacing=10,
+    padding=20,
+    controls=[
+        ft.Container(
+            bgcolor=ft.Colors.BLUE_200,
+            border_radius=10,
+            alignment=ft.alignment.center,
+            content=ft.Text(f"Item {i}"),
+        )
+        for i in range(1, 31)
+    ],
+)
+```
+
+### Product Grid
+
+```python
+ft.GridView(
+    width=800,
+    height=600,
+    runs_count=4,
+    spacing=15,
+    run_spacing=15,
+    child_aspect_ratio=0.7,  # Taller than wide
+    padding=20,
+    controls=[
+        ft.Container(
+            bgcolor=ft.Colors.WHITE,
+            border=ft.border.all(1, ft.Colors.GREY_300),
+            border_radius=10,
+            padding=10,
+            content=ft.Column(
+                controls=[
+                    ft.Image(
+                        src=f"product{i}.jpg",
+                        fit=ft.BoxFit.COVER,
+                        height=150,
+                    ),
+                    ft.Text(f"Product {i}", weight=ft.FontWeight.BOLD),
+                    ft.Text(f"${i * 10}.99", color=ft.Colors.GREEN),
+                ],
+                spacing=5,
+            ),
+        )
+        for i in range(1, 25)
+    ],
+)
+```
+
+### Horizontal Scrolling Grid
+
+```python
+ft.GridView(
+    horizontal=True,
+    height=300,
+    runs_count=2,  # 2 rows
+    spacing=10,
+    run_spacing=10,
+    controls=[
+        ft.Container(
+            width=150,
+            bgcolor=ft.Colors.PURPLE_200,
+            border_radius=8,
+            alignment=ft.alignment.center,
+            content=ft.Text(f"Card {i}"),
+        )
+        for i in range(1, 21)
+    ],
+)
+```
+
+### Large Grid with Lazy Loading
+
+```python
+ft.GridView(
+    width=800,
+    height=600,
+    runs_count=5,
+    spacing=8,
+    run_spacing=8,
+    build_controls_on_demand=True,  # Lazy render
+    cache_extent=200,
+    controls=[
+        ft.Container(
+            bgcolor=ft.Colors.BLUE if i % 2 == 0 else ft.Colors.GREEN,
+            border_radius=5,
+            alignment=ft.alignment.center,
+            content=ft.Text(str(i), color=ft.Colors.WHITE),
+        )
+        for i in range(1, 1001)  # 1000 items!
+    ],
+)
+```
+
+### Card Grid with Different Aspect Ratios
+
+```python
+ft.GridView(
+    width=600,
+    height=800,
+    runs_count=2,
+    spacing=20,
+    run_spacing=20,
+    child_aspect_ratio=1.5,  # Wider than tall
+    padding=20,
+    controls=[
+        ft.Card(
+            content=ft.Container(
+                padding=15,
+                content=ft.Column(
+                    controls=[
+                        ft.Icon(ft.Icons.FAVORITE, size=40, color=ft.Colors.RED),
+                        ft.Text(f"Feature {i}", weight=ft.FontWeight.BOLD),
+                        ft.Text("Description here", size=12),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
+            ),
+        )
+        for i in range(1, 9)
+    ],
+)
+```
+
+## Performance Optimization
+
+### For Large Grids
+
+When working with thousands of items:
+
+1. **Enable lazy rendering**: Keep `build_controls_on_demand=True` (default)
+2. **Adjust cache extent**: Use smaller values to reduce memory usage
+3. **Optimize child widgets**: Keep child controls simple and lightweight
+
+```python
+ft.GridView(
+    width=800,
+    height=600,
+    runs_count=6,
+    build_controls_on_demand=True,
+    cache_extent=100,  # Smaller cache
+    controls=[...],  # Thousands of items
+)
+```
+
+## Use Cases
+
+1. **Photo Galleries**: Display image collections in a grid
+2. **Product Catalogs**: Show products with images and details
+3. **App Launchers**: Create app icon grids
+4. **Dashboard Widgets**: Arrange dashboard cards in a grid
+5. **Icon Pickers**: Display selectable icons
+6. **Calendar Views**: Create calendar-style layouts
+7. **Tile-Based Games**: Build game boards with grid cells
+
+## Comparison with Other Layouts
+
+| Feature | GridView | ListView | Column with wrap |
+|---------|----------|----------|------------------|
+| Scrolling | Yes | Yes | No |
+| Grid layout | Yes | No | Yes |
+| Performance (1000s items) | Excellent | Excellent | Poor |
+| Lazy rendering | Yes | Yes | No |
+| Responsive columns | Yes (max_extent) | N/A | Yes |
+
+## Related Controls
+
+- [ListView](/api/layout/listview) - Scrollable linear list
+- [Column](/api/layout/column) - Vertical layout with wrap option
+- [Row](/api/layout/row) - Horizontal layout with wrap option
+- [Stack](/api/layout/stack) - Overlapping layout

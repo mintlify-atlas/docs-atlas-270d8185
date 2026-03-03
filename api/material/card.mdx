@@ -1,0 +1,120 @@
+---
+title: Card
+description: Material Design card with rounded corners and elevation
+---
+
+# Card
+
+A material design card: a panel with slightly rounded corners and an elevation shadow.
+
+## Properties
+
+<ParamField path="content" type="Control">
+  The Control to display inside the card.
+  
+  **Tip:** To display multiple children, wrap them in a control like `Row`, `Column`, or `Stack`, which accept a `controls` list.
+</ParamField>
+
+<ParamField path="elevation" type="Number">
+  The z-coordinate at which to place this card. Defines the size of the shadow below the card.
+  
+  Defaults to `CardTheme.elevation`, or if that is `None`, falls back to `1.0`.
+</ParamField>
+
+<ParamField path="bgcolor" type="ColorValue">
+  The card's background color.
+</ParamField>
+
+<ParamField path="shadow_color" type="ColorValue">
+  The color to paint the shadow below this card.
+  
+  Defaults to `CardTheme.shadow_color`.
+</ParamField>
+
+<ParamField path="shape" type="OutlinedBorder">
+  The shape of this card.
+  
+  Defaults to `CardTheme.shape`, or if that is `None`, falls back to `RoundedRectangleBorder(radius=12.0)`.
+</ParamField>
+
+<ParamField path="clip_behavior" type="ClipBehavior">
+  Defines how the `content` will be clipped.
+  
+  Defaults to `CardTheme.clip_behavior`, or if that is `None`, falls back to `ClipBehavior.NONE`.
+</ParamField>
+
+<ParamField path="semantic_container" type="bool" default="True">
+  Whether this card represents a single semantic container, or if it instead represents a collection of individual semantic nodes (different types of content).
+</ParamField>
+
+<ParamField path="show_border_on_foreground" type="bool" default="True">
+  Whether the shape of the border should be painted in front of the `content` or behind.
+</ParamField>
+
+<ParamField path="variant" type="CardVariant" default="CardVariant.ELEVATED">
+  Defines the card variant to be used. Options:
+  - `CardVariant.ELEVATED`: Standard elevated card style
+  - `CardVariant.FILLED`: Filled card style emphasizing container color
+  - `CardVariant.OUTLINED`: Outlined card style with a visible border
+</ParamField>
+
+## Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        # Elevated card (default)
+        ft.Card(
+            content=ft.Container(
+                content=ft.ListTile(
+                    leading=ft.Icon(ft.Icons.ALBUM),
+                    title=ft.Text("The Enchanted Nightingale"),
+                    subtitle=ft.Text("Music by Julie Gable. Lyrics by Sidney Stein."),
+                ),
+                width=400,
+                padding=10,
+            ),
+            elevation=5,
+        ),
+        # Filled card
+        ft.Card(
+            content=ft.Container(
+                content=ft.Column([
+                    ft.Text("Filled Card", size=20, weight=ft.FontWeight.BOLD),
+                    ft.Text("This card uses the filled variant."),
+                ]),
+                padding=20,
+            ),
+            variant=ft.CardVariant.FILLED,
+            bgcolor=ft.Colors.BLUE_100,
+        ),
+        # Outlined card
+        ft.Card(
+            content=ft.Container(
+                content=ft.Column([
+                    ft.Text("Outlined Card", size=20, weight=ft.FontWeight.BOLD),
+                    ft.Text("This card uses the outlined variant."),
+                ]),
+                padding=20,
+            ),
+            variant=ft.CardVariant.OUTLINED,
+        ),
+        # Card with custom shadow
+        ft.Card(
+            shadow_color=ft.Colors.ON_SURFACE_VARIANT,
+            content=ft.Container(
+                width=400,
+                padding=10,
+                content=ft.ListTile(
+                    bgcolor=ft.Colors.GREY_400,
+                    leading=ft.Icon(ft.Icons.FOREST),
+                    title=ft.Text("Card Name"),
+                ),
+            ),
+        ),
+    )
+
+ft.app(target=main)
+```

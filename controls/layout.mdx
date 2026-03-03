@@ -1,0 +1,565 @@
+---
+title: Layout Controls
+description: Arrange and position controls in your Flet application
+---
+
+Layout controls help you organize and position other controls in your Flet application. Understanding layout is essential for building responsive, well-structured user interfaces.
+
+## Core Layout Controls
+
+<CardGroup cols={2}>
+  <Card title="Row" icon="arrows-left-right">
+    Arranges controls horizontally in a row
+  </Card>
+  <Card title="Column" icon="arrows-up-down">
+    Arranges controls vertically in a column
+  </Card>
+  <Card title="Stack" icon="layer-group">
+    Overlays controls on top of each other
+  </Card>
+  <Card title="Container" icon="square">
+    Wraps a control with padding, margin, and decoration
+  </Card>
+</CardGroup>
+
+## Row
+
+Arranges child controls in a horizontal array.
+
+### Basic Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Row(
+            controls=[
+                ft.Text("Item 1"),
+                ft.Text("Item 2"),
+                ft.Text("Item 3"),
+            ]
+        )
+    )
+
+ft.app(target=main)
+```
+
+### Alignment
+
+Control how items are aligned within the Row:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        # Horizontal alignment
+        ft.Row(
+            controls=[ft.Text("Start"), ft.Text("Aligned")],
+            alignment=ft.MainAxisAlignment.START,
+        ),
+        ft.Row(
+            controls=[ft.Text("Center"), ft.Text("Aligned")],
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        ft.Row(
+            controls=[ft.Text("End"), ft.Text("Aligned")],
+            alignment=ft.MainAxisAlignment.END,
+        ),
+        ft.Row(
+            controls=[ft.Text("Space"), ft.Text("Between")],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+        ),
+        # Vertical alignment
+        ft.Row(
+            height=100,
+            controls=[
+                ft.Text("Top", size=20),
+                ft.Text("Aligned", size=30),
+            ],
+            vertical_alignment=ft.CrossAxisAlignment.START,
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### Spacing and Wrapping
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        # Spacing between items
+        ft.Row(
+            spacing=20,
+            controls=[ft.ElevatedButton(f"Button {i}") for i in range(5)],
+        ),
+        # Wrap to multiple rows if needed
+        ft.Row(
+            wrap=True,
+            spacing=10,
+            run_spacing=10,
+            controls=[ft.ElevatedButton(f"Btn {i}") for i in range(10)],
+        ),
+    )
+
+ft.app(target=main)
+```
+
+## Column
+
+Arranges child controls in a vertical array.
+
+### Basic Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Column(
+            controls=[
+                ft.Text("Title", size=24, weight=ft.FontWeight.BOLD),
+                ft.Text("Subtitle", size=16),
+                ft.Text("Body text goes here"),
+            ],
+            spacing=10,
+        )
+    )
+
+ft.app(target=main)
+```
+
+### Scrolling Column
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Column(
+            height=300,
+            scroll=ft.ScrollMode.AUTO,
+            controls=[ft.Text(f"Item {i}") for i in range(50)],
+        )
+    )
+
+ft.app(target=main)
+```
+
+### Expanding Children
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Column(
+            height=400,
+            controls=[
+                ft.Container(
+                    content=ft.Text("Header"),
+                    bgcolor=ft.Colors.BLUE_100,
+                    padding=10,
+                ),
+                ft.Container(
+                    content=ft.Text("Expanded Content"),
+                    bgcolor=ft.Colors.GREEN_100,
+                    padding=10,
+                    expand=True,  # Takes remaining space
+                ),
+                ft.Container(
+                    content=ft.Text("Footer"),
+                    bgcolor=ft.Colors.ORANGE_100,
+                    padding=10,
+                ),
+            ],
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Stack
+
+Positions controls on top of each other in a LIFO (Last In First Out) order.
+
+### Basic Layering
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Stack(
+            width=300,
+            height=300,
+            controls=[
+                ft.Container(
+                    width=300,
+                    height=300,
+                    bgcolor=ft.Colors.BLUE,
+                ),
+                ft.Container(
+                    width=200,
+                    height=200,
+                    bgcolor=ft.Colors.RED,
+                    left=50,
+                    top=50,
+                ),
+                ft.Container(
+                    width=100,
+                    height=100,
+                    bgcolor=ft.Colors.YELLOW,
+                    left=100,
+                    top=100,
+                ),
+            ],
+        )
+    )
+
+ft.app(target=main)
+```
+
+### Positioned Overlays
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Stack(
+            width=400,
+            height=300,
+            controls=[
+                # Background image
+                ft.Image(
+                    src="https://picsum.photos/400/300",
+                    width=400,
+                    height=300,
+                    fit=ft.ImageFit.COVER,
+                ),
+                # Overlay text
+                ft.Container(
+                    content=ft.Text(
+                        "Overlay Text",
+                        size=30,
+                        color=ft.Colors.WHITE,
+                        weight=ft.FontWeight.BOLD,
+                    ),
+                    left=20,
+                    bottom=20,
+                ),
+                # Top-right button
+                ft.IconButton(
+                    icon=ft.Icons.FAVORITE,
+                    icon_color=ft.Colors.RED,
+                    right=10,
+                    top=10,
+                ),
+            ],
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Container
+
+A versatile control that combines decoration, positioning, and sizing.
+
+### Basic Decoration
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Container(
+            content=ft.Text("Hello, Container!"),
+            bgcolor=ft.Colors.BLUE_100,
+            padding=20,
+            margin=10,
+            border_radius=10,
+            border=ft.border.all(2, ft.Colors.BLUE),
+        )
+    )
+
+ft.app(target=main)
+```
+
+### Sizing and Alignment
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Container(
+            content=ft.Text("Centered"),
+            width=200,
+            height=100,
+            bgcolor=ft.Colors.AMBER_100,
+            alignment=ft.alignment.center,
+        ),
+        ft.Container(
+            content=ft.Text("Bottom Right"),
+            width=200,
+            height=100,
+            bgcolor=ft.Colors.GREEN_100,
+            alignment=ft.alignment.bottom_right,
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### Gradients and Shadows
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        # Gradient background
+        ft.Container(
+            content=ft.Text("Gradient", color=ft.Colors.WHITE),
+            padding=20,
+            gradient=ft.LinearGradient(
+                begin=ft.alignment.top_left,
+                end=ft.alignment.bottom_right,
+                colors=[ft.Colors.BLUE, ft.Colors.PURPLE],
+            ),
+            border_radius=10,
+        ),
+        # Shadow
+        ft.Container(
+            content=ft.Text("Shadow"),
+            padding=20,
+            bgcolor=ft.Colors.WHITE,
+            border_radius=10,
+            shadow=ft.BoxShadow(
+                spread_radius=1,
+                blur_radius=15,
+                color=ft.Colors.BLUE_GREY_300,
+                offset=ft.Offset(0, 5),
+            ),
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### Clickable Container
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def container_clicked(e):
+        e.control.bgcolor = ft.Colors.BLUE_200
+        e.control.update()
+    
+    page.add(
+        ft.Container(
+            content=ft.Text("Click me!"),
+            padding=20,
+            bgcolor=ft.Colors.BLUE_100,
+            border_radius=10,
+            ink=True,  # Ink ripple effect
+            on_click=container_clicked,
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Advanced Layout Controls
+
+<CardGroup cols={2}>
+  <Card title="GridView" icon="grid">
+    Scrollable 2D grid of controls
+  </Card>
+  <Card title="ListView" icon="list">
+    Scrollable list of controls
+  </Card>
+  <Card title="ResponsiveRow" icon="table-columns">
+    Responsive grid layout
+  </Card>
+  <Card title="SafeArea" icon="shield">
+    Ensures content avoids system UI
+  </Card>
+</CardGroup>
+
+### GridView
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.GridView(
+            runs_count=3,  # 3 columns
+            spacing=10,
+            run_spacing=10,
+            max_extent=150,
+            controls=[
+                ft.Container(
+                    content=ft.Text(f"Item {i}"),
+                    bgcolor=ft.Colors.BLUE_100,
+                    padding=10,
+                    alignment=ft.alignment.center,
+                )
+                for i in range(20)
+            ],
+        )
+    )
+
+ft.app(target=main)
+```
+
+### ListView
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.ListView(
+            height=400,
+            spacing=10,
+            padding=20,
+            controls=[
+                ft.ListTile(
+                    leading=ft.Icon(ft.Icons.PERSON),
+                    title=ft.Text(f"User {i}"),
+                    subtitle=ft.Text(f"user{i}@example.com"),
+                )
+                for i in range(20)
+            ],
+        )
+    )
+
+ft.app(target=main)
+```
+
+### ResponsiveRow
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.ResponsiveRow(
+            controls=[
+                ft.Container(
+                    content=ft.Text("Full width on mobile, half on desktop"),
+                    bgcolor=ft.Colors.BLUE_100,
+                    padding=10,
+                    col={"xs": 12, "md": 6},  # Responsive columns
+                ),
+                ft.Container(
+                    content=ft.Text("Half width on desktop"),
+                    bgcolor=ft.Colors.GREEN_100,
+                    padding=10,
+                    col={"xs": 12, "md": 6},
+                ),
+            ],
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Layout Best Practices
+
+### Use Expand Wisely
+
+```python
+import flet as ft
+
+# Good: Expand takes remaining space
+ft.Row(
+    controls=[
+        ft.Text("Fixed"),
+        ft.Container(
+            content=ft.Text("Expanded"),
+            expand=True,
+        ),
+        ft.ElevatedButton("Action"),
+    ]
+)
+```
+
+### Combine Layouts
+
+```python
+import flet as ft
+
+# Row + Column combination
+ft.Row(
+    controls=[
+        ft.Column(
+            controls=[
+                ft.Text("Left Column"),
+                ft.Text("Item 1"),
+                ft.Text("Item 2"),
+            ],
+            expand=1,
+        ),
+        ft.Column(
+            controls=[
+                ft.Text("Right Column"),
+                ft.Text("Item A"),
+                ft.Text("Item B"),
+            ],
+            expand=2,  # Takes 2x space
+        ),
+    ]
+)
+```
+
+### Avoid Nesting Too Deeply
+
+```python
+# Bad: Too much nesting
+ft.Container(
+    content=ft.Row(
+        controls=[
+            ft.Container(
+                content=ft.Column(
+                    controls=[
+                        ft.Container(content=ft.Text("Deep"))
+                    ]
+                )
+            )
+        ]
+    )
+)
+
+# Good: Flatter structure
+ft.Row(
+    controls=[
+        ft.Text("Simple", expand=True),
+    ]
+)
+```
+
+## Next Steps
+
+- Learn about [Navigation Controls](/controls/navigation) for app structure
+- Explore [Material Controls](/controls/material) to populate your layouts
+- Check [Input Controls](/controls/input) for user interaction
+
+## API Reference
+
+Detailed documentation:
+- [Row API](/api/layout/row)
+- [Column API](/api/layout/column)
+- [Stack API](/api/layout/stack)
+- [Container API](/api/material/container)
+- [GridView API](/api/layout/gridview)
+- [ListView API](/api/layout/listview)

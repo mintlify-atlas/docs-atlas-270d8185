@@ -1,0 +1,572 @@
+---
+title: Routing and Navigation
+description: Implement navigation and routing in Flet applications
+---
+
+Flet provides powerful routing capabilities for building multi-page applications with deep linking support. This page explains how to implement navigation and routing.
+
+## Basic Routing Concepts
+
+Routing in Flet allows you to:
+- Create multi-page applications
+- Handle browser navigation (back/forward buttons)
+- Support deep linking with shareable URLs
+- Build dynamic navigation based on routes
+
+### Route Structure
+
+Routes are URL paths that determine which view to display:
+
+```python
+/                    # Home page
+/settings            # Settings page
+/settings/profile    # Profile settings
+/store/items/123     # Item detail page
+```
+
+## Simple Routing
+
+The simplest routing approach uses the `page.route` property:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.title = "Simple Routing"
+    
+    def route_change(e):
+        # Clear current page
+        page.controls.clear()
+        
+        # Route to different pages
+        if page.route == "/":
+            page.add(ft.Text("Home Page", size=30))
+            page.add(ft.ElevatedButton(
+                "Go to Settings",
+                on_click=lambda _: page.go("/settings")
+            ))
+        
+        elif page.route == "/settings":
+            page.add(ft.Text("Settings Page", size=30))
+            page.add(ft.ElevatedButton(
+                "Go Home",
+                on_click=lambda _: page.go("/")
+            ))
+        
+        page.update()
+    
+    page.on_route_change = route_change
+    route_change(None)  # Initial route
+
+ft.run(main)
+```
+
+<Note>
+The `page.go()` method is deprecated. Use `page.push_route()` instead for new applications.
+</Note>
+
+## View-Based Routing
+
+The recommended approach uses Views to represent different pages:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.title = "Routes Example"
+    
+    print("Initial route:", page.route)
+    
+    async def open_settings(e):
+        await page.push_route("/settings")
+    
+    async def open_mail_settings(e):
+        await page.push_route("/settings/mail")
+    
+    def route_change(e):
+        print("Route change:", page.route)
+        page.views.clear()
+        
+        # Always add home view
+        page.views.append(
+            ft.View(
+                route="/",
+                controls=[
+                    ft.AppBar(title=ft.Text("Flet app")),
+                    ft.Text("Home Page", size=30),
+                    ft.ElevatedButton("Go to settings", on_click=open_settings),
+                ],
+            )
+        )
+        
+        # Add settings view if route matches
+        if page.route == "/settings" or page.route == "/settings/mail":
+            page.views.append(
+                ft.View(
+                    route="/settings",
+                    controls=[
+                        ft.AppBar(
+                            title=ft.Text("Settings"),
+                            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
+                        ),
+                        ft.Text("Settings!", theme_style=ft.TextThemeStyle.BODY_MEDIUM),
+                        ft.ElevatedButton(
+                            "Go to mail settings",
+                            on_click=open_mail_settings,
+                        ),
+                    ],
+                )
+            )
+        
+        # Add mail settings view if route matches
+        if page.route == "/settings/mail":
+            page.views.append(
+                ft.View(
+                    route="/settings/mail",
+                    controls=[
+                        ft.AppBar(
+                            title=ft.Text("Mail Settings"),
+                            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
+                        ),
+                        ft.Text("Mail settings!"),
+                    ],
+                )
+            )
+        
+        page.update()
+    
+    async def view_pop(e):
+        if e.view is not None:
+            print("View pop:", e.view)
+            page.views.remove(e.view)
+            top_view = page.views[-1]
+            await page.push_route(top_view.route)
+    
+    page.on_route_change = route_change
+    page.on_view_pop = view_pop
+    
+    route_change(None)
+
+ft.run(main)
+```
+
+### How View-Based Routing Works
+
+1. **Views as Pages**: Each `View` represents a distinct page in your app
+2. **View Stack**: `page.views` is a stack - the last view is displayed
+3. **AppBar Integration**: Views with `AppBar` automatically show back button
+4. **View Pop**: Clicking back removes the top view from the stack
+
+## Navigation Methods
+
+### push_route()
+
+Navigate to a new route (recommended):
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    async def go_to_profile(e):
+        # Push new route to navigation stack
+        await page.push_route("/profile")
+    
+    async def go_to_item(e, item_id):
+        # Dynamic route with parameter
+        await page.push_route(f"/items/{item_id}")
+    
+    page.add(
+        ft.ElevatedButton("View Profile", on_click=go_to_profile),
+        ft.ElevatedButton(
+            "View Item 42",
+            on_click=lambda e: go_to_item(e, 42)
+        ),
+    )
+
+ft.run(main)
+```
+
+### Query Parameters
+
+Add query parameters to routes:
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    async def search(e, query, filter_type):
+        # Add query parameters
+        await page.push_route(
+            "/search",
+            q=query,
+            filter=filter_type
+        )
+    
+    def route_change(e):
+        if page.route == "/search":
+            # Access query parameters
+            query = page.query.get("q", "")
+            filter_type = page.query.get("filter", "all")
+            page.add(ft.Text(f"Search: {query}, Filter: {filter_type}"))
+    
+    page.on_route_change = route_change
+    
+    page.add(
+        ft.ElevatedButton(
+            "Search Python",
+            on_click=lambda e: search(e, "python", "code")
+        )
+    )
+
+ft.run(main)
+```
+
+## Route Change Events
+
+### on_route_change
+
+Triggered when the route changes:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def route_change(e):
+        print(f"Route changed to: {e.route}")
+        
+        # The event object contains:
+        # e.route - the new route
+        # e.page - reference to the page
+        
+        # Update UI based on route
+        page.views.clear()
+        # ... build views based on e.route
+        page.update()
+    
+    page.on_route_change = route_change
+
+ft.run(main)
+```
+
+### on_view_pop
+
+Triggered when user navigates back:
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    async def view_pop(e):
+        # e.route - route of the view being popped
+        # e.view - the View object being popped (if found)
+        
+        print(f"Popping view: {e.route}")
+        
+        if e.view is not None:
+            page.views.remove(e.view)
+            top_view = page.views[-1]
+            await page.push_route(top_view.route)
+    
+    page.on_view_pop = view_pop
+
+ft.run(main)
+```
+
+## Route Templates
+
+Implement pattern matching for dynamic routes:
+
+```python
+import flet as ft
+import re
+
+def main(page: ft.Page):
+    # Route patterns
+    route_patterns = {
+        r"^/$": "home",
+        r"^/profile$": "profile",
+        r"^/users/(\d+)$": "user_detail",
+        r"^/posts/(\w+)$": "post_detail",
+    }
+    
+    def match_route(route):
+        """Match route against patterns and extract parameters."""
+        for pattern, name in route_patterns.items():
+            match = re.match(pattern, route)
+            if match:
+                return name, match.groups()
+        return None, []
+    
+    def route_change(e):
+        page.views.clear()
+        
+        route_name, params = match_route(page.route)
+        
+        if route_name == "home":
+            page.views.append(
+                ft.View(
+                    route="/",
+                    controls=[ft.Text("Home Page")],
+                )
+            )
+        
+        elif route_name == "user_detail":
+            user_id = params[0]
+            page.views.append(
+                ft.View(
+                    route=page.route,
+                    controls=[
+                        ft.AppBar(title=ft.Text(f"User {user_id}")),
+                        ft.Text(f"Viewing user profile: {user_id}"),
+                    ],
+                )
+            )
+        
+        elif route_name == "post_detail":
+            post_slug = params[0]
+            page.views.append(
+                ft.View(
+                    route=page.route,
+                    controls=[
+                        ft.AppBar(title=ft.Text(f"Post: {post_slug}")),
+                        ft.Text(f"Viewing post: {post_slug}"),
+                    ],
+                )
+            )
+        
+        else:
+            # 404 Not Found
+            page.views.append(
+                ft.View(
+                    route=page.route,
+                    controls=[ft.Text("404 - Page Not Found")],
+                )
+            )
+        
+        page.update()
+    
+    page.on_route_change = route_change
+    route_change(None)
+
+ft.run(main)
+```
+
+## Navigation Patterns
+
+### Tab-Based Navigation
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.title = "Tab Navigation"
+    
+    async def handle_tab_change(e):
+        index = e.control.selected_index
+        routes = ["/", "/explore", "/notifications", "/messages"]
+        await page.push_route(routes[index])
+    
+    def route_change(e):
+        # Determine active tab from route
+        routes = {"/": 0, "/explore": 1, "/notifications": 2, "/messages": 3}
+        selected_index = routes.get(page.route, 0)
+        
+        page.navigation_bar.selected_index = selected_index
+        page.update()
+    
+    page.navigation_bar = ft.NavigationBar(
+        destinations=[
+            ft.NavigationBarDestination(icon=ft.Icons.HOME, label="Home"),
+            ft.NavigationBarDestination(icon=ft.Icons.EXPLORE, label="Explore"),
+            ft.NavigationBarDestination(icon=ft.Icons.NOTIFICATIONS, label="Notifications"),
+            ft.NavigationBarDestination(icon=ft.Icons.MESSAGE, label="Messages"),
+        ],
+        on_change=handle_tab_change,
+    )
+    
+    page.on_route_change = route_change
+    route_change(None)
+
+ft.run(main)
+```
+
+### Drawer Navigation
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    async def navigate_to(route):
+        await page.close_drawer()
+        await page.push_route(route)
+    
+    drawer = ft.NavigationDrawer(
+        controls=[
+            ft.NavigationDrawerDestination(
+                icon=ft.Icons.HOME,
+                label="Home",
+                on_click=lambda e: navigate_to("/"),
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.Icons.SETTINGS,
+                label="Settings",
+                on_click=lambda e: navigate_to("/settings"),
+            ),
+            ft.NavigationDrawerDestination(
+                icon=ft.Icons.INFO,
+                label="About",
+                on_click=lambda e: navigate_to("/about"),
+            ),
+        ],
+    )
+    
+    def build_view(route, title):
+        return ft.View(
+            route=route,
+            drawer=drawer,
+            controls=[
+                ft.AppBar(title=ft.Text(title)),
+                ft.Text(f"Content for {title}"),
+            ],
+        )
+    
+    def route_change(e):
+        page.views.clear()
+        
+        if page.route == "/":
+            page.views.append(build_view("/", "Home"))
+        elif page.route == "/settings":
+            page.views.append(build_view("/settings", "Settings"))
+        elif page.route == "/about":
+            page.views.append(build_view("/about", "About"))
+        
+        page.update()
+    
+    page.on_route_change = route_change
+    route_change(None)
+
+ft.run(main)
+```
+
+## Initial Route
+
+Set the initial route when the app starts:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    # Set initial route
+    page.route = "/welcome"
+    
+    def route_change(e):
+        # Handle routing
+        pass
+    
+    page.on_route_change = route_change
+    route_change(None)  # Trigger initial route handler
+
+ft.run(main)
+```
+
+## Deep Linking
+
+Flet automatically handles deep links in web apps:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def route_change(e):
+        print(f"URL: {page.url}")
+        print(f"Route: {page.route}")
+        
+        # User can navigate directly to:
+        # https://yourapp.com/products/42
+        # page.route will be "/products/42"
+        
+        # Extract ID from route
+        if page.route.startswith("/products/"):
+            product_id = page.route.split("/")[-1]
+            page.add(ft.Text(f"Viewing product: {product_id}"))
+    
+    page.on_route_change = route_change
+
+ft.run(main)
+```
+
+## Route URL Strategy
+
+Choose how routes appear in the URL:
+
+```python
+import flet as ft
+
+# Path strategy (default): https://app.com/settings
+ft.run(main, route_url_strategy=ft.RouteUrlStrategy.PATH)
+
+# Hash strategy: https://app.com/#/settings
+ft.run(main, route_url_strategy=ft.RouteUrlStrategy.HASH)
+```
+
+<Note>
+**Path strategy** is cleaner but requires server configuration for deep links.
+**Hash strategy** works with static hosting without server-side configuration.
+</Note>
+
+## Best Practices
+
+### Route Organization
+
+```python
+import flet as ft
+
+class Routes:
+    HOME = "/"
+    PROFILE = "/profile"
+    SETTINGS = "/settings"
+    SETTINGS_PRIVACY = "/settings/privacy"
+    ITEM_DETAIL = "/items/{id}"
+
+def main(page: ft.Page):
+    async def go_home(e):
+        await page.push_route(Routes.HOME)
+    
+    async def go_to_item(e, item_id):
+        await page.push_route(Routes.ITEM_DETAIL.format(id=item_id))
+```
+
+### State Preservation
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    # Preserve state across navigation
+    app_state = {
+        "user": None,
+        "theme": "light",
+        "last_visited": []
+    }
+    
+    def route_change(e):
+        # Track visited routes
+        if page.route not in app_state["last_visited"]:
+            app_state["last_visited"].append(page.route)
+        
+        # Build views using state
+        # ...
+    
+    page.on_route_change = route_change
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Theming" icon="palette" href="/concepts/theming">
+    Customize your app's appearance with themes and styles
+  </Card>
+  <Card title="Architecture" icon="building" href="/concepts/architecture">
+    Deep dive into Flet's architecture and design
+  </Card>
+</CardGroup>

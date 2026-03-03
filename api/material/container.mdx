@@ -1,0 +1,222 @@
+---
+title: Container
+description: Layout control for decorating and positioning child controls
+---
+
+# Container
+
+Allows to decorate a control with background color and border and position it with padding, margin and alignment.
+
+## Properties
+
+### Content
+
+<ParamField path="content" type="Control">
+  The content of this container.
+</ParamField>
+
+### Layout
+
+<ParamField path="padding" type="PaddingValue">
+  Empty space to inscribe inside a container decoration (background, border). The child control is placed inside this padding.
+</ParamField>
+
+<ParamField path="alignment" type="Alignment">
+  Defines the alignment of the `content` inside the container.
+</ParamField>
+
+### Background
+
+<ParamField path="bgcolor" type="ColorValue">
+  Defines the background color of this container.
+</ParamField>
+
+<ParamField path="gradient" type="Gradient">
+  Defines the gradient background of this container.
+</ParamField>
+
+<ParamField path="blend_mode" type="BlendMode" default="BlendMode.MODULATE">
+  The blend mode applied to the `color` or `gradient` background of the container.
+</ParamField>
+
+<ParamField path="image" type="DecorationImage">
+  An image to paint above the `bgcolor` or `gradient`. If `shape=BoxShape.CIRCLE` then this image is clipped to the circle's boundary; if `border_radius` is not `None` then the image is clipped to the given radii.
+</ParamField>
+
+### Border and Shape
+
+<ParamField path="border" type="Border">
+  A border to draw above the background color.
+</ParamField>
+
+<ParamField path="border_radius" type="BorderRadiusValue">
+  The border radius of this container.
+</ParamField>
+
+<ParamField path="shape" type="BoxShape" default="BoxShape.RECTANGLE">
+  Sets the shape of this container. Options: `RECTANGLE`, `CIRCLE`.
+</ParamField>
+
+<ParamField path="clip_behavior" type="ClipBehavior">
+  Defines how the `content` of this container is clipped. Defaults to `ClipBehavior.ANTI_ALIAS` if `border_radius` is not `None`; otherwise `ClipBehavior.NONE`.
+</ParamField>
+
+### Visual Effects
+
+<ParamField path="blur" type="BlurValue">
+  Defines how Gaussian blur effect should be applied under this container.
+  
+  Example:
+  ```python
+  ft.Stack(
+      controls=[
+          ft.Container(
+              content=ft.Text("Hello"),
+              image_src="https://picsum.photos/100/100",
+              width=100,
+              height=100,
+          ),
+          ft.Container(
+              width=50,
+              height=50,
+              blur=10,
+              bgcolor="#44CCCC00",
+          ),
+          ft.Container(
+              width=50,
+              height=50,
+              left=10,
+              top=60,
+              blur=(0, 10),
+          ),
+          ft.Container(
+              top=10,
+              left=60,
+              blur=ft.Blur(10, 0, ft.BlurTileMode.MIRROR),
+              width=50,
+              height=50,
+              bgcolor="#44CCCCCC",
+              border=ft.border.all(2, ft.Colors.BLACK),
+          ),
+      ]
+  )
+  ```
+</ParamField>
+
+<ParamField path="shadow" type="BoxShadowValue">
+  The shadow(s) below this container.
+</ParamField>
+
+<ParamField path="color_filter" type="ColorFilter">
+  Applies a color filter to this container.
+</ParamField>
+
+<ParamField path="foreground_decoration" type="BoxDecoration">
+  The foreground decoration of this container.
+</ParamField>
+
+### Interaction
+
+<ParamField path="ink" type="bool" default="False">
+  `True` to produce ink ripples effect when user clicks this container.
+</ParamField>
+
+<ParamField path="ink_color" type="ColorValue">
+  The splash color of the ink response.
+</ParamField>
+
+<ParamField path="url" type="str | Url">
+  The URL to open when this container is clicked. Additionally, if an `on_click` callback is provided, it is fired after that.
+</ParamField>
+
+<ParamField path="ignore_interactions" type="bool" default="False">
+  Whether to ignore all interactions with this container and its descendants.
+</ParamField>
+
+### Animation
+
+<ParamField path="animate" type="AnimationValue">
+  Enables container "implicit" animation that gradually changes its values over a period of time.
+</ParamField>
+
+### Theme
+
+<ParamField path="theme" type="Theme">
+  Allows setting a nested theme for all controls inside this container and down its tree.
+</ParamField>
+
+<ParamField path="dark_theme" type="Theme">
+  Allows setting a nested theme to be used when in dark theme mode for all controls inside the container and down its tree.
+</ParamField>
+
+<ParamField path="theme_mode" type="ThemeMode" default="ThemeMode.SYSTEM">
+  "Resets" parent theme and creates a new, unique scheme for all controls inside the container. Otherwise the styles defined in container's `theme` property override corresponding styles from the parent, inherited theme.
+</ParamField>
+
+## Events
+
+<ParamField path="on_click" type="ControlEventHandler">
+  Called when a user clicks the container. It will not be called if this container is long pressed.
+</ParamField>
+
+<ParamField path="on_tap_down" type="EventHandler[TapEvent]">
+  Called when a user clicks the container with or without a long press.
+</ParamField>
+
+<ParamField path="on_long_press" type="ControlEventHandler">
+  Called when this container is long-pressed.
+</ParamField>
+
+<ParamField path="on_hover" type="ControlEventHandler">
+  Called when a mouse pointer enters or exists the container area. The `data` property of the event handler argument is a boolean: `True` when the cursor enters and `False` when it exits this container.
+</ParamField>
+
+## Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Container(
+            content=ft.Text("Hello, World!"),
+            padding=20,
+            bgcolor=ft.Colors.BLUE_100,
+            border_radius=10,
+            border=ft.border.all(2, ft.Colors.BLUE_400)
+        ),
+        ft.Container(
+            content=ft.Column([
+                ft.Text("Gradient Container"),
+                ft.Icon(ft.Icons.STAR, size=50)
+            ]),
+            gradient=ft.LinearGradient(
+                begin=ft.alignment.top_left,
+                end=ft.alignment.bottom_right,
+                colors=[ft.Colors.BLUE, ft.Colors.PURPLE]
+            ),
+            width=200,
+            height=200,
+            border_radius=20,
+            padding=20
+        ),
+        ft.Container(
+            content=ft.Text("Click me!"),
+            ink=True,
+            on_click=lambda e: print("Container clicked!"),
+            padding=10,
+            border_radius=5,
+            border=ft.border.all(1, ft.Colors.GREY)
+        ),
+        ft.Container(
+            content=ft.Text("Circular Container"),
+            shape=ft.BoxShape.CIRCLE,
+            bgcolor=ft.Colors.AMBER,
+            width=100,
+            height=100,
+            alignment=ft.alignment.center
+        )
+    )
+
+ft.app(target=main)
+```

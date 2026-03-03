@@ -1,0 +1,210 @@
+---
+title: 'CupertinoButton'
+description: 'iOS-style button controls for Flet'
+keywords: ['cupertino', 'button', 'ios', 'filled button']
+---
+
+## CupertinoButton
+
+An iOS-style button with customizable appearance and behavior.
+
+```python
+import flet as ft
+
+ft.CupertinoButton(
+    content="Tap me",
+    bgcolor=ft.CupertinoColors.ACTIVE_BLUE,
+    on_click=lambda e: print("Button clicked")
+)
+```
+
+### Class signature
+
+```python
+class CupertinoButton(LayoutControl)
+```
+
+### Properties
+
+<ParamField path="content" type="str | Control">
+  The content of this button. Can be a string or a Control.
+</ParamField>
+
+<ParamField path="icon" type="str | Icon">
+  An icon shown in this button.
+</ParamField>
+
+<ParamField path="icon_color" type="str">
+  The foreground color of the icon.
+</ParamField>
+
+<ParamField path="bgcolor" type="str">
+  The background color of this button.
+</ParamField>
+
+<ParamField path="color" type="str">
+  The color of this button's text.
+</ParamField>
+
+<ParamField path="disabled_bgcolor" type="str">
+  The background color of this button when disabled.
+</ParamField>
+
+<ParamField path="opacity_on_click" type="number" default="0.4">
+  Defines the opacity of the button when it is clicked. When not pressed, the button has an opacity of 1.0.
+  
+  Must be between 0.0 and 1.0 inclusive.
+</ParamField>
+
+<ParamField path="min_size" type="Size">
+  The minimum size of this button.
+</ParamField>
+
+<ParamField path="size" type="CupertinoButtonSize" default="CupertinoButtonSize.LARGE">
+  The size preset for this button. Influences defaults such as minimum size, padding, border radius, and text style.
+  
+  Options:
+  - `CupertinoButtonSize.SMALL` - Compact button style with smaller text and tighter sizing
+  - `CupertinoButtonSize.MEDIUM` - Medium button style with regular text and balanced sizing
+  - `CupertinoButtonSize.LARGE` - Classic large Cupertino button style
+</ParamField>
+
+<ParamField path="padding" type="Padding | number">
+  The amount of space to surround the content control inside the bounds of the button.
+</ParamField>
+
+<ParamField path="alignment" type="Alignment" default="Alignment.CENTER">
+  The alignment of this button's content.
+  
+  Typically buttons are sized to be just big enough to contain the child and its padding. If the button's size is constrained to a fixed size, this property defines how the child is aligned within the available space.
+</ParamField>
+
+<ParamField path="border_radius" type="BorderRadius | number" default="BorderRadius.all(8.0)">
+  The radius of the button's corners when it has a background color.
+</ParamField>
+
+<ParamField path="url" type="str | Url">
+  The URL to open when this button is clicked. If `on_click` event callback is also provided, it is fired after opening the URL.
+</ParamField>
+
+<ParamField path="autofocus" type="bool" default="False">
+  Whether this button should be selected as the initial focus when no other node in its scope is currently focused.
+</ParamField>
+
+<ParamField path="focus_color" type="str">
+  The color to use for the focus highlight for keyboard interactions.
+  
+  Defaults to a slightly transparent `bgcolor`. If `bgcolor` is None, defaults to a slightly transparent `CupertinoColors.ACTIVE_BLUE`.
+</ParamField>
+
+<ParamField path="mouse_cursor" type="MouseCursor">
+  The cursor for a mouse pointer when it enters or is hovering over this button.
+</ParamField>
+
+### Events
+
+<ParamField path="on_click" type="ControlEventHandler">
+  Called when a user clicks this button.
+</ParamField>
+
+<ParamField path="on_long_press" type="ControlEventHandler">
+  Called when a user long-presses this button.
+</ParamField>
+
+<ParamField path="on_focus" type="ControlEventHandler">
+  Called when this button receives focus.
+</ParamField>
+
+<ParamField path="on_blur" type="ControlEventHandler">
+  Called when this button loses focus.
+</ParamField>
+
+### Methods
+
+#### focus()
+
+Requests focus for this control.
+
+```python
+await button.focus()
+```
+
+### iOS-specific behavior
+
+- When clicked, the button opacity changes to `opacity_on_click` (default 0.4) to provide visual feedback
+- The default border radius of 8.0 matches iOS design guidelines
+- Focus color uses the iOS-standard slightly transparent style with opacity of 0.80, brightness of 0.69, and saturation of 0.835
+
+### Comparison with Material
+
+Compared to Material's `ElevatedButton` or `TextButton`:
+
+<CodeGroup>
+
+```python Cupertino
+ft.CupertinoButton(
+    content="iOS Button",
+    bgcolor=ft.CupertinoColors.ACTIVE_BLUE,
+    opacity_on_click=0.4
+)
+```
+
+```python Material
+ft.ElevatedButton(
+    text="Material Button",
+    bgcolor=ft.Colors.BLUE,
+    # No opacity_on_click - uses splash effect
+)
+```
+
+</CodeGroup>
+
+Key differences:
+- CupertinoButton uses opacity changes for press feedback, Material uses ripple/splash effects
+- CupertinoButton has rounded corners by default (8px radius), Material buttons are more rectangular
+- CupertinoButton styling follows iOS Human Interface Guidelines
+
+---
+
+## CupertinoFilledButton
+
+An iOS-style button filled with default background color. Inherits all properties and methods from `CupertinoButton`.
+
+```python
+import flet as ft
+
+ft.CupertinoFilledButton(
+    content="Filled Button",
+    on_click=lambda e: print("Filled button clicked")
+)
+```
+
+### Class signature
+
+```python
+class CupertinoFilledButton(CupertinoButton)
+```
+
+### Description
+
+This is a convenience widget that extends `CupertinoButton` with a default background color, following iOS design patterns for primary action buttons.
+
+### Comparison with Material
+
+<CodeGroup>
+
+```python Cupertino
+ft.CupertinoFilledButton(
+    content="Primary Action"
+)
+```
+
+```python Material
+ft.FilledButton(
+    text="Primary Action"
+)
+```
+
+</CodeGroup>
+
+Both provide filled backgrounds for primary actions, but follow their respective platform design guidelines.

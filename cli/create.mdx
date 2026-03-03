@@ -1,0 +1,530 @@
+---
+title: flet create
+description: Scaffold new Flet projects from predefined templates.
+---
+
+The `flet create` command creates a new Flet project from a predefined template, setting up the initial directory structure, metadata, and required files to help you get started quickly.
+
+## Basic Usage
+
+```bash
+flet create [output_directory] [options]
+```
+
+## Examples
+
+### Create in Current Directory
+
+```bash
+flet create
+```
+
+Creates a new Flet app in the current directory.
+
+### Create in New Directory
+
+```bash
+flet create my-app
+```
+
+Creates a `my-app` directory with a new Flet project.
+
+### Create with Custom Name
+
+```bash
+flet create my-app --project-name "My Awesome App"
+```
+
+### Create Extension Project
+
+```bash
+flet create my-extension --template extension
+```
+
+Creates a Flet extension project (for building custom Flet controls).
+
+### Create with Description
+
+```bash
+flet create my-app \
+  --project-name "Task Manager" \
+  --description "A simple task management application"
+```
+
+## Arguments
+
+<ParamField path="output_directory" type="string" default=".">
+  Directory where the new Flet project will be created. If omitted, the project is created in the current directory.
+
+  ```bash
+  flet create ./projects/my-app
+  ```
+
+  The directory will be created if it doesn't exist.
+</ParamField>
+
+## Options
+
+<ParamField path="--project-name" type="string">
+  Name of the new Flet project. This will be used in metadata files such as `pyproject.toml`.
+
+  ```bash
+  flet create --project-name "my-app"
+  ```
+
+  If not specified, the output directory name is used.
+
+  The name is automatically converted to a valid Python package name (lowercase, hyphens replaced with underscores).
+</ParamField>
+
+<ParamField path="--description" type="string">
+  Short description of the new Flet project. This will appear in generated metadata.
+
+  ```bash
+  flet create --description "A productivity tool for developers"
+  ```
+
+  This appears in:
+  - `pyproject.toml`
+  - Generated README
+  - App metadata
+</ParamField>
+
+<ParamField path="--template" type="enum" default="app">
+  The template (or type of project) to create.
+
+  Options:
+  - `app` - Standard Flet application (default)
+  - `extension` - Flet extension project for custom controls
+
+  ```bash
+  flet create --template extension
+  ```
+</ParamField>
+
+<ParamField path="--template-ref" type="string">
+  Git reference (branch, tag, or commit ID) of the Flet template repository to use.
+
+  ```bash
+  flet create --template-ref main
+  flet create --template-ref v0.24.0
+  ```
+
+  By default, uses the template version matching your installed Flet version.
+
+  Useful for:
+  - Using development templates
+  - Testing new template features
+  - Using a specific template version
+</ParamField>
+
+## Project Structure
+
+The `app` template creates the following structure:
+
+```
+my-app/
+├── assets/
+│   └── (place your images, fonts, etc. here)
+├── main.py
+├── pyproject.toml
+├── README.md
+└── requirements.txt
+```
+
+### main.py
+
+The entry point for your application:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.title = "My App"
+    page.add(ft.Text("Hello, Flet!"))
+
+ft.app(target=main)
+```
+
+### pyproject.toml
+
+Project metadata and build configuration:
+
+```toml
+[project]
+name = "my-app"
+version = "0.1.0"
+description = "My Flet application"
+
+[tool.flet]
+product = "My App"
+```
+
+### requirements.txt
+
+Python dependencies:
+
+```
+flet>=0.24.0
+```
+
+## Template Types
+
+### App Template (Default)
+
+The standard template for creating Flet applications.
+
+```bash
+flet create my-app
+```
+
+**Includes:**
+- Basic Flet app structure
+- Sample code
+- `pyproject.toml` configuration
+- Assets directory
+- README with instructions
+
+**Best for:**
+- Regular Flet applications
+- Desktop apps
+- Web apps
+- Mobile apps
+
+### Extension Template
+
+Template for creating custom Flet controls.
+
+```bash
+flet create my-control --template extension
+```
+
+**Includes:**
+- Extension package structure
+- Example custom control
+- Build configuration
+- Documentation template
+
+**Best for:**
+- Creating reusable controls
+- Wrapping third-party libraries
+- Extending Flet functionality
+
+## After Creation
+
+Once your project is created, the CLI displays next steps:
+
+```bash
+$ flet create my-app
+The app has been created.
+
+Run the app:
+
+flet run my-app
+```
+
+### Install Dependencies
+
+If you created the project in a new directory:
+
+```bash
+cd my-app
+pip install -r requirements.txt
+```
+
+Or if using `pyproject.toml`:
+
+```bash
+pip install -e .
+```
+
+### Run Your App
+
+```bash
+flet run
+```
+
+Or from outside the project directory:
+
+```bash
+flet run my-app
+```
+
+### Start Development
+
+Enable hot reload for development:
+
+```bash
+flet run -d -r
+```
+
+## Customizing the Template
+
+After creation, you can customize the generated files:
+
+### Update Project Metadata
+
+Edit `pyproject.toml`:
+
+```toml
+[project]
+name = "my-app"
+version = "1.0.0"
+description = "My awesome application"
+authors = [{name = "Your Name", email = "you@example.com"}]
+
+[tool.flet]
+product = "My App"
+org_name = "com.example"
+company = "Example Corp"
+```
+
+### Add Dependencies
+
+Edit `requirements.txt`:
+
+```
+flet>=0.24.0
+requests
+pandas
+```
+
+Or in `pyproject.toml`:
+
+```toml
+[project]
+dependencies = [
+    "flet>=0.24.0",
+    "requests",
+    "pandas",
+]
+```
+
+### Customize App Structure
+
+Create additional modules:
+
+```
+my-app/
+├── assets/
+├── components/
+│   ├── __init__.py
+│   └── navbar.py
+├── pages/
+│   ├── __init__.py
+│   ├── home.py
+│   └── settings.py
+├── main.py
+└── pyproject.toml
+```
+
+## Using Custom Templates
+
+You can use templates from different sources:
+
+### Specific Template Version
+
+```bash
+flet create my-app --template-ref v0.24.0
+```
+
+### Development Branch
+
+```bash
+flet create my-app --template-ref main
+```
+
+### Specific Commit
+
+```bash
+flet create my-app --template-ref abc123def456
+```
+
+## Template Repository
+
+Templates are pulled from the [flet-dev/flet-app-templates](https://github.com/flet-dev/flet-app-templates) repository.
+
+The repository contains:
+- Multiple template types
+- Platform-specific configurations
+- Example code
+- Documentation
+
+## Integration with Package Managers
+
+### Using Poetry
+
+After creating the project:
+
+```bash
+cd my-app
+poetry install
+poetry run flet run
+```
+
+### Using pip with Virtual Environment
+
+```bash
+cd my-app
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+flet run
+```
+
+### Using uv
+
+```bash
+cd my-app
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+uv pip install -r requirements.txt
+flet run
+```
+
+## Examples
+
+### Create Production-Ready Project
+
+```bash
+flet create my-app \
+  --project-name "task-manager" \
+  --description "A modern task management application"
+
+cd my-app
+
+# Edit pyproject.toml to add metadata
+nano pyproject.toml
+```
+
+Add to `pyproject.toml`:
+
+```toml
+[tool.flet]
+product = "Task Manager"
+org_name = "com.example"
+company = "Example Corp"
+copyright = "Copyright (c) 2024 Example Corp"
+
+[tool.flet.web]
+renderer = "canvaskit"
+
+[tool.flet.android]
+permissions = ["camera", "location"]
+```
+
+### Create Extension Project
+
+```bash
+flet create flet-charts --template extension
+cd flet-charts
+```
+
+This creates a package structure for building custom controls.
+
+### Create Multiple Apps
+
+```bash
+mkdir my-projects
+cd my-projects
+
+flet create frontend-app
+flet create admin-panel
+flet create mobile-app
+```
+
+## Troubleshooting
+
+### Directory Already Exists
+
+The command overwrites existing files if the directory exists:
+
+```bash
+flet create my-app
+# Creates/overwrites files in my-app/
+```
+
+To avoid data loss, create in a new directory:
+
+```bash
+flet create my-new-app
+```
+
+### Template Download Fails
+
+If you have network issues:
+
+```bash
+# Try again with verbose output
+flet create my-app --verbose
+```
+
+Or specify a different template reference:
+
+```bash
+flet create my-app --template-ref v0.23.0
+```
+
+### Import Errors After Creation
+
+Make sure to install dependencies:
+
+```bash
+cd my-app
+pip install -r requirements.txt
+```
+
+## Best Practices
+
+### 1. Use Descriptive Names
+
+```bash
+# Good
+flet create task-manager --project-name "task-manager"
+
+# Avoid
+flet create app1
+```
+
+### 2. Add Metadata Immediately
+
+Edit `pyproject.toml` right after creation to avoid forgetting later.
+
+### 3. Use Version Control
+
+```bash
+flet create my-app
+cd my-app
+git init
+git add .
+git commit -m "Initial commit"
+```
+
+### 4. Set Up Virtual Environment
+
+Always use a virtual environment:
+
+```bash
+flet create my-app
+cd my-app
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Run Command" icon="play" href="/cli/run">
+    Run your app with hot reload
+  </Card>
+  <Card title="Build Command" icon="hammer" href="/cli/build">
+    Build production executables
+  </Card>
+  <Card title="Getting Started" icon="rocket" href="/getting-started">
+    Learn Flet basics
+  </Card>
+  <Card title="Project Structure" icon="folder-tree" href="/guides/python/project-structure">
+    Organize your Flet app
+  </Card>
+</CardGroup>

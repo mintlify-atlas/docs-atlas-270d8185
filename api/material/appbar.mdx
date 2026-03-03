@@ -1,0 +1,192 @@
+---
+title: AppBar
+description: Material Design app bar for navigation and actions
+---
+
+# AppBar
+
+A material design app bar displayed at the top of the screen, providing navigation, branding, and action items.
+
+## Properties
+
+### Content
+
+<ParamField path="leading" type="Control">
+  A control to display before the toolbar's `title`. Typically an `Icon` or `IconButton` control.
+</ParamField>
+
+<ParamField path="leading_width" type="Number">
+  Defines the width of the `leading` control.
+</ParamField>
+
+<ParamField path="automatically_imply_leading" type="bool" default="True">
+  Whether we should try to imply the `leading` control if it is `None`.
+  
+  - If `True` and `leading` is `None`, this app bar will automatically determine an appropriate leading control.
+  - If `False` and `leading` is `None`, the space is allocated to the `title`.
+  - If a `leading` control is provided, this parameter has no effect.
+</ParamField>
+
+<ParamField path="title" type="str | Control">
+  The primary Control displayed in this app bar. Typically a `Text` control that contains a description of the current contents of this app.
+  
+  **Note:** If `AppBar.adaptive=True` and this app is opened on an iOS or macOS device, this `title` control will be automatically centered, independent of the value of `center_title`.
+</ParamField>
+
+<ParamField path="center_title" type="bool">
+  Whether the `title` should be centered. Default value is defined by `AppBarTheme.center_title`.
+</ParamField>
+
+<ParamField path="actions" type="list[Control]">
+  A list of Controls to display in a row after the title control.
+  
+  Typically, these controls are `IconButton`s representing common operations. For less common operations, consider using a `PopupMenuButton` as the last action.
+  
+  **Info:** If `AppBar.adaptive` is `True` and this app is opened on an iOS or macOS device, these `actions` will be automatically placed in a `Row`. This is because `CupertinoAppBar.trailing` (which is the counterpart property of `actions`) takes only a single Control.
+</ParamField>
+
+### Styling
+
+<ParamField path="toolbar_height" type="Number">
+  Defines the height of the toolbar component of this app bar.
+</ParamField>
+
+<ParamField path="color" type="ColorValue">
+  The default color for `Text` and `Icon` controls within this app bar. Default color is defined by `AppBarTheme.color`.
+</ParamField>
+
+<ParamField path="bgcolor" type="ColorValue">
+  The fill color to use for this app bar. Default color is defined by `AppBarTheme.bgcolor`.
+</ParamField>
+
+<ParamField path="elevation" type="Number">
+  The app bar's elevation.
+  
+  **Note:** This effect is only visible when using the Material 2 design (when `Theme.use_material3` is `False`).
+  
+  Must be greater than or equal to `0.0`.
+</ParamField>
+
+<ParamField path="elevation_on_scroll" type="Number">
+  The elevation to be used if this app bar has something scrolled underneath it.
+  
+  Must be greater than or equal to `0.0`.
+</ParamField>
+
+<ParamField path="shadow_color" type="ColorValue">
+  The color of the shadow below this app bar. A shadow is only visible and displayed if the `elevation` is greater than zero.
+</ParamField>
+
+<ParamField path="shape" type="OutlinedBorder">
+  The shape of this app bar's Material as well as its shadow.
+</ParamField>
+
+### Layout and Spacing
+
+<ParamField path="title_spacing" type="Number">
+  The spacing around `title` on the horizontal axis. It is applied even if there are no `leading` or `actions` controls.
+  
+  **Tip:** If you want `title` to take all the space available, set `title_spacing` to `0.0`.
+</ParamField>
+
+<ParamField path="actions_padding" type="PaddingValue">
+  The padding between the `actions` and the end of this app bar.
+</ParamField>
+
+### Text Styles
+
+<ParamField path="title_text_style" type="TextStyle">
+  The style to be used for the `Text` controls in the `title`.
+</ParamField>
+
+<ParamField path="toolbar_text_style" type="TextStyle">
+  The style to be used for the `Text` controls in the app bar's `leading` and `actions`.
+</ParamField>
+
+### Behavior
+
+<ParamField path="clip_behavior" type="ClipBehavior">
+  The content will be clipped (or not) according to this option.
+</ParamField>
+
+<ParamField path="force_material_transparency" type="bool" default="False">
+  Forces this app bar to be transparent (instead of Material's default type). This will also remove the visual display of `bgcolor` and `elevation`, and affect other characteristics of this app bar.
+</ParamField>
+
+<ParamField path="secondary" type="bool" default="False">
+  Whether this app bar is not being displayed at the top of the screen.
+</ParamField>
+
+<ParamField path="exclude_header_semantics" type="bool" default="False">
+  Whether the `title` should be wrapped with header `Semantics`.
+</ParamField>
+
+<ParamField path="toolbar_opacity" type="Number" default="1.0">
+  The opacity of the toolbar. Value must be between `0.0` (transparent) and `1.0` (fully opaque) inclusive.
+</ParamField>
+
+## Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def menu_click(e):
+        print("Menu clicked!")
+    
+    def search_click(e):
+        print("Search clicked!")
+    
+    def more_click(e):
+        print("More clicked!")
+    
+    page.appbar = ft.AppBar(
+        leading=ft.Icon(ft.Icons.MENU),
+        leading_width=40,
+        title=ft.Text("Dashboard"),
+        center_title=False,
+        bgcolor=ft.Colors.SURFACE_CONTAINER,
+        actions=[
+            ft.IconButton(ft.Icons.SEARCH, on_click=search_click),
+            ft.IconButton(ft.Icons.NOTIFICATIONS_OUTLINED),
+            ft.PopupMenuButton(
+                items=[
+                    ft.PopupMenuItem(text="Settings"),
+                    ft.PopupMenuItem(text="Help"),
+                    ft.PopupMenuItem(text="Logout"),
+                ]
+            ),
+        ],
+    )
+    
+    page.add(ft.Text("App content goes here"))
+
+ft.app(target=main)
+```
+
+## Adaptive Behavior
+
+When `adaptive=True`, the AppBar automatically adapts to the platform:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.appbar = ft.AppBar(
+        adaptive=True,  # Uses CupertinoAppBar on iOS/macOS
+        leading=ft.Icon(ft.Icons.MENU),
+        title=ft.Text("My App"),
+        actions=[
+            ft.IconButton(ft.Icons.SEARCH),
+            ft.IconButton(ft.Icons.MORE_VERT),
+        ],
+    )
+    
+    page.add(ft.Text("Content"))
+
+ft.app(target=main)
+```
+
+On iOS and macOS:
+- The `title` is automatically centered
+- Multiple `actions` are wrapped in a `Row` (since CupertinoAppBar only accepts a single trailing control)

@@ -1,0 +1,321 @@
+---
+title: Theme
+---
+
+Theme utilities in Flet allow you to customize the visual appearance of your application. This includes color schemes, text styles, and component-specific themes.
+
+## ColorScheme
+
+A set of 40+ colors based on the [Material Design spec](https://m3.material.io/styles/color/the-color-system/color-roles) that can be used to configure the color properties of most components.
+
+```python
+@dataclass
+class ColorScheme:
+    primary: Optional[ColorValue] = None
+    on_primary: Optional[ColorValue] = None
+    primary_container: Optional[ColorValue] = None
+    on_primary_container: Optional[ColorValue] = None
+    # ... and many more
+```
+
+### Primary Colors
+
+- **primary**: The color displayed most frequently across your app's screens and components
+- **on_primary**: A color that's clearly legible when drawn on `primary`
+- **primary_container**: A color used for elements needing less emphasis than `primary`
+- **on_primary_container**: A color that's clearly legible when drawn on `primary_container`
+- **primary_fixed**: A substitute for `primary_container` that's the same color for dark and light themes
+- **primary_fixed_dim**: A color used for elements needing more emphasis than `primary_fixed`
+- **on_primary_fixed**: Text/icons on top of `primary_fixed` color
+- **on_primary_fixed_variant**: Lower-emphasis option for text/icons than `on_primary_fixed`
+
+### Secondary Colors
+
+- **secondary**: An accent color for less prominent components
+- **on_secondary**: Legible color on `secondary`
+- **secondary_container**: Less emphasis than `secondary`
+- **on_secondary_container**: Legible on `secondary_container`
+- **secondary_fixed**: Same for dark/light themes
+- **secondary_fixed_dim**: More emphasis than `secondary_fixed`
+- **on_secondary_fixed**: Text/icons on `secondary_fixed`
+- **on_secondary_fixed_variant**: Lower emphasis option
+
+### Tertiary Colors
+
+- **tertiary**: Contrasting accent to balance primary and secondary
+- **on_tertiary**: Legible on `tertiary`
+- **tertiary_container**: Less emphasis than `tertiary`
+- **on_tertiary_container**: Legible on `tertiary_container`
+- **tertiary_fixed**: Same for dark/light themes
+- **tertiary_fixed_dim**: More emphasis than `tertiary_fixed`
+- **on_tertiary_fixed**: Text/icons on `tertiary_fixed`
+- **on_tertiary_fixed_variant**: Lower emphasis option
+
+### Error Colors
+
+- **error**: Color for input validation errors
+- **on_error**: Legible on `error`
+- **error_container**: Error elements with less emphasis
+- **on_error_container**: Legible on `error_container`
+
+### Surface Colors
+
+- **surface**: Background color for widgets like Card
+- **on_surface**: Legible on `surface`
+- **on_surface_variant**: Legible on `surface_container_highest`
+- **surface_tint**: Overlay to indicate elevation
+- **surface_dim**: Always darkest in dark or light theme
+- **surface_bright**: Always lightest in dark or light theme
+- **surface_container**: Distinct area within surface
+- **surface_container_low**: Lighter tone than `surface_container`
+- **surface_container_lowest**: Lightest tone, least emphasis
+- **surface_container_high**: Darker tone
+- **surface_container_highest**: Darkest tone, most emphasis
+
+### Utility Colors
+
+- **outline**: Creates boundaries and emphasis to improve usability
+- **outline_variant**: For decorative elements (dividers)
+- **shadow**: Color for drop shadows
+- **scrim**: Color for modal component backgrounds
+
+### Inverse Colors
+
+- **inverse_surface**: Reverse UI (e.g., in SnackBar)
+- **on_inverse_surface**: Legible on `inverse_surface`
+- **inverse_primary**: Highlight on `inverse_surface` backgrounds
+
+**Example:**
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.theme = ft.Theme(
+        color_scheme=ft.ColorScheme(
+            primary=ft.colors.BLUE,
+            on_primary=ft.colors.WHITE,
+            secondary=ft.colors.AMBER,
+            on_secondary=ft.colors.BLACK,
+            surface=ft.colors.GREY_100,
+            on_surface=ft.colors.BLACK,
+        )
+    )
+    
+    page.add(
+        ft.ElevatedButton("Primary Button"),
+        ft.Card(
+            content=ft.Container(
+                content=ft.Text("Card on surface"),
+                padding=20,
+            )
+        ),
+    )
+
+ft.app(target=main)
+```
+
+---
+
+## TextTheme
+
+Customizes Text styles following Material 3 design system.
+
+```python
+@dataclass
+class TextTheme:
+    # Display styles - largest text, for short important text
+    display_large: Optional[TextStyle] = None
+    display_medium: Optional[TextStyle] = None
+    display_small: Optional[TextStyle] = None
+    
+    # Headline styles - for short, high-emphasis text
+    headline_large: Optional[TextStyle] = None
+    headline_medium: Optional[TextStyle] = None
+    headline_small: Optional[TextStyle] = None
+    
+    # Title styles - for shorter, medium-emphasis text
+    title_large: Optional[TextStyle] = None
+    title_medium: Optional[TextStyle] = None
+    title_small: Optional[TextStyle] = None
+    
+    # Body styles - for longer passages of text
+    body_large: Optional[TextStyle] = None
+    body_medium: Optional[TextStyle] = None  # Default for Material
+    body_small: Optional[TextStyle] = None
+    
+    # Label styles - for small UI elements like buttons
+    label_large: Optional[TextStyle] = None
+    label_medium: Optional[TextStyle] = None
+    label_small: Optional[TextStyle] = None
+```
+
+**Example:**
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.theme = ft.Theme(
+        text_theme=ft.TextTheme(
+            display_large=ft.TextStyle(
+                size=57,
+                weight=ft.FontWeight.W_400,
+            ),
+            headline_medium=ft.TextStyle(
+                size=28,
+                weight=ft.FontWeight.W_600,
+            ),
+            body_medium=ft.TextStyle(
+                size=14,
+                weight=ft.FontWeight.W_400,
+            ),
+        )
+    )
+    
+    page.add(
+        ft.Text("Display Large", theme_style=ft.TextThemeStyle.DISPLAY_LARGE),
+        ft.Text("Headline Medium", theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM),
+        ft.Text("Body Medium", theme_style=ft.TextThemeStyle.BODY_MEDIUM),
+    )
+
+ft.app(target=main)
+```
+
+**When to use each style:**
+
+- **Display**: Hero text, large numbers, short impactful statements
+- **Headline**: Section headers, dialog titles
+- **Title**: List item titles, card headers, smaller headings
+- **Body**: Paragraphs, descriptions, general content
+- **Label**: Button text, chips, small supporting text
+
+---
+
+## PageTransitionTheme
+
+Controls how pages transition during navigation.
+
+```python
+class PageTransitionTheme(Enum):
+    NONE = "none"  # No animation
+    FADE_UPWARDS = "fadeUpwards"  # Android O style
+    OPEN_UPWARDS = "openUpwards"  # Android P style
+    ZOOM = "zoom"  # Android Q style
+    CUPERTINO = "cupertino"  # iOS style
+    PREDICTIVE = "predictive"  # Android predictive-back
+    FADE_FORWARDS = "fadeForwards"  # Android U style
+```
+
+### PageTransitionsTheme
+
+Per-platform mapping of route transition presets.
+
+```python
+@dataclass
+class PageTransitionsTheme:
+    android: Optional[PageTransitionTheme] = None
+    ios: Optional[PageTransitionTheme] = None
+    linux: Optional[PageTransitionTheme] = None
+    macos: Optional[PageTransitionTheme] = None
+    windows: Optional[PageTransitionTheme] = None
+```
+
+**Example:**
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.theme = ft.Theme(
+        page_transitions=ft.PageTransitionsTheme(
+            android=ft.PageTransitionTheme.FADE_UPWARDS,
+            ios=ft.PageTransitionTheme.CUPERTINO,
+            macos=ft.PageTransitionTheme.ZOOM,
+            linux=ft.PageTransitionTheme.ZOOM,
+            windows=ft.PageTransitionTheme.ZOOM,
+        )
+    )
+```
+
+---
+
+## Component-Specific Themes
+
+Flet provides theme classes for customizing specific components:
+
+- **ScrollbarTheme**: Customize scrollbar appearance
+- **TabBarTheme**: Customize TabBar controls
+- **DialogTheme**: Customize AlertDialog appearance
+- **ButtonTheme**: Customize Button controls
+- **OutlinedButtonTheme**: Customize OutlinedButton
+- **TextButtonTheme**: Customize TextButton
+- **FilledButtonTheme**: Customize FilledButton
+- **IconButtonTheme**: Customize IconButton
+- **BottomSheetTheme**: Customize BottomSheet
+- **CardTheme**: Customize Card appearance
+- **ChipTheme**: Customize Chip controls
+- **FloatingActionButtonTheme**: Customize FAB
+- **NavigationRailTheme**: Customize NavigationRail
+- **AppBarTheme**: Customize AppBar
+- **BottomAppBarTheme**: Customize BottomAppBar
+- **RadioTheme**: Customize Radio buttons
+- **CheckboxTheme**: Customize Checkbox controls
+- **BadgeTheme**: Customize Badge appearance
+- **SwitchTheme**: Customize Switch controls
+- **DividerTheme**: Customize Divider appearance
+- **SnackBarTheme**: Customize SnackBar
+
+**Example:**
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.theme = ft.Theme(
+        button_theme=ft.ButtonTheme(
+            style=ft.ButtonStyle(
+                color=ft.colors.WHITE,
+                bgcolor=ft.colors.BLUE,
+            )
+        ),
+        card_theme=ft.CardTheme(
+            elevation=5,
+            shadow_color=ft.colors.BLUE_200,
+        ),
+    )
+```
+
+---
+
+## SystemOverlayStyle
+
+Customizes mobile system overlay appearance (status bar and navigation bar).
+
+```python
+@dataclass
+class SystemOverlayStyle:
+    status_bar_color: Optional[ColorValue] = None
+    system_navigation_bar_color: Optional[ColorValue] = None
+    system_navigation_bar_divider_color: Optional[ColorValue] = None
+    enforce_system_navigation_bar_contrast: Optional[bool] = None
+    enforce_system_status_bar_contrast: Optional[bool] = None
+    system_navigation_bar_icon_brightness: Optional[Brightness] = None
+    status_bar_brightness: Optional[Brightness] = None
+    status_bar_icon_brightness: Optional[Brightness] = None
+```
+
+**Example:**
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.theme = ft.Theme(
+        system_overlay_style=ft.SystemOverlayStyle(
+            status_bar_color=ft.colors.TRANSPARENT,
+            status_bar_icon_brightness=ft.Brightness.DARK,
+            system_navigation_bar_color=ft.colors.WHITE,
+        )
+    )
+```

@@ -1,0 +1,548 @@
+---
+title: Sensors
+description: Access device sensors including accelerometer, gyroscope, magnetometer, and barometer
+---
+
+Flet provides access to various device sensors that measure motion, orientation, and environmental data. These sensors are primarily available on mobile devices and web platforms.
+
+## Available Sensors
+
+- **Accelerometer**: Measures device acceleration including gravity
+- **UserAccelerometer**: Measures linear acceleration (gravity removed)
+- **Gyroscope**: Measures device rotation rate
+- **Magnetometer**: Measures ambient magnetic field (compass)
+- **Barometer**: Measures atmospheric pressure
+
+## Platform Support
+
+| Sensor | Android | iOS | macOS | Windows | Linux | Web |
+|--------|---------|-----|-------|---------|-------|-----|
+| Accelerometer | ✓ | ✓ | ✗ | ✗ | ✗ | ✓ |
+| UserAccelerometer | ✓ | ✓ | ✗ | ✗ | ✗ | ✓ |
+| Gyroscope | ✓ | ✓ | ✗ | ✗ | ✗ | ✓ |
+| Magnetometer | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Barometer | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+
+<Note>
+  Web platforms ignore custom sampling intervals and use browser defaults.
+</Note>
+
+---
+
+## Accelerometer
+
+Streams raw accelerometer readings, which describe the acceleration of the device in m/s², including the effects of gravity.
+
+### Usage
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def on_reading(e: ft.AccelerometerReadingEvent):
+        print(f"Acceleration - X: {e.x:.2f}, Y: {e.y:.2f}, Z: {e.z:.2f} m/s²")
+    
+    accelerometer = ft.Accelerometer(
+        enabled=True,
+        interval=ft.Duration(milliseconds=200),
+        on_reading=on_reading,
+    )
+    page.overlay.append(accelerometer)
+    page.update()
+
+ft.app(main)
+```
+
+### Properties
+
+<ParamField path="enabled" type="bool" default="True">
+  Whether the sensor should be sampled. Set to `False` to stop streaming.
+</ParamField>
+
+<ParamField path="interval" type="Duration" default="Duration(milliseconds=200)">
+  Desired sampling interval. Mobile platforms treat this as a suggestion.
+</ParamField>
+
+<ParamField path="cancel_on_error" type="bool" default="True">
+  Whether to cancel the stream on the first sensor error.
+</ParamField>
+
+### Events
+
+#### `on_reading`
+
+Fired when a new reading is available.
+
+**Event data (AccelerometerReadingEvent):**
+- `x` (float): Acceleration along the X axis in m/s²
+- `y` (float): Acceleration along the Y axis in m/s²
+- `z` (float): Acceleration along the Z axis in m/s²
+- `timestamp` (datetime): Event timestamp
+
+#### `on_error`
+
+Fired when a sensor error occurs.
+
+**Event data (SensorErrorEvent):**
+- `message` (str): Error description
+
+### Understanding Accelerometer Data
+
+The accelerometer cannot distinguish between accelerated movement and gravity. At Earth's surface, even when completely still, the accelerometer reads an acceleration of 9.8 m/s² directed upwards (opposite of gravitational acceleration).
+
+```python
+# Device lying flat on table
+# X ≈ 0, Y ≈ 0, Z ≈ 9.8 (pointing up against gravity)
+
+# Device held vertically
+# X ≈ 9.8, Y ≈ 0, Z ≈ 0
+```
+
+---
+
+## UserAccelerometer
+
+Streams linear acceleration readings with gravity effects removed, making it easier to detect actual device movement.
+
+### Usage
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def on_reading(e: ft.UserAccelerometerReadingEvent):
+        # Detect shaking
+        total = abs(e.x) + abs(e.y) + abs(e.z)
+        if total > 20:
+            print("Device is shaking!")
+    
+    user_accelerometer = ft.UserAccelerometer(
+        enabled=True,
+        on_reading=on_reading,
+    )
+    page.overlay.append(user_accelerometer)
+    page.update()
+
+ft.app(main)
+```
+
+### Properties
+
+Same as Accelerometer: `enabled`, `interval`, `cancel_on_error`
+
+### Events
+
+#### `on_reading`
+
+**Event data (UserAccelerometerReadingEvent):**
+- `x` (float): Linear acceleration along X axis (gravity removed) in m/s²
+- `y` (float): Linear acceleration along Y axis (gravity removed) in m/s²
+- `z` (float): Linear acceleration along Z axis (gravity removed) in m/s²
+- `timestamp` (datetime): Event timestamp
+
+#### `on_error`
+
+Same as Accelerometer.
+
+### Understanding UserAccelerometer Data
+
+With gravity removed, readings are zero when the device is still or moving at constant speed. Movement, acceleration, or deceleration produces non-zero values.
+
+```python
+# Device at rest: X ≈ 0, Y ≈ 0, Z ≈ 0
+# Device moving north (accelerating): Y > 0
+# Device slowing down: Y < 0
+# Device turning right: X > 0
+```
+
+---
+
+## Gyroscope
+
+Streams gyroscope readings reporting device rotation rate around each axis in radians per second (rad/s).
+
+### Usage
+
+```python
+import flet as ft
+import math
+
+def main(page: ft.Page):
+    def on_reading(e: ft.GyroscopeReadingEvent):
+        # Convert to degrees per second
+        x_deg = math.degrees(e.x)
+        y_deg = math.degrees(e.y)
+        z_deg = math.degrees(e.z)
+        print(f"Rotation - X: {x_deg:.1f}°/s, Y: {y_deg:.1f}°/s, Z: {z_deg:.1f}°/s")
+    
+    gyroscope = ft.Gyroscope(
+        enabled=True,
+        interval=ft.Duration(milliseconds=100),
+        on_reading=on_reading,
+    )
+    page.overlay.append(gyroscope)
+    page.update()
+
+ft.app(main)
+```
+
+### Properties
+
+Same as Accelerometer: `enabled`, `interval`, `cancel_on_error`
+
+### Events
+
+#### `on_reading`
+
+**Event data (GyroscopeReadingEvent):**
+- `x` (float): Rotation rate around X axis in rad/s
+- `y` (float): Rotation rate around Y axis in rad/s
+- `z` (float): Rotation rate around Z axis in rad/s
+- `timestamp` (datetime): Event timestamp
+
+#### `on_error`
+
+Same as Accelerometer.
+
+---
+
+## Magnetometer
+
+Streams magnetometer readings reporting the ambient magnetic field in microteslas (μT) for compass-style applications.
+
+<Note>
+  **Platform Support:** Android and iOS only. Not available on web or desktop platforms.
+</Note>
+
+### Usage
+
+```python
+import flet as ft
+import math
+
+def main(page: ft.Page):
+    def on_reading(e: ft.MagnetometerReadingEvent):
+        # Calculate compass heading
+        heading = math.atan2(e.y, e.x) * (180 / math.pi)
+        if heading < 0:
+            heading += 360
+        print(f"Heading: {heading:.1f}°")
+    
+    magnetometer = ft.Magnetometer(
+        enabled=True,
+        on_reading=on_reading,
+        on_error=lambda e: print(f"Magnetometer error: {e.message}")
+    )
+    page.overlay.append(magnetometer)
+    page.update()
+
+ft.app(main)
+```
+
+### Properties
+
+Same as Accelerometer: `enabled`, `interval`, `cancel_on_error`
+
+### Events
+
+#### `on_reading`
+
+**Event data (MagnetometerReadingEvent):**
+- `x` (float): Ambient magnetic field on X axis in μT
+- `y` (float): Ambient magnetic field on Y axis in μT
+- `z` (float): Ambient magnetic field on Z axis in μT
+- `timestamp` (datetime): Event timestamp
+
+#### `on_error`
+
+Same as Accelerometer.
+
+### Understanding Magnetometer Data
+
+Magnetometer readings include Earth's magnetic field and local factors (device metal, nearby magnets). Most devices compensate for these factors. Use magnetometer data for compass applications.
+
+---
+
+## Barometer
+
+Streams barometer readings (atmospheric pressure in hectopascals - hPa) useful for altitude calculations and weather-related applications.
+
+<Note>
+  **Platform Support:** Android and iOS only.
+</Note>
+
+<Warning>
+  **iOS Requirement:** You must include `NSMotionUsageDescription` in your app's `Info.plist`.
+  
+  Add to your `pyproject.toml`:
+  ```toml
+  [tool.flet.ios.info]
+  NSMotionUsageDescription = "This app requires access to the barometer to provide altitude information."
+  ```
+  
+  **Not adding this will crash your app when accessing barometer data.**
+</Warning>
+
+### Usage
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def on_reading(e: ft.BarometerReadingEvent):
+        # Standard sea level pressure is 1013.25 hPa
+        # Calculate approximate altitude
+        altitude = 44330 * (1 - (e.pressure / 1013.25) ** 0.1903)
+        print(f"Pressure: {e.pressure:.2f} hPa, Altitude: ~{altitude:.0f}m")
+    
+    barometer = ft.Barometer(
+        enabled=True,
+        on_reading=on_reading,
+    )
+    page.overlay.append(barometer)
+    page.update()
+
+ft.app(main)
+```
+
+### Properties
+
+<ParamField path="enabled" type="bool" default="True">
+  Whether the sensor should be sampled.
+</ParamField>
+
+<ParamField path="interval" type="Duration" default="Duration(milliseconds=200)">
+  Desired sampling interval. iOS ignores custom sampling intervals.
+</ParamField>
+
+<ParamField path="cancel_on_error" type="bool" default="True">
+  Whether to cancel the stream on sensor error.
+</ParamField>
+
+### Events
+
+#### `on_reading`
+
+**Event data (BarometerReadingEvent):**
+- `pressure` (float): Atmospheric pressure in hPa
+- `timestamp` (datetime): Event timestamp
+
+#### `on_error`
+
+Same as Accelerometer.
+
+### Understanding Barometer Data
+
+Atmospheric pressure varies with altitude and weather. Water-resistant phones may show pressure fluctuations when handled due to device sealing.
+
+```python
+# Sea level: ~1013 hPa
+# 1000m altitude: ~900 hPa
+# 2000m altitude: ~795 hPa
+```
+
+---
+
+## Complete Multi-Sensor Example
+
+```python
+import flet as ft
+import math
+
+async def main(page: ft.Page):
+    page.title = "Sensor Dashboard"
+    
+    accel_text = ft.Text("Accelerometer: --")
+    gyro_text = ft.Text("Gyroscope: --")
+    mag_text = ft.Text("Magnetometer: --")
+    baro_text = ft.Text("Barometer: --")
+    
+    def on_accel_reading(e: ft.AccelerometerReadingEvent):
+        accel_text.value = f"Accel: X={e.x:.2f}, Y={e.y:.2f}, Z={e.z:.2f} m/s²"
+        page.update()
+    
+    def on_gyro_reading(e: ft.GyroscopeReadingEvent):
+        x_deg = math.degrees(e.x)
+        y_deg = math.degrees(e.y)
+        z_deg = math.degrees(e.z)
+        gyro_text.value = f"Gyro: X={x_deg:.1f}°/s, Y={y_deg:.1f}°/s, Z={z_deg:.1f}°/s"
+        page.update()
+    
+    def on_mag_reading(e: ft.MagnetometerReadingEvent):
+        heading = math.atan2(e.y, e.x) * (180 / math.pi)
+        if heading < 0:
+            heading += 360
+        mag_text.value = f"Compass: {heading:.1f}° (X={e.x:.1f}, Y={e.y:.1f}, Z={e.z:.1f} μT)"
+        page.update()
+    
+    def on_baro_reading(e: ft.BarometerReadingEvent):
+        altitude = 44330 * (1 - (e.pressure / 1013.25) ** 0.1903)
+        baro_text.value = f"Pressure: {e.pressure:.2f} hPa (~{altitude:.0f}m altitude)"
+        page.update()
+    
+    def on_sensor_error(e: ft.SensorErrorEvent):
+        print(f"Sensor error: {e.message}")
+    
+    # Create sensors
+    accelerometer = ft.Accelerometer(
+        enabled=True,
+        interval=ft.Duration(milliseconds=200),
+        on_reading=on_accel_reading,
+        on_error=on_sensor_error
+    )
+    
+    gyroscope = ft.Gyroscope(
+        enabled=True,
+        interval=ft.Duration(milliseconds=200),
+        on_reading=on_gyro_reading,
+        on_error=on_sensor_error
+    )
+    
+    magnetometer = ft.Magnetometer(
+        enabled=True,
+        on_reading=on_mag_reading,
+        on_error=on_sensor_error
+    )
+    
+    barometer = ft.Barometer(
+        enabled=True,
+        on_reading=on_baro_reading,
+        on_error=on_sensor_error
+    )
+    
+    page.overlay.extend([accelerometer, gyroscope, magnetometer, barometer])
+    
+    def toggle_sensors(e):
+        enabled = e.control.value
+        accelerometer.enabled = enabled
+        gyroscope.enabled = enabled
+        magnetometer.enabled = enabled
+        barometer.enabled = enabled
+        page.update()
+    
+    page.add(
+        ft.Switch(
+            label="Enable Sensors",
+            value=True,
+            on_change=toggle_sensors
+        ),
+        ft.Divider(),
+        accel_text,
+        gyro_text,
+        mag_text,
+        baro_text,
+    )
+
+ft.app(main)
+```
+
+## Best Practices
+
+### 1. Handle Sensor Errors
+
+Always implement `on_error` handlers, as sensors may not be available on all devices:
+
+```python
+def on_error(e: ft.SensorErrorEvent):
+    print(f"Sensor not available: {e.message}")
+    # Fall back to alternative functionality
+
+sensor.on_error = on_error
+```
+
+### 2. Disable When Not Needed
+
+Disable sensors to save battery power:
+
+```python
+# When app goes to background
+accelerometer.enabled = False
+
+# When app comes to foreground
+accelerometer.enabled = True
+```
+
+### 3. Choose Appropriate Sampling Rates
+
+```python
+# Motion detection: 100-200ms is sufficient
+accelerometer.interval = ft.Duration(milliseconds=200)
+
+# Game controls: 50-100ms for responsive controls
+gyroscope.interval = ft.Duration(milliseconds=50)
+
+# Slow monitoring: 1000ms to save power
+barometer.interval = ft.Duration(milliseconds=1000)
+```
+
+### 4. Filter Noisy Data
+
+```python
+class SensorFilter:
+    def __init__(self, alpha=0.8):
+        self.alpha = alpha
+        self.filtered = {'x': 0, 'y': 0, 'z': 0}
+    
+    def filter(self, x, y, z):
+        # Low-pass filter
+        self.filtered['x'] = self.alpha * self.filtered['x'] + (1 - self.alpha) * x
+        self.filtered['y'] = self.alpha * self.filtered['y'] + (1 - self.alpha) * y
+        self.filtered['z'] = self.alpha * self.filtered['z'] + (1 - self.alpha) * z
+        return self.filtered
+
+filter = SensorFilter()
+
+def on_reading(e: ft.AccelerometerReadingEvent):
+    filtered = filter.filter(e.x, e.y, e.z)
+    print(f"Filtered: {filtered}")
+```
+
+## Common Use Cases
+
+### Shake Detection
+
+```python
+def on_accel_reading(e: ft.UserAccelerometerReadingEvent):
+    acceleration = (e.x ** 2 + e.y ** 2 + e.z ** 2) ** 0.5
+    if acceleration > 15:  # Threshold for shake
+        print("Shake detected!")
+        # Trigger shake action
+```
+
+### Device Orientation
+
+```python
+def on_accel_reading(e: ft.AccelerometerReadingEvent):
+    if abs(e.z) > abs(e.x) and abs(e.z) > abs(e.y):
+        if e.z > 0:
+            orientation = "Face Up"
+        else:
+            orientation = "Face Down"
+    elif abs(e.y) > abs(e.x):
+        orientation = "Portrait"
+    else:
+        orientation = "Landscape"
+    print(f"Orientation: {orientation}")
+```
+
+### Compass
+
+```python
+def on_mag_reading(e: ft.MagnetometerReadingEvent):
+    heading = math.atan2(e.y, e.x) * (180 / math.pi)
+    if heading < 0:
+        heading += 360
+    
+    directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+    index = int((heading + 22.5) / 45) % 8
+    print(f"Heading: {heading:.0f}° ({directions[index]})")
+```
+
+### Altitude Monitor
+
+```python
+def on_baro_reading(e: ft.BarometerReadingEvent):
+    # International barometric formula
+    altitude = 44330 * (1 - (e.pressure / 1013.25) ** 0.1903)
+    print(f"Altitude: {altitude:.0f}m")
+```

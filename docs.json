@@ -1,122 +1,155 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Flet",
+  "theme": "palm",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#3B82F6",
+    "light": "#60A5FA",
+    "dark": "#2563EB"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/flet-dev/flet"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/flet-dev/flet",
+      "twitter": "https://twitter.com/fletdev",
+      "discord": "https://discord.gg/dzWXP8SHG8"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "installation",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "concepts/architecture",
+              "concepts/page-and-controls",
+              "concepts/events-and-state",
+              "concepts/routing",
+              "concepts/theming"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Building Apps",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "guides/desktop-apps",
+              "guides/mobile-apps",
+              "guides/web-apps",
+              "guides/packaging",
+              "guides/deployment"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Controls",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "controls/overview",
+              "controls/material",
+              "controls/cupertino",
+              "controls/layout",
+              "controls/navigation",
+              "controls/input",
+              "controls/dialogs"
+            ]
+          },
+          {
+            "group": "CLI",
+            "pages": [
+              "cli/overview",
+              "cli/run",
+              "cli/build",
+              "cli/create",
+              "cli/publish"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/components",
+              "advanced/hooks",
+              "advanced/authentication",
+              "advanced/testing",
+              "advanced/extensions"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Core",
             "pages": [
-              "api-reference/introduction"
+              "api/page",
+              "api/control",
+              "api/component",
+              "api/app"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Material Controls",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/material/button",
+              "api/material/textfield",
+              "api/material/container",
+              "api/material/card",
+              "api/material/appbar",
+              "api/material/dialog"
+            ]
+          },
+          {
+            "group": "Cupertino Controls",
+            "pages": [
+              "api/cupertino/button",
+              "api/cupertino/textfield",
+              "api/cupertino/alert-dialog",
+              "api/cupertino/navigation-bar"
+            ]
+          },
+          {
+            "group": "Layout Controls",
+            "pages": [
+              "api/layout/column",
+              "api/layout/row",
+              "api/layout/stack",
+              "api/layout/listview",
+              "api/layout/gridview"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "api/services/clipboard",
+              "api/services/file-picker",
+              "api/services/battery",
+              "api/services/connectivity",
+              "api/services/sensors"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "api/utilities/hooks",
+              "api/utilities/theme",
+              "api/utilities/colors",
+              "api/utilities/icons"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

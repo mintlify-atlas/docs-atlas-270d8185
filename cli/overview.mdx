@@ -1,0 +1,207 @@
+---
+title: CLI Overview
+description: Introduction to Flet CLI tools for developing, building, and deploying Flet applications.
+---
+
+The Flet CLI provides a comprehensive set of commands for developing, building, and deploying Flet applications across multiple platforms.
+
+## Installation
+
+The Flet CLI is installed automatically when you install Flet:
+
+```bash
+pip install flet
+```
+
+Verify the installation:
+
+```bash
+flet --version
+```
+
+This displays the versions of Flet, Flutter, and Pyodide:
+
+```
+Flet: 0.24.0
+Flutter: 3.24.0
+Pyodide: 0.26.2
+```
+
+## Available Commands
+
+The Flet CLI provides the following commands:
+
+### Development Commands
+
+<CardGroup cols={2}>
+  <Card title="flet run" icon="play" href="/cli/run">
+    Run a Flet application in hot reload mode for rapid development
+  </Card>
+  <Card title="flet create" icon="folder-plus" href="/cli/create">
+    Create a new Flet project from a template
+  </Card>
+</CardGroup>
+
+### Build Commands
+
+<CardGroup cols={2}>
+  <Card title="flet build" icon="hammer" href="/cli/build">
+    Build platform-specific executables and packages
+  </Card>
+  <Card title="flet pack" icon="box" href="/cli/pack">
+    Package desktop apps using PyInstaller
+  </Card>
+</CardGroup>
+
+### Deployment Commands
+
+<CardGroup cols={2}>
+  <Card title="flet publish" icon="cloud-arrow-up" href="/cli/publish">
+    Publish your app as a static web application
+  </Card>
+  <Card title="flet serve" icon="server" href="/cli/serve">
+    Serve a static web app locally
+  </Card>
+</CardGroup>
+
+### Utility Commands
+
+<CardGroup cols={3}>
+  <Card title="flet doctor" icon="stethoscope">
+    Check your development environment
+  </Card>
+  <Card title="flet devices" icon="mobile">
+    List available devices for testing
+  </Card>
+  <Card title="flet emulators" icon="desktop">
+    Manage mobile emulators
+  </Card>
+</CardGroup>
+
+## Global Options
+
+All Flet CLI commands support these global options:
+
+<ParamField path="--version" type="flag">
+  Display version information for Flet, Flutter, and Pyodide
+</ParamField>
+
+<ParamField path="--help" type="flag">
+  Display help information for any command
+</ParamField>
+
+<ParamField path="--verbose" type="flag">
+  Enable verbose output for debugging
+</ParamField>
+
+## Quick Start
+
+Here's a typical workflow using the Flet CLI:
+
+### 1. Create a New Project
+
+```bash
+flet create my-app
+cd my-app
+```
+
+### 2. Run in Development Mode
+
+```bash
+flet run
+```
+
+This starts your app with hot reload enabled. Any changes to your Python code will automatically refresh the app.
+
+### 3. Build for Production
+
+Build for different platforms:
+
+```bash
+# Desktop
+flet build macos
+flet build windows
+flet build linux
+
+# Web
+flet build web
+
+# Mobile
+flet build apk
+flet build ipa
+```
+
+### 4. Publish to Web
+
+```bash
+flet publish
+flet serve
+```
+
+## Configuration
+
+Many CLI options can be configured in your project's `pyproject.toml` file:
+
+```toml
+[tool.flet]
+product = "My Awesome App"
+org_name = "com.mycompany"
+
+[tool.flet.web]
+renderer = "canvaskit"
+route_url_strategy = "path"
+
+[tool.flet.android]
+permissions = ["camera", "location"]
+
+[tool.flet.ios]
+team_id = "XXXXXXXXXX"
+```
+
+Command-line arguments take precedence over `pyproject.toml` settings.
+
+## Environment Variables
+
+Several environment variables can control CLI behavior:
+
+- `FLET_ASSETS_DIR` - Default assets directory
+- `FLET_WEB_RENDERER` - Web renderer (auto, canvaskit, skwasm)
+- `FLET_WEB_ROUTE_URL_STRATEGY` - URL routing strategy (path, hash)
+- `FLET_WEB_NO_CDN` - Disable CDN usage for offline builds
+- `FLET_ANDROID_SIGNING_KEY_STORE` - Path to Android keystore
+- `FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD` - Keystore password
+- `FLET_ANDROID_SIGNING_KEY_PASSWORD` - Key password
+- `FLET_ANDROID_SIGNING_KEY_ALIAS` - Key alias
+
+## Getting Help
+
+For detailed help on any command:
+
+```bash
+flet <command> --help
+```
+
+For example:
+
+```bash
+flet build --help
+flet run --help
+flet publish --help
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Run Command" icon="play" href="/cli/run">
+    Learn about hot reload and development mode
+  </Card>
+  <Card title="Build Command" icon="hammer" href="/cli/build">
+    Build apps for all platforms
+  </Card>
+  <Card title="Create Command" icon="folder-plus" href="/cli/create">
+    Scaffold new Flet projects
+  </Card>
+  <Card title="Publish Command" icon="cloud-arrow-up" href="/cli/publish">
+    Deploy static web applications
+  </Card>
+</CardGroup>

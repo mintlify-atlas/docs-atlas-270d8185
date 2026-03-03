@@ -1,0 +1,456 @@
+---
+title: Colors
+---
+
+The `Colors` class provides named Material Design colors and utility functions for working with colors in Flet.
+
+## Overview
+
+Flet includes all Material Design colors with multiple shades and accent variations. Colors can be used throughout your application for backgrounds, text, borders, and more.
+
+```python
+class Colors(str, Enum):
+    """Named Material colors."""
+```
+
+## Color Categories
+
+### Theme Colors
+
+Dynamic colors that adapt to your app's theme:
+
+```python
+Colors.PRIMARY
+Colors.ON_PRIMARY
+Colors.PRIMARY_CONTAINER
+Colors.ON_PRIMARY_CONTAINER
+Colors.PRIMARY_FIXED
+Colors.PRIMARY_FIXED_DIM
+Colors.ON_PRIMARY_FIXED
+Colors.ON_PRIMARY_FIXED_VARIANT
+
+Colors.SECONDARY
+Colors.ON_SECONDARY
+Colors.SECONDARY_CONTAINER
+Colors.ON_SECONDARY_CONTAINER
+Colors.SECONDARY_FIXED
+Colors.SECONDARY_FIXED_DIM
+Colors.ON_SECONDARY_FIXED
+Colors.ON_SECONDARY_FIXED_VARIANT
+
+Colors.TERTIARY
+Colors.ON_TERTIARY
+Colors.TERTIARY_CONTAINER
+Colors.ON_TERTIARY_CONTAINER
+Colors.TERTIARY_FIXED
+Colors.TERTIARY_FIXED_DIM
+Colors.ON_TERTIARY_FIXED
+Colors.ON_TERTIARY_FIXED_VARIANT
+
+Colors.ERROR
+Colors.ON_ERROR
+Colors.ERROR_CONTAINER
+Colors.ON_ERROR_CONTAINER
+
+Colors.SURFACE
+Colors.ON_SURFACE
+Colors.ON_SURFACE_VARIANT
+Colors.SURFACE_TINT
+Colors.SURFACE_DIM
+Colors.SURFACE_BRIGHT
+Colors.SURFACE_CONTAINER
+Colors.SURFACE_CONTAINER_LOW
+Colors.SURFACE_CONTAINER_LOWEST
+Colors.SURFACE_CONTAINER_HIGH
+Colors.SURFACE_CONTAINER_HIGHEST
+
+Colors.OUTLINE
+Colors.OUTLINE_VARIANT
+Colors.SHADOW
+Colors.SCRIM
+Colors.INVERSE_SURFACE
+Colors.ON_INVERSE_SURFACE
+Colors.INVERSE_PRIMARY
+```
+
+### Basic Colors
+
+```python
+Colors.BLACK
+Colors.WHITE
+Colors.TRANSPARENT
+```
+
+### Material Color Palette
+
+Each Material color comes in 10 shades (50, 100, 200, ..., 900) and accent variants:
+
+**Red:**
+```python
+Colors.RED
+Colors.RED_50, Colors.RED_100, Colors.RED_200, ..., Colors.RED_900
+Colors.RED_ACCENT
+Colors.RED_ACCENT_100, Colors.RED_ACCENT_200, Colors.RED_ACCENT_400, Colors.RED_ACCENT_700
+```
+
+**Pink:**
+```python
+Colors.PINK
+Colors.PINK_50, Colors.PINK_100, ..., Colors.PINK_900
+Colors.PINK_ACCENT
+Colors.PINK_ACCENT_100, Colors.PINK_ACCENT_200, Colors.PINK_ACCENT_400, Colors.PINK_ACCENT_700
+```
+
+**Purple:**
+```python
+Colors.PURPLE
+Colors.PURPLE_50, ..., Colors.PURPLE_900
+Colors.PURPLE_ACCENT
+Colors.PURPLE_ACCENT_100, Colors.PURPLE_ACCENT_200, Colors.PURPLE_ACCENT_400, Colors.PURPLE_ACCENT_700
+```
+
+**Deep Purple:**
+```python
+Colors.DEEP_PURPLE
+Colors.DEEP_PURPLE_50, ..., Colors.DEEP_PURPLE_900
+Colors.DEEP_PURPLE_ACCENT
+Colors.DEEP_PURPLE_ACCENT_100, Colors.DEEP_PURPLE_ACCENT_200, Colors.DEEP_PURPLE_ACCENT_400, Colors.DEEP_PURPLE_ACCENT_700
+```
+
+**Indigo:**
+```python
+Colors.INDIGO
+Colors.INDIGO_50, ..., Colors.INDIGO_900
+Colors.INDIGO_ACCENT
+Colors.INDIGO_ACCENT_100, Colors.INDIGO_ACCENT_200, Colors.INDIGO_ACCENT_400, Colors.INDIGO_ACCENT_700
+```
+
+**Blue:**
+```python
+Colors.BLUE
+Colors.BLUE_50, ..., Colors.BLUE_900
+Colors.BLUE_ACCENT
+Colors.BLUE_ACCENT_100, Colors.BLUE_ACCENT_200, Colors.BLUE_ACCENT_400, Colors.BLUE_ACCENT_700
+```
+
+**Light Blue:**
+```python
+Colors.LIGHT_BLUE
+Colors.LIGHT_BLUE_50, ..., Colors.LIGHT_BLUE_900
+Colors.LIGHT_BLUE_ACCENT
+Colors.LIGHT_BLUE_ACCENT_100, Colors.LIGHT_BLUE_ACCENT_200, Colors.LIGHT_BLUE_ACCENT_400, Colors.LIGHT_BLUE_ACCENT_700
+```
+
+**Cyan:**
+```python
+Colors.CYAN
+Colors.CYAN_50, ..., Colors.CYAN_900
+Colors.CYAN_ACCENT
+Colors.CYAN_ACCENT_100, Colors.CYAN_ACCENT_200, Colors.CYAN_ACCENT_400, Colors.CYAN_ACCENT_700
+```
+
+**Teal:**
+```python
+Colors.TEAL
+Colors.TEAL_50, ..., Colors.TEAL_900
+Colors.TEAL_ACCENT
+Colors.TEAL_ACCENT_100, Colors.TEAL_ACCENT_200, Colors.TEAL_ACCENT_400, Colors.TEAL_ACCENT_700
+```
+
+**Green:**
+```python
+Colors.GREEN
+Colors.GREEN_50, ..., Colors.GREEN_900
+Colors.GREEN_ACCENT
+Colors.GREEN_ACCENT_100, Colors.GREEN_ACCENT_200, Colors.GREEN_ACCENT_400, Colors.GREEN_ACCENT_700
+```
+
+**Light Green:**
+```python
+Colors.LIGHT_GREEN
+Colors.LIGHT_GREEN_50, ..., Colors.LIGHT_GREEN_900
+Colors.LIGHT_GREEN_ACCENT
+Colors.LIGHT_GREEN_ACCENT_100, Colors.LIGHT_GREEN_ACCENT_200, Colors.LIGHT_GREEN_ACCENT_400, Colors.LIGHT_GREEN_ACCENT_700
+```
+
+**Lime:**
+```python
+Colors.LIME
+Colors.LIME_50, ..., Colors.LIME_900
+Colors.LIME_ACCENT
+Colors.LIME_ACCENT_100, Colors.LIME_ACCENT_200, Colors.LIME_ACCENT_400, Colors.LIME_ACCENT_700
+```
+
+**Yellow:**
+```python
+Colors.YELLOW
+Colors.YELLOW_50, ..., Colors.YELLOW_900
+Colors.YELLOW_ACCENT
+Colors.YELLOW_ACCENT_100, Colors.YELLOW_ACCENT_200, Colors.YELLOW_ACCENT_400, Colors.YELLOW_ACCENT_700
+```
+
+**Amber:**
+```python
+Colors.AMBER
+Colors.AMBER_50, ..., Colors.AMBER_900
+Colors.AMBER_ACCENT
+Colors.AMBER_ACCENT_100, Colors.AMBER_ACCENT_200, Colors.AMBER_ACCENT_400, Colors.AMBER_ACCENT_700
+```
+
+**Orange:**
+```python
+Colors.ORANGE
+Colors.ORANGE_50, ..., Colors.ORANGE_900
+Colors.ORANGE_ACCENT
+Colors.ORANGE_ACCENT_100, Colors.ORANGE_ACCENT_200, Colors.ORANGE_ACCENT_400, Colors.ORANGE_ACCENT_700
+```
+
+**Deep Orange:**
+```python
+Colors.DEEP_ORANGE
+Colors.DEEP_ORANGE_50, ..., Colors.DEEP_ORANGE_900
+Colors.DEEP_ORANGE_ACCENT
+Colors.DEEP_ORANGE_ACCENT_100, Colors.DEEP_ORANGE_ACCENT_200, Colors.DEEP_ORANGE_ACCENT_400, Colors.DEEP_ORANGE_ACCENT_700
+```
+
+**Brown:**
+```python
+Colors.BROWN
+Colors.BROWN_50, ..., Colors.BROWN_900
+# Note: Brown has no accent colors
+```
+
+**Grey:**
+```python
+Colors.GREY
+Colors.GREY_50, ..., Colors.GREY_900
+# Note: Grey has no accent colors
+```
+
+**Blue Grey:**
+```python
+Colors.BLUE_GREY
+Colors.BLUE_GREY_50, ..., Colors.BLUE_GREY_900
+# Note: Blue Grey has no accent colors
+```
+
+### Opacity Variants
+
+```python
+# Black with opacity
+Colors.BLACK_12  # 12% opacity
+Colors.BLACK_26  # 26% opacity
+Colors.BLACK_38  # 38% opacity
+Colors.BLACK_45  # 45% opacity
+Colors.BLACK_54  # 54% opacity
+Colors.BLACK_87  # 87% opacity
+
+# White with opacity
+Colors.WHITE_10  # 10% opacity
+Colors.WHITE_12  # 12% opacity
+Colors.WHITE_24  # 24% opacity
+Colors.WHITE_30  # 30% opacity
+Colors.WHITE_38  # 38% opacity
+Colors.WHITE_54  # 54% opacity
+Colors.WHITE_60  # 60% opacity
+Colors.WHITE_70  # 70% opacity
+```
+
+---
+
+## Utility Methods
+
+### random
+
+Selects a random color, with optional exclusions and weights.
+
+```python
+@staticmethod
+def random(
+    exclude: Optional[list[Colors]] = None,
+    weights: Optional[dict[Colors, int]] = None,
+) -> Optional[Colors]
+```
+
+**Parameters:**
+- `exclude`: A list of Colors to exclude from selection
+- `weights`: A dictionary mapping color members to their respective weights for weighted random selection
+
+**Returns:**
+- A randomly selected color, or None if all members are excluded
+
+**Example:**
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    # Simple random color
+    random_color = ft.Colors.random()
+    
+    # Random color excluding some
+    random_color = ft.Colors.random(
+        exclude=[ft.Colors.BLACK, ft.Colors.WHITE]
+    )
+    
+    # Weighted random selection
+    random_color = ft.Colors.random(
+        weights={
+            ft.Colors.BLUE: 3,  # 3x more likely
+            ft.Colors.RED: 2,   # 2x more likely
+            # All others have weight 1 by default
+        }
+    )
+    
+    page.add(
+        ft.Container(
+            bgcolor=random_color,
+            width=200,
+            height=200,
+        )
+    )
+
+ft.app(target=main)
+```
+
+---
+
+### with_opacity
+
+Returns a color with the given opacity.
+
+```python
+@staticmethod
+def with_opacity(opacity: Union[int, float], color: ColorValue) -> str
+```
+
+**Parameters:**
+- `opacity`: The opacity value between 0.0 and 1.0
+- `color`: The color to apply opacity to
+
+**Returns:**
+- A string representing the color with opacity, in the format `"color,opacity"`
+
+**Raises:**
+- `ValueError`: If the opacity is not between 0 and 1 (inclusive)
+
+**Example:**
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    # 50% opacity red
+    semi_transparent_red = ft.Colors.with_opacity(0.5, ft.Colors.RED)
+    
+    # 30% opacity blue
+    light_blue = ft.Colors.with_opacity(0.3, ft.Colors.BLUE_500)
+    
+    page.add(
+        ft.Stack([
+            ft.Container(bgcolor=ft.Colors.WHITE, width=200, height=200),
+            ft.Container(bgcolor=semi_transparent_red, width=150, height=150),
+            ft.Container(bgcolor=light_blue, width=100, height=100),
+        ])
+    )
+
+ft.app(target=main)
+```
+
+---
+
+## Usage Examples
+
+### Basic Color Usage
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Container(
+            bgcolor=ft.Colors.BLUE_500,
+            content=ft.Text("Blue Container", color=ft.Colors.WHITE),
+            padding=20,
+        )
+    )
+
+ft.app(target=main)
+```
+
+### Color Shades
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    # Create a gradient of blue shades
+    page.add(
+        ft.Row([
+            ft.Container(bgcolor=ft.Colors.BLUE_50, width=50, height=50),
+            ft.Container(bgcolor=ft.Colors.BLUE_100, width=50, height=50),
+            ft.Container(bgcolor=ft.Colors.BLUE_200, width=50, height=50),
+            ft.Container(bgcolor=ft.Colors.BLUE_300, width=50, height=50),
+            ft.Container(bgcolor=ft.Colors.BLUE_400, width=50, height=50),
+            ft.Container(bgcolor=ft.Colors.BLUE_500, width=50, height=50),
+            ft.Container(bgcolor=ft.Colors.BLUE_600, width=50, height=50),
+            ft.Container(bgcolor=ft.Colors.BLUE_700, width=50, height=50),
+            ft.Container(bgcolor=ft.Colors.BLUE_800, width=50, height=50),
+            ft.Container(bgcolor=ft.Colors.BLUE_900, width=50, height=50),
+        ])
+    )
+
+ft.app(target=main)
+```
+
+### Theme-Aware Colors
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    # These colors automatically adapt to light/dark theme
+    page.add(
+        ft.Container(
+            bgcolor=ft.Colors.PRIMARY,
+            content=ft.Text("Primary Color", color=ft.Colors.ON_PRIMARY),
+            padding=20,
+        ),
+        ft.Container(
+            bgcolor=ft.Colors.SURFACE,
+            content=ft.Text("Surface Color", color=ft.Colors.ON_SURFACE),
+            padding=20,
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### Custom Color Strings
+
+You can also use custom colors as hex strings:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Container(
+            bgcolor="#FF5722",  # Custom hex color
+            width=200,
+            height=200,
+        )
+    )
+
+ft.app(target=main)
+```
+
+---
+
+## When to Use Each Color Type
+
+- **Theme colors** (PRIMARY, SECONDARY, etc.): Use for consistent theming that adapts to light/dark modes
+- **Material palette** (BLUE_500, RED_300, etc.): Use for specific, consistent colors
+- **Accent colors**: Use for highlighted elements that need to stand out
+- **Opacity variants**: Use for overlays, shadows, and subtle backgrounds
+- **Custom hex**: Use when you need brand-specific colors not in the Material palette

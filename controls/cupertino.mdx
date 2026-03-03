@@ -1,0 +1,496 @@
+---
+title: Cupertino Controls
+description: iOS-style controls following Apple's Human Interface Guidelines
+---
+
+Cupertino controls provide native iOS look and feel, following Apple's Human Interface Guidelines. These controls are perfect for building apps that feel at home on iPhone and iPad.
+
+## Overview
+
+Cupertino controls feature:
+- Flat design with minimal elevation
+- Subtle, refined animations
+- iOS-native colors and typography
+- Characteristic iOS interactions (swipes, long press)
+- Accessibility features built-in
+
+## Buttons
+
+Cupertino provides iOS-style button controls:
+
+<CardGroup cols={2}>
+  <Card title="CupertinoButton" icon="hand-pointer">
+    Standard iOS button with opacity feedback
+  </Card>
+  <Card title="CupertinoFilledButton" icon="square">
+    Filled button with background color
+  </Card>
+  <Card title="CupertinoTintedButton" icon="palette">
+    Button with tinted background
+  </Card>
+</CardGroup>
+
+### Example
+
+```python
+import flet as ft
+from flet import cupertino_icons
+
+def main(page: ft.Page):
+    page.add(
+        ft.CupertinoButton(
+            content=ft.Text("Standard Button"),
+            on_click=lambda e: print("Clicked!")
+        ),
+        ft.CupertinoFilledButton(
+            content=ft.Text("Filled Button"),
+            icon=cupertino_icons.SHARE,
+            on_click=lambda e: print("Share clicked")
+        ),
+        ft.CupertinoTintedButton(
+            content=ft.Text("Tinted Button"),
+            icon=cupertino_icons.ADD,
+            on_click=lambda e: print("Add clicked")
+        ),
+    )
+
+ft.app(target=main)
+```
+
+## Input Controls
+
+<CardGroup cols={2}>
+  <Card title="CupertinoTextField" icon="input-text">
+    iOS-style text input field
+  </Card>
+  <Card title="CupertinoCheckbox" icon="square-check">
+    iOS-style checkbox
+  </Card>
+  <Card title="CupertinoRadio" icon="circle-dot">
+    iOS-style radio button
+  </Card>
+  <Card title="CupertinoSwitch" icon="toggle-on">
+    iOS-style toggle switch
+  </Card>
+  <Card title="CupertinoSlider" icon="sliders">
+    iOS-style slider control
+  </Card>
+</CardGroup>
+
+### CupertinoTextField Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.CupertinoTextField(
+            placeholder_text="Enter your name",
+            prefix=ft.Icon(ft.cupertino_icons.PERSON),
+            on_change=lambda e: print(f"Text: {e.control.value}")
+        ),
+        ft.CupertinoTextField(
+            placeholder_text="Search",
+            prefix=ft.Icon(ft.cupertino_icons.SEARCH),
+            suffix=ft.Icon(ft.cupertino_icons.CLEAR_CIRCLED),
+            clear_button_visibility_mode=ft.OverlayVisibilityMode.EDITING,
+        ),
+        ft.CupertinoTextField(
+            placeholder_text="Password",
+            password=True,
+            prefix=ft.Icon(ft.cupertino_icons.LOCK),
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### CupertinoSwitch Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def switch_changed(e):
+        print(f"Switch value: {e.control.value}")
+    
+    page.add(
+        ft.Row([
+            ft.Text("Enable Notifications"),
+            ft.CupertinoSwitch(
+                value=True,
+                on_change=switch_changed
+            ),
+        ]),
+        ft.Row([
+            ft.Text("Dark Mode"),
+            ft.CupertinoSwitch(
+                value=False,
+                on_change=switch_changed
+            ),
+        ]),
+    )
+
+ft.app(target=main)
+```
+
+## Navigation Controls
+
+<CardGroup cols={2}>
+  <Card title="CupertinoAppBar" icon="window-maximize">
+    iOS-style navigation bar at the top
+  </Card>
+  <Card title="CupertinoNavigationBar" icon="bars">
+    Bottom tab bar navigation
+  </Card>
+</CardGroup>
+
+### CupertinoAppBar Example
+
+```python
+import flet as ft
+from flet import cupertino_icons
+
+def main(page: ft.Page):
+    page.appbar = ft.CupertinoAppBar(
+        leading=ft.Icon(cupertino_icons.BACK),
+        middle=ft.Text("My App"),
+        trailing=ft.Icon(cupertino_icons.ELLIPSIS),
+        bgcolor=ft.Colors.SURFACE_VARIANT,
+    )
+    
+    page.add(ft.Text("Content goes here"))
+
+ft.app(target=main)
+```
+
+## Display Controls
+
+<CardGroup cols={2}>
+  <Card title="CupertinoActivityIndicator" icon="spinner">
+    iOS-style loading spinner
+  </Card>
+  <Card title="CupertinoListTile" icon="list">
+    iOS-style list item
+  </Card>
+</CardGroup>
+
+### CupertinoListTile Example
+
+```python
+import flet as ft
+from flet import cupertino_icons
+
+def main(page: ft.Page):
+    page.add(
+        ft.CupertinoListTile(
+            leading=ft.Icon(cupertino_icons.SETTINGS),
+            title=ft.Text("Settings"),
+            trailing=ft.Icon(cupertino_icons.CHEVRON_RIGHT),
+            on_click=lambda e: print("Settings clicked")
+        ),
+        ft.CupertinoListTile(
+            leading=ft.Icon(cupertino_icons.PERSON),
+            title=ft.Text("Profile"),
+            subtitle=ft.Text("Manage your account"),
+            trailing=ft.Icon(cupertino_icons.CHEVRON_RIGHT),
+            on_click=lambda e: print("Profile clicked")
+        ),
+    )
+
+ft.app(target=main)
+```
+
+## Dialogs and Overlays
+
+<CardGroup cols={2}>
+  <Card title="CupertinoAlertDialog" icon="message-exclamation">
+    iOS-style alert dialog
+  </Card>
+  <Card title="CupertinoActionSheet" icon="list-ul">
+    Bottom sheet with action options
+  </Card>
+  <Card title="CupertinoBottomSheet" icon="window-restore">
+    Modal sheet from bottom
+  </Card>
+  <Card title="CupertinoContextMenu" icon="bars">
+    Long-press context menu
+  </Card>
+</CardGroup>
+
+### CupertinoAlertDialog Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def close_dialog(e):
+        dialog.open = False
+        page.update()
+    
+    dialog = ft.CupertinoAlertDialog(
+        title=ft.Text("Delete Item"),
+        content=ft.Text("This action cannot be undone."),
+        actions=[
+            ft.CupertinoDialogAction(
+                text="Cancel",
+                on_click=close_dialog
+            ),
+            ft.CupertinoDialogAction(
+                text="Delete",
+                is_destructive_action=True,
+                on_click=close_dialog
+            ),
+        ],
+    )
+    
+    page.overlay.append(dialog)
+    
+    page.add(
+        ft.CupertinoButton(
+            content=ft.Text("Show Dialog"),
+            on_click=lambda e: (setattr(dialog, 'open', True), page.update())
+        )
+    )
+
+ft.app(target=main)
+```
+
+### CupertinoActionSheet Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def close_sheet(e):
+        sheet.open = False
+        page.update()
+    
+    sheet = ft.CupertinoActionSheet(
+        title=ft.Text("Choose an action"),
+        message=ft.Text("Select one of the options below"),
+        actions=[
+            ft.CupertinoActionSheetAction(
+                content=ft.Text("Share"),
+                on_click=lambda e: print("Share")
+            ),
+            ft.CupertinoActionSheetAction(
+                content=ft.Text("Copy"),
+                on_click=lambda e: print("Copy")
+            ),
+            ft.CupertinoActionSheetAction(
+                content=ft.Text("Delete"),
+                is_destructive_action=True,
+                on_click=lambda e: print("Delete")
+            ),
+        ],
+        cancel=ft.CupertinoActionSheetAction(
+            content=ft.Text("Cancel"),
+            on_click=close_sheet
+        ),
+    )
+    
+    page.overlay.append(sheet)
+    
+    page.add(
+        ft.CupertinoButton(
+            content=ft.Text("Show Action Sheet"),
+            on_click=lambda e: (setattr(sheet, 'open', True), page.update())
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Pickers
+
+<CardGroup cols={2}>
+  <Card title="CupertinoPicker" icon="list">
+    iOS-style scrolling picker
+  </Card>
+  <Card title="CupertinoDatePicker" icon="calendar">
+    iOS-style date and time picker
+  </Card>
+  <Card title="CupertinoTimerPicker" icon="clock">
+    iOS-style timer duration picker
+  </Card>
+</CardGroup>
+
+### CupertinoDatePicker Example
+
+```python
+import flet as ft
+import datetime
+
+def main(page: ft.Page):
+    def date_changed(e):
+        print(f"Selected: {e.control.value}")
+    
+    page.add(
+        ft.CupertinoDatePicker(
+            value=datetime.datetime.now(),
+            on_change=date_changed,
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Segmented Controls
+
+<CardGroup cols={2}>
+  <Card title="CupertinoSegmentedButton" icon="toggle-large-on">
+    Multiple choice segmented control
+  </Card>
+  <Card title="CupertinoSlidingSegmentedButton" icon="sliders">
+    Segmented control with sliding indicator
+  </Card>
+</CardGroup>
+
+### CupertinoSegmentedButton Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def segment_changed(e):
+        print(f"Selected: {e.control.selected_index}")
+    
+    page.add(
+        ft.CupertinoSegmentedButton(
+            selected_index=0,
+            on_change=segment_changed,
+            controls=[
+                ft.Text("Day"),
+                ft.Text("Week"),
+                ft.Text("Month"),
+            ],
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Context Menus
+
+### CupertinoContextMenu Example
+
+```python
+import flet as ft
+from flet import cupertino_icons
+
+def main(page: ft.Page):
+    page.add(
+        ft.CupertinoContextMenu(
+            content=ft.Container(
+                content=ft.Text("Long press me"),
+                bgcolor=ft.Colors.BLUE_100,
+                padding=20,
+                border_radius=10,
+            ),
+            actions=[
+                ft.CupertinoContextMenuAction(
+                    text="Copy",
+                    trailing_icon=cupertino_icons.COPY,
+                    on_click=lambda e: print("Copy")
+                ),
+                ft.CupertinoContextMenuAction(
+                    text="Share",
+                    trailing_icon=cupertino_icons.SHARE,
+                    on_click=lambda e: print("Share")
+                ),
+                ft.CupertinoContextMenuAction(
+                    text="Delete",
+                    is_destructive_action=True,
+                    trailing_icon=cupertino_icons.DELETE,
+                    on_click=lambda e: print("Delete")
+                ),
+            ],
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Comparing Material vs Cupertino
+
+<Tabs>
+  <Tab title="Material">
+    ```python
+    import flet as ft
+    
+    # Material Design
+    ft.ElevatedButton(
+        "Click Me",
+        icon=ft.Icons.ADD
+    )
+    
+    ft.TextField(
+        label="Name",
+        hint_text="Enter name"
+    )
+    
+    ft.Switch(
+        label="Enable",
+        value=True
+    )
+    ```
+  </Tab>
+  <Tab title="Cupertino">
+    ```python
+    import flet as ft
+    from flet import cupertino_icons
+    
+    # Cupertino (iOS)
+    ft.CupertinoButton(
+        content=ft.Text("Click Me"),
+        icon=cupertino_icons.ADD
+    )
+    
+    ft.CupertinoTextField(
+        placeholder_text="Enter name"
+    )
+    
+    ft.CupertinoSwitch(
+        value=True
+    )
+    ```
+  </Tab>
+</Tabs>
+
+## Cupertino Icons
+
+Cupertino controls use SF Symbols-inspired icons:
+
+```python
+import flet as ft
+from flet import cupertino_icons
+
+# Some common Cupertino icons
+icons = [
+    cupertino_icons.HOME,
+    cupertino_icons.SEARCH,
+    cupertino_icons.SETTINGS,
+    cupertino_icons.PERSON,
+    cupertino_icons.HEART,
+    cupertino_icons.SHARE,
+    cupertino_icons.CAMERA,
+    cupertino_icons.PHOTO,
+]
+
+for icon in icons:
+    ft.Icon(icon, size=30)
+```
+
+## Next Steps
+
+- Compare with [Material Controls](/controls/material)
+- Learn about [Layout Controls](/controls/layout) to arrange Cupertino controls
+- Review [Apple's Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/)
+
+## API Reference
+
+For detailed properties and methods:
+- [Cupertino Controls API](/api/cupertino/button)
+- [CupertinoButton API](/api/cupertino/button)
+- [CupertinoTextField API](/api/cupertino/textfield)

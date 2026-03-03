@@ -1,0 +1,433 @@
+---
+title: "Control"
+description: "Control base class API reference for Flet framework"
+---
+
+## Overview
+
+Base class for all visual controls in Flet. Provides common properties and behavior for layout, visibility, and user interaction.
+
+**Source:** `flet.controls.control:12`
+
+<Warning>
+This class is not meant to be used directly. Use specific control classes like `Text`, `Button`, `Container`, etc.
+</Warning>
+
+## Class Signature
+
+```python
+from flet import Control
+
+@dataclass(kw_only=True)
+class Control(BaseControl):
+    """Base class for controls."""
+```
+
+## Properties
+
+### Layout Properties
+
+<ParamField path="expand" type="Optional[Union[bool, int]]" default="None">
+  Specifies whether/how this control should expand to fill available space in its parent layout.
+  
+  **Source:** `control.py:20`
+  
+  **Values:**
+  - `None`: Control takes minimum required space
+  - `True` or `1`: Control expands to fill available space
+  - `int > 1`: Control expands proportionally (flex factor)
+  
+  **Effect:** Only works when the direct parent is `Column`, `Row`, `View`, or `Page`.
+  
+  **Raises:** `ValueError` if not `None`, `bool`, or `int`
+  
+  ```python
+  # Equal expansion
+  ft.Container(expand=True, bgcolor="blue")
+  
+  # Proportional expansion (2:1 ratio)
+  ft.Row([
+      ft.Container(expand=2, bgcolor="red"),
+      ft.Container(expand=1, bgcolor="blue")
+  ])
+  ```
+</ParamField>
+
+<ParamField path="expand_loose" type="bool" default="False">
+  Allows the control to expand along the main axis if space is available, but does not require it to fill all available space.
+  
+  **Source:** `control.py:37`
+  
+  **Effect:** Only works when:
+  - `expand` is not `None`
+  - Direct parent is `Column`, `Row`, `View`, or `Page`
+  
+  ```python
+  ft.Container(
+      expand=True,
+      expand_loose=True,
+      bgcolor="green"
+  )
+  ```
+</ParamField>
+
+<ParamField path="col" type="ResponsiveNumber" default="12">
+  If parent is a `ResponsiveRow`, this determines how many virtual columns (out of 12) this control spans.
+  
+  **Source:** `control.py:55`
+  
+  Can be:
+  - A number: Applies to all breakpoints
+  - A dictionary: Different values per breakpoint
+  
+  **Breakpoints:**
+  | Breakpoint | Dimension |
+  |---|---|
+  | xs | Less than 576px |
+  | sm | 576px and up |
+  | md | 768px and up |
+  | lg | 992px and up |
+  | xl | 1200px and up |
+  | xxl | 1400px and up |
+  
+  ```python
+  # Spans 12 columns on mobile, 6 on tablet, 4 on desktop
+  ft.Container(
+      col={"xs": 12, "sm": 6, "md": 4},
+      bgcolor="blue"
+  )
+  ```
+</ParamField>
+
+### Visual Properties
+
+<ParamField path="opacity" type="Number" default="1.0">
+  Defines the transparency of the control.
+  
+  **Source:** `control.py:78`
+  
+  **Range:** `0.0` (fully transparent) to `1.0` (fully opaque)
+  
+  **Raises:** `ValueError` if not between 0.0 and 1.0
+  
+  ```python
+  ft.Text("50% transparent", opacity=0.5)
+  ```
+</ParamField>
+
+<ParamField path="visible" type="bool" default="True">
+  Controls whether the control is rendered on the page.
+  
+  **Source:** `control.py:99`
+  
+  When `False`:
+  - Control is not rendered
+  - Cannot be focused or selected
+  - Does not emit events
+  - Children (if any) are also hidden
+  
+  ```python
+  error_message = ft.Text(
+      "Error occurred!",
+      visible=False,
+      color="red"
+  )
+  
+  # Show on error
+  error_message.visible = True
+  page.update()
+  ```
+</ParamField>
+
+<ParamField path="disabled" type="bool" default="False">
+  Controls whether the control and its children are enabled.
+  
+  **Source:** `control.py:108`
+  
+  **Propagation:** Value is recursively applied to all children controls.
+  
+  ```python
+  # Disable entire form
+  form = ft.Column(
+      disabled=True,
+      controls=[
+          ft.TextField(label="Name"),
+          ft.TextField(label="Email"),
+          ft.ElevatedButton("Submit")
+      ]
+  )
+  ```
+</ParamField>
+
+<ParamField path="rtl" type="bool" default="False">
+  Whether the text direction of the control should be right-to-left (RTL).
+  
+  **Source:** `control.py:134`
+  
+  ```python
+  ft.Text("مرحبا", rtl=True)  # Arabic text
+  ```
+</ParamField>
+
+### Interactive Features
+
+<ParamField path="tooltip" type="Optional[TooltipValue]">
+  The tooltip to show when this control is hovered over.
+  
+  **Source:** `control.py:89`
+  
+  Can be:
+  - A string: Simple tooltip text
+  - A `Tooltip` object: Advanced configuration
+  
+  ```python
+  # Simple tooltip
+  ft.IconButton(
+      icon=ft.Icons.INFO,
+      tooltip="Click for more information"
+  )
+  
+  # Advanced tooltip
+  ft.IconButton(
+      icon=ft.Icons.HELP,
+      tooltip=ft.Tooltip(
+          message="Detailed help text",
+          bgcolor=ft.Colors.BLUE_100,
+          text_style=ft.TextStyle(color=ft.Colors.BLUE_900)
+      )
+  )
+  ```
+</ParamField>
+
+<ParamField path="badge" type="Optional[BadgeValue]">
+  A badge to show on top of this control.
+  
+  **Source:** `control.py:94`
+  
+  Can be:
+  - A string or number: Simple badge label
+  - A `Badge` object: Advanced configuration
+  
+  ```python
+  # Simple badge
+  ft.IconButton(
+      icon=ft.Icons.NOTIFICATIONS,
+      badge=5
+  )
+  
+  # Advanced badge
+  ft.IconButton(
+      icon=ft.Icons.MAIL,
+      badge=ft.Badge(
+          content=ft.Text("99+"),
+          bgcolor=ft.Colors.RED
+      )
+  )
+  ```
+</ParamField>
+
+## Lifecycle Hooks
+
+<ParamField path="before_update" type="() -> None">
+  Called every time before this control is updated.
+  
+  **Source:** `control.py:139`
+  
+  **Warning:** Do not call `update()` inside this method to avoid infinite loops.
+  
+  ```python
+  class MyControl(ft.Container):
+      def before_update(self):
+          super().before_update()
+          # Validate properties before update
+          if self.width and self.width < 0:
+              self.width = 0
+  ```
+</ParamField>
+
+## Inherited from BaseControl
+
+Control inherits all properties and methods from [BaseControl](/api/control), including:
+
+### Properties
+
+- `data` - Arbitrary data of any type
+- `key` - Optional key for control identification
+- `ref` - Reference to this control
+- `parent` - Direct ancestor of this control (read-only)
+- `page` - Page to which this control belongs (read-only)
+
+### Methods
+
+- `update()` - Request a UI update for this control
+- `init()` - Called after control instance initialization
+- `build()` - Called once during control initialization
+- `did_mount()` - Called after control is mounted into page tree
+- `will_unmount()` - Called before control is removed from page tree
+
+## Usage Examples
+
+### Expanding Controls
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Row([
+            ft.Container(
+                content=ft.Text("Takes 2/3"),
+                expand=2,
+                bgcolor=ft.Colors.RED_200
+            ),
+            ft.Container(
+                content=ft.Text("Takes 1/3"),
+                expand=1,
+                bgcolor=ft.Colors.BLUE_200
+            )
+        ], height=200)
+    )
+
+ft.run(main)
+```
+
+### Responsive Grid Layout
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.ResponsiveRow([
+            ft.Container(
+                content=ft.Text("Item 1"),
+                col={"xs": 12, "sm": 6, "md": 4, "lg": 3},
+                bgcolor=ft.Colors.AMBER_200,
+                padding=10
+            ),
+            ft.Container(
+                content=ft.Text("Item 2"),
+                col={"xs": 12, "sm": 6, "md": 4, "lg": 3},
+                bgcolor=ft.Colors.GREEN_200,
+                padding=10
+            ),
+            ft.Container(
+                content=ft.Text("Item 3"),
+                col={"xs": 12, "sm": 6, "md": 4, "lg": 3},
+                bgcolor=ft.Colors.BLUE_200,
+                padding=10
+            ),
+        ])
+    )
+
+ft.run(main)
+```
+
+### Visibility and Disabled States
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    error_text = ft.Text(
+        "Please fill in all fields!",
+        color=ft.Colors.RED,
+        visible=False
+    )
+    
+    name_field = ft.TextField(label="Name")
+    submit_btn = ft.ElevatedButton("Submit")
+    
+    def validate(e):
+        if not name_field.value:
+            error_text.visible = True
+            submit_btn.disabled = True
+        else:
+            error_text.visible = False
+            submit_btn.disabled = False
+        page.update()
+    
+    name_field.on_change = validate
+    
+    page.add(
+        error_text,
+        name_field,
+        submit_btn
+    )
+
+ft.run(main)
+```
+
+### Opacity Animation
+
+```python
+import flet as ft
+import time
+
+def main(page: ft.Page):
+    text = ft.Text("Fading text", size=30)
+    
+    def fade_animation(e):
+        for i in range(10, -1, -1):
+            text.opacity = i / 10
+            page.update()
+            time.sleep(0.1)
+        
+        for i in range(11):
+            text.opacity = i / 10
+            page.update()
+            time.sleep(0.1)
+    
+    page.add(
+        text,
+        ft.ElevatedButton(
+            "Animate",
+            on_click=lambda e: page.run_thread(fade_animation)
+        )
+    )
+
+ft.run(main)
+```
+
+### Using Data Property
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def handle_click(e):
+        # Access custom data attached to control
+        user_id = e.control.data
+        page.add(ft.Text(f"Clicked user {user_id}"))
+    
+    page.add(
+        ft.ElevatedButton(
+            "User 1",
+            data=101,
+            on_click=handle_click
+        ),
+        ft.ElevatedButton(
+            "User 2",
+            data=102,
+            on_click=handle_click
+        )
+    )
+
+ft.run(main)
+```
+
+## Validation
+
+The `before_update()` method validates properties before each update:
+
+- `opacity` must be between 0.0 and 1.0 (inclusive)
+- `expand` must be `None`, `bool`, or `int`
+
+Violating these constraints raises a `ValueError`.
+
+## See Also
+
+- [BaseControl](/api/control) - Base class for all controls
+- [Page](/api/page) - Top-level page container
+- [Container(/api/material/container) - General-purpose container control
+- [Column and Row(/api/layout/column) - Layout controls

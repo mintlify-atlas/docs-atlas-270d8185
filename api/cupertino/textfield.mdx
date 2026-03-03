@@ -1,0 +1,223 @@
+---
+title: 'CupertinoTextField'
+description: 'iOS-style text input field for Flet'
+keywords: ['cupertino', 'textfield', 'input', 'ios', 'form']
+---
+
+## CupertinoTextField
+
+An iOS-style text field for text input with iOS-specific styling and behavior.
+
+```python
+import flet as ft
+
+ft.CupertinoTextField(
+    placeholder_text="Search",
+    prefix=ft.Icon(ft.Icons.SEARCH),
+    clear_button_visibility_mode=ft.OverlayVisibilityMode.EDITING
+)
+```
+
+### Class signature
+
+```python
+class CupertinoTextField(TextField)
+```
+
+Inherits from `TextField`, so all standard TextField properties are available.
+
+### Properties
+
+<ParamField path="placeholder_text" type="str">
+  A lighter colored placeholder hint that appears on the first line of the text field when the text entry is empty.
+  
+  Defaults to an empty string.
+</ParamField>
+
+<ParamField path="placeholder_style" type="TextStyle">
+  The TextStyle to use for `placeholder_text`.
+</ParamField>
+
+<ParamField path="gradient" type="Gradient">
+  Configures the gradient background.
+</ParamField>
+
+<ParamField path="blend_mode" type="BlendMode">
+  The blend mode applied to the `bgcolor` or `gradient` background.
+</ParamField>
+
+<ParamField path="shadows" type="list[BoxShadow]">
+  A list of shadows behind this text field.
+</ParamField>
+
+<ParamField path="prefix_visibility_mode" type="OverlayVisibilityMode" default="OverlayVisibilityMode.ALWAYS">
+  Defines the visibility of the `prefix` control based on the state of text entry.
+  
+  Has no effect if `prefix` is not specified.
+</ParamField>
+
+<ParamField path="suffix_visibility_mode" type="OverlayVisibilityMode" default="OverlayVisibilityMode.ALWAYS">
+  Defines the visibility of the `suffix` control based on the state of text entry.
+  
+  Has no effect if `suffix` is not specified.
+</ParamField>
+
+<ParamField path="clear_button_visibility_mode" type="OverlayVisibilityMode" default="OverlayVisibilityMode.NEVER">
+  Defines the visibility of the clear button based on the state of text entry.
+  
+  Will appear only if no `suffix` is provided.
+</ParamField>
+
+<ParamField path="clear_button_semantics_label" type="str" default="Clear">
+  The semantic label for the clear button used by screen readers.
+  
+  This will be used by screen reading software to identify the clear button widget.
+</ParamField>
+
+<ParamField path="image" type="DecorationImage">
+  An image to paint above the `bgcolor` or `gradient` background.
+</ParamField>
+
+<ParamField path="padding" type="Padding | number" default="Padding.all(7)">
+  The padding around the text entry area between the `prefix` and `suffix` or the clear button when `clear_button_visibility_mode` is not `OverlayVisibilityMode.NEVER`.
+</ParamField>
+
+### OverlayVisibilityMode enum
+
+Controls the visibility of text field overlays (prefix, suffix, clear button) based on text entry state.
+
+<ParamField path="OverlayVisibilityMode.NEVER" type="enum">
+  Overlay will never appear regardless of the text entry state.
+</ParamField>
+
+<ParamField path="OverlayVisibilityMode.EDITING" type="enum">
+  Overlay will only appear when the current text entry is not empty.
+  
+  This includes prefilled text that the user did not type in manually, but does not include text in placeholders.
+</ParamField>
+
+<ParamField path="OverlayVisibilityMode.NOT_EDITING" type="enum">
+  Overlay will only appear when the current text entry is empty.
+  
+  This also includes not having prefilled text that the user did not type in manually. Texts in placeholders are ignored.
+</ParamField>
+
+<ParamField path="OverlayVisibilityMode.ALWAYS" type="enum">
+  Always show the overlay regardless of the text entry state.
+</ParamField>
+
+### Inherited properties
+
+Since `CupertinoTextField` extends `TextField`, it inherits all TextField properties including:
+
+- `value` - The current text value
+- `password` - Whether to obscure the text
+- `multiline` - Whether the field allows multiple lines
+- `max_length` - Maximum number of characters
+- `keyboard_type` - Type of keyboard to show
+- `autofocus` - Whether to focus on load
+- `read_only` - Whether the field is read-only
+- `on_change` - Called when text changes
+- `on_submit` - Called when user submits
+- And many more
+
+### iOS-specific behavior
+
+- The clear button appears as an "X" icon in iOS style when visibility conditions are met
+- Overlay visibility modes follow iOS patterns for showing/hiding auxiliary controls
+- Default padding of 7 pixels matches iOS text field standards
+- Supports iOS-specific keyboard types and input behaviors
+
+### Comparison with Material
+
+<CodeGroup>
+
+```python Cupertino
+ft.CupertinoTextField(
+    placeholder_text="Search",
+    prefix=ft.Icon(ft.Icons.SEARCH),
+    clear_button_visibility_mode=ft.OverlayVisibilityMode.EDITING,
+    padding=ft.Padding.all(7)
+)
+```
+
+```python Material
+ft.TextField(
+    hint_text="Search",
+    prefix_icon=ft.Icons.SEARCH,
+    # No built-in clear button
+    # No overlay visibility modes
+)
+```
+
+</CodeGroup>
+
+Key differences:
+- CupertinoTextField uses `placeholder_text` vs Material's `hint_text`
+- CupertinoTextField has built-in clear button with visibility control
+- CupertinoTextField has overlay visibility modes for prefix/suffix controls
+- Styling follows iOS Human Interface Guidelines vs Material Design
+
+### Examples
+
+#### Basic text field with placeholder
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.CupertinoTextField(
+            placeholder_text="Enter your name",
+            width=300
+        )
+    )
+
+ft.app(target=main)
+```
+
+#### Search field with prefix icon and clear button
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    search_field = ft.CupertinoTextField(
+        placeholder_text="Search",
+        prefix=ft.Icon(ft.Icons.SEARCH),
+        clear_button_visibility_mode=ft.OverlayVisibilityMode.EDITING,
+        width=300,
+        on_change=lambda e: print(f"Search: {e.control.value}")
+    )
+    
+    page.add(search_field)
+
+ft.app(target=main)
+```
+
+#### Password field with visibility toggle
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    password_field = ft.CupertinoTextField(
+        placeholder_text="Password",
+        password=True,
+        suffix=ft.IconButton(
+            icon=ft.Icons.VISIBILITY,
+            on_click=lambda e: toggle_password(e, password_field)
+        ),
+        suffix_visibility_mode=ft.OverlayVisibilityMode.ALWAYS,
+        width=300
+    )
+    
+    def toggle_password(e, field):
+        field.password = not field.password
+        e.control.icon = ft.Icons.VISIBILITY_OFF if field.password else ft.Icons.VISIBILITY
+        page.update()
+    
+    page.add(password_field)
+
+ft.app(target=main)
+```

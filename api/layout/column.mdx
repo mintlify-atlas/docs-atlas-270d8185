@@ -1,0 +1,225 @@
+---
+title: 'Column'
+description: 'A layout control that arranges child controls vertically'
+icon: 'bars'
+---
+
+## Overview
+
+Column is a layout control that arranges child controls vertically, optionally aligning and spacing them within the available space. Children are positioned from top to bottom in the order they appear in the controls list.
+
+## Basic Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Column(
+            width=220,
+            height=120,
+            spacing=12,
+            controls=[
+                ft.Text("Daily planning", size=20, weight=ft.FontWeight.W_600),
+                ft.Text("Review pull requests"),
+                ft.Text("Ship release"),
+            ],
+        )
+    )
+
+ft.app(main)
+```
+
+## Class Definition
+
+```python
+class Column(LayoutControl, ScrollableControl, AdaptiveControl):
+    controls: list[Control] = field(default_factory=list)
+    alignment: MainAxisAlignment = MainAxisAlignment.START
+    horizontal_alignment: CrossAxisAlignment = CrossAxisAlignment.START
+    spacing: Number = 10
+    tight: bool = False
+    wrap: bool = False
+    run_spacing: Number = 10
+    run_alignment: MainAxisAlignment = MainAxisAlignment.START
+    intrinsic_width: bool = False
+```
+
+## Properties
+
+### controls
+
+<ParamField path="controls" type="list[Control]" default="[]">
+  A list of controls to display vertically. Controls are arranged from top to bottom in the order they appear in the list.
+</ParamField>
+
+### alignment
+
+<ParamField path="alignment" type="MainAxisAlignment" default="MainAxisAlignment.START">
+  How the child controls should be placed vertically along the main (vertical) axis.
+  
+  Options:
+  - `MainAxisAlignment.START` - Place children at the top
+  - `MainAxisAlignment.END` - Place children at the bottom
+  - `MainAxisAlignment.CENTER` - Place children in the middle
+  - `MainAxisAlignment.SPACE_BETWEEN` - Place free space evenly between children
+  - `MainAxisAlignment.SPACE_AROUND` - Place free space evenly between children and half of that space before and after
+  - `MainAxisAlignment.SPACE_EVENLY` - Place free space evenly between children and before/after the first/last child
+</ParamField>
+
+### horizontal_alignment
+
+<ParamField path="horizontal_alignment" type="CrossAxisAlignment" default="CrossAxisAlignment.START">
+  Defines how the controls should be placed horizontally along the cross (horizontal) axis.
+  
+  Options:
+  - `CrossAxisAlignment.START` - Align children to the left
+  - `CrossAxisAlignment.END` - Align children to the right
+  - `CrossAxisAlignment.CENTER` - Center children horizontally
+  - `CrossAxisAlignment.STRETCH` - Stretch children to fill horizontal space
+  - `CrossAxisAlignment.BASELINE` - Align children by their text baseline
+</ParamField>
+
+### spacing
+
+<ParamField path="spacing" type="Number" default="10">
+  Spacing (in pixels) between the child controls.
+  
+  <Note>
+    This property only has effect when `alignment` is `MainAxisAlignment.START`, `MainAxisAlignment.END`, or `MainAxisAlignment.CENTER`.
+  </Note>
+</ParamField>
+
+### tight
+
+<ParamField path="tight" type="bool" default="False">
+  Determines how vertical space is allocated.
+  
+  - If `False` (default), children expand to fill the available vertical space.
+  - If `True`, only the minimum vertical space required by the children is used.
+</ParamField>
+
+### wrap
+
+<ParamField path="wrap" type="bool" default="False">
+  Whether the controls should wrap into additional columns (runs) when they don't fit in a single vertical column.
+  
+  When `True`, controls that exceed the available height will wrap horizontally into additional columns.
+</ParamField>
+
+### run_spacing
+
+<ParamField path="run_spacing" type="Number" default="10">
+  The spacing (in pixels) between runs when `wrap` is `True`.
+  
+  This controls the horizontal spacing between columns when wrapping occurs.
+</ParamField>
+
+### run_alignment
+
+<ParamField path="run_alignment" type="MainAxisAlignment" default="MainAxisAlignment.START">
+  How the runs should be placed in the cross-axis when `wrap` is `True`.
+  
+  This controls how multiple columns are aligned horizontally when wrapping is enabled.
+</ParamField>
+
+### intrinsic_width
+
+<ParamField path="intrinsic_width" type="bool" default="False">
+  If `True`, the Column will be as wide as the widest child control.
+  
+  If `False`, the Column expands to fill the available width.
+</ParamField>
+
+## Layout Behavior
+
+### How Children Are Arranged
+
+1. **Main Axis (Vertical)**: Children are placed from top to bottom along the vertical axis according to the `alignment` property.
+
+2. **Cross Axis (Horizontal)**: Children are aligned horizontally according to the `horizontal_alignment` property.
+
+3. **Spacing**: The `spacing` property adds vertical gaps between children when using START, END, or CENTER alignment.
+
+4. **Wrapping**: When `wrap` is enabled, children that don't fit vertically will wrap into new columns to the right.
+
+### Scrolling
+
+Column inherits from `ScrollableControl`, which means it can be made scrollable:
+
+```python
+ft.Column(
+    scroll=ft.ScrollMode.AUTO,
+    height=300,
+    controls=[
+        ft.Text(f"Item {i}") for i in range(50)
+    ],
+)
+```
+
+## Examples
+
+### Centered Column with Spacing
+
+```python
+ft.Column(
+    alignment=ft.MainAxisAlignment.CENTER,
+    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+    spacing=20,
+    controls=[
+        ft.Icon(ft.Icons.STAR, size=50),
+        ft.Text("Centered Content", size=20),
+        ft.ElevatedButton("Click Me"),
+    ],
+)
+```
+
+### Stretched Children
+
+```python
+ft.Column(
+    horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
+    spacing=10,
+    controls=[
+        ft.Container(height=50, bgcolor=ft.Colors.RED),
+        ft.Container(height=50, bgcolor=ft.Colors.GREEN),
+        ft.Container(height=50, bgcolor=ft.Colors.BLUE),
+    ],
+)
+```
+
+### Wrapped Column
+
+```python
+ft.Column(
+    height=200,
+    wrap=True,
+    spacing=10,
+    run_spacing=15,
+    controls=[
+        ft.Container(width=100, height=50, bgcolor=ft.Colors.AMBER)
+        for _ in range(12)
+    ],
+)
+```
+
+### Space Between Alignment
+
+```python
+ft.Column(
+    height=300,
+    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+    controls=[
+        ft.Text("Top"),
+        ft.Text("Middle"),
+        ft.Text("Bottom"),
+    ],
+)
+```
+
+## Related Controls
+
+- [Row](/api/layout/row) - Horizontal layout
+- [Stack](/api/layout/stack) - Overlapping layout
+- [ListView](/api/layout/listview) - Scrollable list
+- [GridView](/api/layout/gridview) - Grid layout

@@ -1,0 +1,582 @@
+---
+title: React-Style Hooks
+description: Master Flet's hook system for managing state, side effects, memoization, and context in functional components.
+---
+
+Hooks are functions that let you use state and other component features in functional components. They enable you to write clean, reusable logic without classes.
+
+## Rules of Hooks
+
+Before diving in, understand these critical rules:
+
+1. **Only call hooks at the top level** - Don't call hooks inside loops, conditions, or nested functions
+2. **Only call hooks in components** - Hooks must be called inside functions decorated with `@ft.component`
+3. **Call hooks in the same order** - Hook calls must happen in the same order on every render
+
+**Why?** Hooks rely on call order to maintain state across renders. Breaking these rules causes bugs.
+
+**Location:** `flet/components/component.py:258`
+
+## use_state
+
+Adds state to a component. Returns a tuple of `(value, setter)`.
+
+**Location:** `flet/components/hooks/use_state.py:47`
+
+### Signature
+
+```python
+def use_state(
+    initial: StateT | Callable[[], StateT],
+) -> tuple[StateT, Callable[[StateT | Updater], None]]
+```
+
+### Basic Usage
+
+```python
+import flet as ft
+
+@ft.component
+def Counter():
+    count, set_count = ft.use_state(0)
+    
+    return ft.Column([
+        ft.Text(f"Count: {count}"),
+        ft.ElevatedButton(
+            "Increment",
+            on_click=lambda _: set_count(count + 1)
+        )
+    ])
+```
+
+### Lazy Initialization
+
+Pass a function to compute the initial state only once:
+
+```python
+@ft.component
+def ExpensiveComponent():
+    # expensive_computation() is only called on first render
+    data, set_data = ft.use_state(lambda: expensive_computation())
+    return ft.Text(str(data))
+```
+
+### Functional Updates
+
+The setter accepts an updater function that receives the previous state:
+
+```python
+@ft.component
+def Counter():
+    count, set_count = ft.use_state(0)
+    
+    def increment():
+        # Use functional update to ensure you have the latest value
+        set_count(lambda prev: prev + 1)
+    
+    return ft.ElevatedButton("Increment", on_click=lambda _: increment())
+```
+
+### Observable State
+
+State values can be `Observable` objects for shared state:
+
+```python
+from flet.components.observable import Observable
+
+shared_counter = Observable(0)
+
+@ft.component
+def DisplayCounter():
+    count, set_count = ft.use_state(shared_counter)
+    return ft.Text(f"Shared count: {count.value}")
+```
+
+**Location:** `flet/components/hooks/use_state.py:71`
+
+## use_effect
+
+Perform side effects in components. Effects run after render and can optionally return a cleanup function.
+
+**Location:** `flet/components/hooks/use_effect.py:41`
+
+### Signature
+
+```python
+def use_effect(
+    setup: Callable[[], Any | Awaitable[Any]],
+    dependencies: Sequence[Any] | None = None,
+    cleanup: Callable[[], Any | Awaitable[Any]] | None = None,
+)
+```
+
+### Run on Every Render
+
+```python
+@ft.component
+def Logger():
+    count, set_count = ft.use_state(0)
+    
+    ft.use_effect(
+        lambda: print(f"Count changed to: {count}"),
+        dependencies=None  # Runs every render
+    )
+    
+    return ft.ElevatedButton("Increment", on_click=lambda _: set_count(count + 1))
+```
+
+### Run Once on Mount
+
+```python
+@ft.component
+def DataLoader():
+    data, set_data = ft.use_state(None)
+    
+    async def fetch_data():
+        # Simulated API call
+        await asyncio.sleep(1)
+        set_data({"message": "Hello from API"})
+    
+    # Empty dependencies = run once on mount
+    ft.use_effect(
+        lambda: asyncio.create_task(fetch_data()),
+        dependencies=[]
+    )
+    
+    return ft.Text(str(data))
+```
+
+### Run When Dependencies Change
+
+```python
+@ft.component
+def SearchResults(query: str):
+    results, set_results = ft.use_state([])
+    
+    async def search():
+        # Fetch results for query
+        new_results = await api.search(query)
+        set_results(new_results)
+    
+    # Re-run effect when query changes
+    ft.use_effect(
+        lambda: asyncio.create_task(search()),
+        dependencies=[query]
+    )
+    
+    return ft.Column([ft.Text(r) for r in results])
+```
+
+### Cleanup Functions
+
+```python
+@ft.component
+def Timer():
+    seconds, set_seconds = ft.use_state(0)
+    
+    def setup_timer():
+        # Start a timer
+        task = asyncio.create_task(tick())
+        
+        async def tick():
+            while True:
+                await asyncio.sleep(1)
+                set_seconds(lambda s: s + 1)
+        
+        # Cleanup: cancel task when component unmounts
+        def cleanup():
+            task.cancel()
+        
+        return cleanup
+    
+    ft.use_effect(setup_timer, dependencies=[])
+    
+    return ft.Text(f"Elapsed: {seconds}s")
+```
+
+Alternatively, use the `cleanup` parameter:
+
+```python
+ft.use_effect(
+    setup=lambda: start_timer(),
+    cleanup=lambda: stop_timer(),
+    dependencies=[]
+)
+```
+
+**Location:** `flet/components/hooks/use_effect.py:11`
+
+### Lifecycle Helpers
+
+Flet provides convenience functions for common lifecycle patterns:
+
+#### on_mounted
+
+Runs exactly once after the component mounts:
+
+**Location:** `flet/components/hooks/use_effect.py:77`
+
+```python
+@ft.component
+def MyComponent():
+    ft.on_mounted(lambda: print("Component mounted!"))
+    return ft.Text("Hello")
+```
+
+#### on_unmounted
+
+Runs exactly once when the component unmounts:
+
+**Location:** `flet/components/hooks/use_effect.py:88`
+
+```python
+@ft.component
+def MyComponent():
+    ft.on_unmounted(lambda: print("Cleaning up!"))
+    return ft.Text("Hello")
+```
+
+#### on_updated
+
+Runs after each post-mount render:
+
+**Location:** `flet/components/hooks/use_effect.py:100`
+
+```python
+@ft.component
+def MyComponent():
+    count, set_count = ft.use_state(0)
+    
+    # Runs after every update
+    ft.on_updated(lambda: print(f"Updated! Count is {count}"))
+    
+    # Or with dependencies
+    ft.on_updated(
+        lambda: print(f"Count changed to {count}"),
+        dependencies=[count]
+    )
+    
+    return ft.ElevatedButton("Increment", on_click=lambda _: set_count(count + 1))
+```
+
+## use_ref
+
+Persist a mutable value across renders without triggering updates.
+
+**Location:** `flet/components/hooks/use_ref.py:37`
+
+### Signature
+
+```python
+def use_ref(
+    initial_value: RefValueT | Callable[[], RefValueT] | None = None,
+) -> MutableRef[RefValueT]
+```
+
+### Basic Usage
+
+```python
+@ft.component
+def InputFocus():
+    input_ref = ft.use_ref()
+    
+    def focus_input(_):
+        if input_ref.current:
+            input_ref.current.focus()
+    
+    return ft.Column([
+        ft.TextField(ref=input_ref),
+        ft.ElevatedButton("Focus Input", on_click=focus_input)
+    ])
+```
+
+### Storing Mutable Values
+
+Unlike state, updating `.current` doesn't trigger a re-render:
+
+```python
+@ft.component
+def RenderCounter():
+    render_count = ft.use_ref(0)
+    
+    # Increment on every render without causing infinite loop
+    render_count.current += 1
+    
+    return ft.Text(f"This component rendered {render_count.current} times")
+```
+
+### Storing Previous Values
+
+```python
+@ft.component
+def CompareToPrevious(value: int):
+    prev_ref = ft.use_ref(value)
+    
+    result = f"Current: {value}, Previous: {prev_ref.current}"
+    
+    # Update ref after render
+    ft.use_effect(lambda: setattr(prev_ref, 'current', value), [value])
+    
+    return ft.Text(result)
+```
+
+**Location:** `flet/components/hooks/use_ref.py:15`
+
+## use_memo
+
+Memoize expensive computations to avoid recalculating on every render.
+
+**Location:** `flet/components/hooks/use_memo.py:24`
+
+### Signature
+
+```python
+def use_memo(
+    calculate_value: Callable[[], MemoValueT],
+    dependencies: Sequence[Any] | None = None
+) -> MemoValueT
+```
+
+### Basic Usage
+
+```python
+@ft.component
+def FilteredList(items: list, filter_text: str):
+    # Only recalculate when items or filter_text changes
+    filtered = ft.use_memo(
+        lambda: [item for item in items if filter_text.lower() in item.lower()],
+        dependencies=[items, filter_text]
+    )
+    
+    return ft.Column([ft.Text(item) for item in filtered])
+```
+
+### Expensive Calculations
+
+```python
+@ft.component
+def DataProcessor(data: list):
+    # This expensive operation only runs when data changes
+    processed = ft.use_memo(
+        lambda: expensive_data_processing(data),
+        dependencies=[data]
+    )
+    
+    return ft.Text(f"Processed {len(processed)} items")
+```
+
+### Always Recompute
+
+```python
+@ft.component
+def RandomNumber():
+    # Recompute on every render
+    random_num = ft.use_memo(
+        lambda: random.randint(1, 100),
+        dependencies=None
+    )
+    
+    return ft.Text(f"Random: {random_num}")
+```
+
+**Location:** `flet/components/hooks/use_memo.py:11`
+
+## use_callback
+
+Memoize function identity to prevent unnecessary re-renders of child components.
+
+**Location:** `flet/components/hooks/use_callback.py:12`
+
+### Signature
+
+```python
+def use_callback(
+    fn: Callable[P, R],
+    dependencies: Sequence[Any] | None = None,
+) -> Callable[P, R]
+```
+
+### Basic Usage
+
+```python
+@ft.component
+def ParentComponent():
+    count, set_count = ft.use_state(0)
+    
+    # Memoize callback to prevent child re-renders
+    handle_click = ft.use_callback(
+        lambda: set_count(count + 1),
+        dependencies=[count]
+    )
+    
+    return ft.Column([
+        ft.Text(f"Count: {count}"),
+        ChildButton(on_click=handle_click)
+    ])
+
+@ft.component
+def ChildButton(on_click):
+    return ft.ElevatedButton("Increment", on_click=on_click)
+```
+
+### With Multiple Dependencies
+
+```python
+@ft.component
+def Form():
+    name, set_name = ft.use_state("")
+    email, set_email = ft.use_state("")
+    
+    submit = ft.use_callback(
+        lambda: api.submit({"name": name, "email": email}),
+        dependencies=[name, email]
+    )
+    
+    return ft.Column([
+        ft.TextField(value=name, on_change=lambda e: set_name(e.control.value)),
+        ft.TextField(value=email, on_change=lambda e: set_email(e.control.value)),
+        ft.ElevatedButton("Submit", on_click=lambda _: submit())
+    ])
+```
+
+## use_context
+
+Access shared context values without prop drilling.
+
+**Location:** `flet/components/hooks/use_context.py:88`
+
+### Creating Context
+
+**Location:** `flet/components/hooks/use_context.py:54`
+
+```python
+# Create a theme context
+ThemeContext = ft.create_context(default_value="light")
+```
+
+### Providing Context
+
+```python
+@ft.component
+def App():
+    theme, set_theme = ft.use_state("light")
+    
+    def toggle_theme():
+        set_theme("dark" if theme == "light" else "light")
+    
+    # Provide theme to all children
+    return ThemeContext(
+        theme,
+        lambda: ft.Column([
+            ft.ElevatedButton("Toggle Theme", on_click=lambda _: toggle_theme()),
+            ThemedComponent(),
+        ])
+    )
+```
+
+### Consuming Context
+
+```python
+@ft.component
+def ThemedComponent():
+    theme = ft.use_context(ThemeContext)
+    
+    bg_color = ft.Colors.WHITE if theme == "light" else ft.Colors.BLACK
+    text_color = ft.Colors.BLACK if theme == "light" else ft.Colors.WHITE
+    
+    return ft.Container(
+        content=ft.Text(f"Current theme: {theme}", color=text_color),
+        bgcolor=bg_color,
+        padding=20,
+    )
+```
+
+### Observable Context Values
+
+Context values can be `Observable` for automatic updates:
+
+**Location:** `flet/components/hooks/use_context.py:110`
+
+```python
+from flet.components.observable import Observable
+
+UserContext = ft.create_context(default_value=Observable(None))
+
+@ft.component
+def UserProfile():
+    user = ft.use_context(UserContext)
+    # Component automatically updates when user.value changes
+    return ft.Text(f"Logged in as: {user.value['name']}" if user.value else "Not logged in")
+```
+
+## Custom Hooks
+
+Create your own hooks by combining built-in ones:
+
+```python
+def use_toggle(initial_value: bool = False):
+    """Custom hook for boolean toggle state"""
+    value, set_value = ft.use_state(initial_value)
+    toggle = ft.use_callback(
+        lambda: set_value(not value),
+        dependencies=[value]
+    )
+    return value, toggle
+
+@ft.component
+def ToggleExample():
+    is_on, toggle = use_toggle(False)
+    
+    return ft.Column([
+        ft.Text("On" if is_on else "Off"),
+        ft.Switch(value=is_on, on_change=lambda _: toggle())
+    ])
+```
+
+```python
+def use_local_storage(key: str, initial_value: any):
+    """Custom hook for localStorage persistence"""
+    stored_value, set_stored_value = ft.use_state(
+        lambda: load_from_storage(key) or initial_value
+    )
+    
+    def set_value(value):
+        set_stored_value(value)
+        save_to_storage(key, value)
+    
+    return stored_value, set_value
+```
+
+## Hook Implementation Details
+
+All hooks inherit from the base `Hook` class:
+
+**Location:** `flet/components/hooks/hook.py:11`
+
+Hooks are stored positionally in the component's `_state.hooks` list. The `use_hook()` method manages hook creation and retrieval:
+
+**Location:** `flet/components/component.py:258`
+
+Each hook type has its own state container:
+
+- `StateHook` - Stores value, version, and observable subscription
+- `EffectHook` - Stores setup, cleanup, dependencies, and async tasks
+- `RefHook` - Stores the mutable ref object
+- `MemoHook` - Stores memoized value and previous dependencies
+- `ContextHook` - Marker for context subscription ordering
+
+## Best Practices
+
+1. **Follow the rules** - Never call hooks conditionally or in loops
+2. **Use dependency arrays carefully** - Missing dependencies cause stale values
+3. **Prefer functional updates** - Use `set_state(lambda prev: prev + 1)` for latest values
+4. **Clean up effects** - Return cleanup functions to prevent memory leaks
+5. **Extract custom hooks** - Reuse stateful logic across components
+6. **Use refs sparingly** - Prefer state for values that affect rendering
+7. **Memoize expensive operations** - Use `use_memo` and `use_callback` to optimize performance
+
+## Next Steps
+
+- Build reusable [Components](/advanced/components)
+- Learn about [Authentication](/advanced/authentication) with hooks
+- Explore [Testing](/advanced/testing) hook-based components

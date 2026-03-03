@@ -1,0 +1,358 @@
+---
+title: Building Desktop Applications
+description: Create standalone desktop applications for Windows, macOS, and Linux with Flet.
+---
+
+Flet allows you to build native desktop applications for Windows, macOS, and Linux from a single Python codebase. Desktop apps run as standalone executables with embedded Python runtime.
+
+## Overview
+
+Flet provides two approaches for building desktop applications:
+
+1. **`flet build`** - Creates a Flutter-based app bundle for production distribution
+2. **`flet pack`** - Creates a PyInstaller-based executable for quick packaging
+
+## Building with `flet build`
+
+The `flet build` command creates production-ready desktop applications using Flutter as the UI framework.
+
+### Platform Support
+
+| Command | Can Build On |
+|---------|-------------|
+| `flet build windows` | Windows |
+| `flet build macos` | macOS |
+| `flet build linux` | Linux |
+
+### Basic Usage
+
+<CodeGroup>
+
+```bash Windows
+flet build windows
+```
+
+```bash macOS
+flet build macos
+```
+
+```bash Linux
+flet build linux
+```
+
+</CodeGroup>
+
+By default, the build output is placed in `build/<platform>` directory.
+
+### Build Configuration
+
+Configure your desktop app using `pyproject.toml`:
+
+```toml pyproject.toml
+[project]
+name = "my-app"
+version = "1.0.0"
+description = "My Flet desktop application"
+
+[tool.flet]
+product = "My Application"
+artifact = "my-app"
+company = "My Company"
+org = "com.mycompany"
+copyright = "Copyright (C) 2025 My Company"
+build_number = 1
+
+[tool.flet.app]
+path = "src"  # Optional: subdirectory containing your app code
+```
+
+### Command-Line Options
+
+#### Project Metadata
+
+```bash
+flet build windows \
+  --project "my_app" \
+  --product "My Application" \
+  --artifact "my-app" \
+  --description "A desktop application built with Flet" \
+  --company "My Company" \
+  --org "com.mycompany" \
+  --copyright "Copyright (C) 2025"
+```
+
+- `--project` - Project name for bundle identifiers (default: directory name)
+- `--product` - Display name shown in app launchers and window titles
+- `--artifact` - Executable or bundle filename on disk
+- `--description` - Short description of the application
+- `--company` - Company name for about dialogs
+- `--org` - Organization in reverse domain notation (e.g., `com.mycompany`)
+- `--copyright` - Copyright text for about dialogs
+
+#### Build Options
+
+```bash
+flet build macos \
+  --arch arm64 x64 \
+  --build-version "1.2.3" \
+  --build-number 42 \
+  -o ./dist/macos
+```
+
+- `--arch` - Target CPU architectures (macOS: `arm64`, `x64`; Linux: `arm64`, `x64`)
+- `--build-version` - Version string shown to users (e.g., `1.2.3`)
+- `--build-number` - Internal version number (integer)
+- `-o`, `--output` - Custom output directory
+- `--exclude` - Files/directories to exclude from the package
+- `--clear-cache` - Remove existing build cache before building
+
+#### Advanced Options
+
+```bash
+flet build linux \
+  --compile-app \
+  --compile-packages \
+  --cleanup-packages \
+  --module-name "main"
+```
+
+- `--compile-app` - Pre-compile app's `.py` files to `.pyc`
+- `--compile-packages` - Pre-compile site packages to `.pyc`
+- `--cleanup-packages` - Remove unnecessary package files
+- `--module-name` - Python module name with entry point (default: `main`)
+
+### macOS-Specific Options
+
+<Note>
+macOS builds produce `.app` bundles that can be distributed via DMG or signed for the App Store.
+</Note>
+
+```toml pyproject.toml
+[tool.flet.macos]
+artifact = "MyApp"  # Name of the .app bundle
+bundle_id = "com.mycompany.myapp"
+
+[tool.flet.macos.info]
+NSCameraUsageDescription = "This app needs camera access to take photos"
+NSMicrophoneUsageDescription = "This app needs microphone access to record audio"
+
+[tool.flet.macos.entitlement]
+"com.apple.security.app-sandbox" = false
+"com.apple.security.network.client" = true
+"com.apple.security.files.user-selected.read-write" = true
+```
+
+Command-line equivalents:
+
+```bash
+flet build macos \
+  --bundle-id "com.mycompany.myapp" \
+  --info-plist "NSCameraUsageDescription=This app needs camera access" \
+  --macos-entitlements "com.apple.security.network.client=True"
+```
+
+### Windows-Specific Options
+
+Windows builds produce executables in `build/windows/x64/runner/Release/`.
+
+```toml pyproject.toml
+[tool.flet.windows]
+artifact = "MyApp.exe"
+```
+
+### Linux-Specific Options
+
+Linux builds produce a bundle directory containing the executable and dependencies.
+
+```toml pyproject.toml
+[tool.flet.linux]
+artifact = "my-app"
+bundle_id = "com.mycompany.myapp"
+```
+
+## Packaging with `flet pack`
+
+The `flet pack` command uses PyInstaller to create standalone executables. This is faster for development but produces larger files than `flet build`.
+
+### Basic Usage
+
+```bash
+flet pack main.py
+```
+
+This creates:
+- **Windows**: Single `.exe` file in `dist/`
+- **macOS**: `.app` bundle in `dist/`
+- **Linux**: Single executable in `dist/`
+
+### Common Options
+
+```bash
+flet pack main.py \
+  --name "MyApp" \
+  --icon "assets/icon.png" \
+  --add-data "config.json:."
+```
+
+- `--name`, `-n` - Name for the executable or app bundle
+- `--icon`, `-i` - Path to icon file (`.ico` for Windows, `.icns` for macOS, `.png` for Linux)
+- `--add-data` - Include additional files (format: `source:destination`)
+- `--distpath` - Output directory (default: `dist`)
+
+### One-Directory Bundle (Windows)
+
+```bash
+flet pack main.py --onedir
+```
+
+Creates a folder with the executable and dependencies instead of a single file.
+
+<Warning>
+The `--onedir` option is not supported on macOS, as `.app` bundles are already directory-based.
+</Warning>
+
+### Advanced PyInstaller Options
+
+```bash
+flet pack main.py \
+  --hidden-import "PIL" \
+  --add-binary "libs/custom.so:." \
+  --product-version "1.0.0" \
+  --file-version "1.0.0.0" \
+  --company-name "My Company" \
+  --copyright "Copyright (C) 2025"
+```
+
+- `--hidden-import` - Include modules not detected by static analysis
+- `--add-binary` - Include binary files (format: `source:destination`)
+- `--product-version` - Product version for metadata
+- `--file-version` - File version in `n.n.n.n` format (Windows)
+- `--company-name` - Company name (Windows)
+- `--copyright` - Copyright string
+
+### macOS Code Signing
+
+```bash
+flet pack main.py \
+  --name "MyApp" \
+  --icon "assets/icon.icns" \
+  --bundle-id "com.mycompany.myapp" \
+  --codesign-identity "Developer ID Application: My Company (TEAM_ID)"
+```
+
+- `--bundle-id` - macOS bundle identifier
+- `--codesign-identity` - Code signing identity for notarization
+
+### Windows UAC Admin Privileges
+
+```bash
+flet pack main.py --uac-admin
+```
+
+Requests elevated permissions on application start (adds UAC manifest).
+
+## Customizing App Icons
+
+Place icon files in your `assets/` directory:
+
+```
+my-app/
+├── main.py
+├── assets/
+│   ├── icon.png          # Default icon (all platforms)
+│   ├── icon_windows.ico  # Windows-specific
+│   ├── icon_macos.icns   # macOS-specific
+│   └── icon_linux.png    # Linux-specific
+└── pyproject.toml
+```
+
+Flet automatically detects and uses platform-specific icons during `flet build`.
+
+### Icon Requirements
+
+- **Windows**: `.ico` file with multiple resolutions (16x16, 32x32, 48x48, 256x256)
+- **macOS**: `.icns` file with multiple resolutions
+- **Linux**: `.png` file (512x512 recommended)
+
+<Note>
+You can use online tools like [iConvert Icons](https://iconverticons.com/) to generate platform-specific icon files from a single PNG image.
+</Note>
+
+## Including Assets
+
+Assets are automatically included when they're in the `assets/` directory:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Image(src="/images/logo.png"),  # From assets/images/logo.png
+        ft.Audio(src="/sounds/notification.mp3")  # From assets/sounds/notification.mp3
+    )
+
+ft.app(target=main)
+```
+
+## Build Output
+
+After running `flet build`, find your application:
+
+<CodeGroup>
+
+```bash Windows
+# Executable and dependencies
+build/windows/x64/runner/Release/
+├── my_app.exe
+├── data/
+└── *.dll
+```
+
+```bash macOS
+# Application bundle
+build/macos/Build/Products/Release/
+└── MyApp.app/
+```
+
+```bash Linux
+# Bundle directory
+build/linux/x64/release/bundle/
+├── my_app
+├── data/
+└── lib/
+```
+
+</CodeGroup>
+
+## Running Your App
+
+During development, use `flet run` for hot reload:
+
+```bash
+flet run main.py
+```
+
+See [Running Apps(/cli/run) for more details.
+
+## Comparison: `flet build` vs `flet pack`
+
+| Feature | `flet build` | `flet pack` |
+|---------|--------------|-------------|
+| **Technology** | Flutter + embedded Python | PyInstaller |
+| **Build Time** | Slower (first build) | Faster |
+| **App Size** | Smaller | Larger |
+| **Performance** | Better | Good |
+| **Customization** | Extensive | Limited |
+| **Production Use** | Recommended | Development/testing |
+| **Cross-platform icons** | Automatic | Manual |
+| **Splash screens** | Supported | Not supported |
+
+<Note>
+For production applications, use `flet build` for better performance and smaller bundle sizes.
+</Note>
+
+## Next Steps
+
+- Learn about [Packaging Apps](/guides/packaging) for distribution
+- Explore [Mobile Apps](/guides/mobile-apps) for iOS and Android
+- Read about [Deployment](/guides/deployment) options

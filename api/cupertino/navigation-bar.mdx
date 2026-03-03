@@ -1,0 +1,384 @@
+---
+title: 'CupertinoNavigationBar'
+description: 'iOS-style bottom navigation bar for Flet'
+keywords: ['cupertino', 'navigation', 'bar', 'ios', 'tabs', 'bottom']
+---
+
+## CupertinoNavigationBar
+
+An iOS-styled bottom navigation tab bar that provides a persistent and convenient way to switch between primary destinations in an app.
+
+```python
+import flet as ft
+
+ft.CupertinoNavigationBar(
+    destinations=[
+        ft.NavigationBarDestination(
+            icon=ft.Icons.HOME,
+            label="Home"
+        ),
+        ft.NavigationBarDestination(
+            icon=ft.Icons.SEARCH,
+            label="Search"
+        ),
+        ft.NavigationBarDestination(
+            icon=ft.Icons.PERSON,
+            label="Profile"
+        )
+    ],
+    selected_index=0,
+    on_change=lambda e: print(f"Selected: {e.control.selected_index}")
+)
+```
+
+### Class signature
+
+```python
+class CupertinoNavigationBar(LayoutControl)
+```
+
+### Properties
+
+<ParamField path="destinations" type="list[NavigationBarDestination]" required>
+  The destinations of this navigation bar.
+  
+  Must be a list of two or more `NavigationBarDestination`s. A `ValueError` is raised if there are fewer than two visible destinations.
+</ParamField>
+
+<ParamField path="selected_index" type="int" default="0">
+  The index into `destinations` for the currently selected `NavigationBarDestination`.
+  
+  Must be a value between 0 and the length of visible destinations, inclusive. An `IndexError` is raised if out of range.
+</ParamField>
+
+<ParamField path="bgcolor" type="str">
+  The color of the navigation bar itself.
+</ParamField>
+
+<ParamField path="active_color" type="str">
+  The foreground color of the icon and title of the selected destination.
+</ParamField>
+
+<ParamField path="inactive_color" type="str" default="CupertinoColors.INACTIVE_GRAY">
+  The foreground color of the icon and title of the unselected destinations.
+</ParamField>
+
+<ParamField path="border" type="Border">
+  Defines the border of this navigation bar.
+</ParamField>
+
+<ParamField path="icon_size" type="number" default="30">
+  The size of all destination icons.
+</ParamField>
+
+### Events
+
+<ParamField path="on_change" type="ControlEventHandler">
+  Called when selected destination changed.
+  
+  The event data contains the new `selected_index`.
+</ParamField>
+
+### Validation
+
+The navigation bar enforces the following constraints:
+
+1. Must have at least 2 visible destinations
+2. `selected_index` must be within valid range (0 to visible destination count - 1)
+
+Violations raise `ValueError` or `IndexError` respectively.
+
+### iOS-specific behavior
+
+- Icons and labels follow iOS design guidelines with proper spacing and sizing
+- Default icon size of 30 matches iOS standards
+- Default inactive color uses `CupertinoColors.INACTIVE_GRAY` for iOS consistency
+- Tab selection animations use iOS-standard transitions
+- Supports iOS accessibility features including VoiceOver
+
+### Comparison with Material
+
+<CodeGroup>
+
+```python Cupertino
+ft.CupertinoNavigationBar(
+    destinations=[
+        ft.NavigationBarDestination(
+            icon=ft.Icons.HOME,
+            label="Home"
+        ),
+        ft.NavigationBarDestination(
+            icon=ft.Icons.SEARCH,
+            label="Search"
+        )
+    ],
+    selected_index=0,
+    inactive_color=ft.CupertinoColors.INACTIVE_GRAY,
+    icon_size=30
+)
+```
+
+```python Material
+ft.NavigationBar(
+    destinations=[
+        ft.NavigationBarDestination(
+            icon=ft.Icons.HOME,
+            label="Home"
+        ),
+        ft.NavigationBarDestination(
+            icon=ft.Icons.SEARCH,
+            label="Search"
+        )
+    ],
+    selected_index=0
+)
+```
+
+</CodeGroup>
+
+Key differences:
+- CupertinoNavigationBar has simpler, flatter design following iOS guidelines
+- Material NavigationBar uses indicator and animation effects
+- CupertinoNavigationBar default icon size is 30, Material varies
+- CupertinoNavigationBar uses iOS-standard colors by default
+
+### Examples
+
+#### Basic navigation with three tabs
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def on_tab_change(e):
+        index = e.control.selected_index
+        # Update page content based on selected tab
+        if index == 0:
+            content.controls = [ft.Text("Home Page", size=30)]
+        elif index == 1:
+            content.controls = [ft.Text("Search Page", size=30)]
+        else:
+            content.controls = [ft.Text("Profile Page", size=30)]
+        page.update()
+    
+    content = ft.Column(
+        controls=[ft.Text("Home Page", size=30)],
+        expand=True,
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER
+    )
+    
+    nav_bar = ft.CupertinoNavigationBar(
+        destinations=[
+            ft.NavigationBarDestination(
+                icon=ft.Icons.HOME_OUTLINED,
+                selected_icon=ft.Icons.HOME,
+                label="Home"
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.SEARCH_OUTLINED,
+                selected_icon=ft.Icons.SEARCH,
+                label="Search"
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.PERSON_OUTLINED,
+                selected_icon=ft.Icons.PERSON,
+                label="Profile"
+            )
+        ],
+        selected_index=0,
+        on_change=on_tab_change
+    )
+    
+    page.add(
+        content,
+        nav_bar
+    )
+
+ft.app(target=main)
+```
+
+#### Styled navigation bar
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.theme_mode = ft.ThemeMode.LIGHT
+    
+    nav_bar = ft.CupertinoNavigationBar(
+        destinations=[
+            ft.NavigationBarDestination(
+                icon=ft.Icons.HOME,
+                label="Home"
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.FAVORITE,
+                label="Favorites"
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.SETTINGS,
+                label="Settings"
+            )
+        ],
+        bgcolor=ft.Colors.WHITE,
+        active_color=ft.CupertinoColors.ACTIVE_BLUE,
+        inactive_color=ft.Colors.GREY_400,
+        icon_size=28,
+        border=ft.Border(
+            top=ft.BorderSide(width=0.5, color=ft.Colors.GREY_300)
+        )
+    )
+    
+    page.add(nav_bar)
+
+ft.app(target=main)
+```
+
+#### Navigation with badges
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    # Create icon with badge for notifications
+    notifications_icon = ft.Stack(
+        controls=[
+            ft.Icon(ft.Icons.NOTIFICATIONS_OUTLINED),
+            ft.Container(
+                content=ft.Text("3", size=10, color=ft.Colors.WHITE),
+                bgcolor=ft.Colors.RED,
+                border_radius=10,
+                padding=ft.Padding(4, 2, 4, 2),
+                right=0,
+                top=0
+            )
+        ],
+        width=24,
+        height=24
+    )
+    
+    nav_bar = ft.CupertinoNavigationBar(
+        destinations=[
+            ft.NavigationBarDestination(
+                icon=ft.Icons.HOME,
+                label="Home"
+            ),
+            ft.NavigationBarDestination(
+                icon_content=notifications_icon,
+                label="Notifications"
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.PERSON,
+                label="Profile"
+            )
+        ],
+        selected_index=0
+    )
+    
+    page.add(nav_bar)
+
+ft.app(target=main)
+```
+
+#### Complete app with navigation
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.title = "iOS-style App"
+    page.theme_mode = ft.ThemeMode.LIGHT
+    
+    # Define page views
+    home_view = ft.Column(
+        controls=[
+            ft.Text("Home", size=32, weight=ft.FontWeight.BOLD),
+            ft.Text("Welcome to the home page")
+        ],
+        expand=True,
+        spacing=10
+    )
+    
+    explore_view = ft.Column(
+        controls=[
+            ft.Text("Explore", size=32, weight=ft.FontWeight.BOLD),
+            ft.CupertinoTextField(
+                placeholder_text="Search...",
+                prefix=ft.Icon(ft.Icons.SEARCH),
+                width=300
+            )
+        ],
+        expand=True,
+        spacing=10
+    )
+    
+    library_view = ft.Column(
+        controls=[
+            ft.Text("Library", size=32, weight=ft.FontWeight.BOLD),
+            ft.Text("Your saved items")
+        ],
+        expand=True,
+        spacing=10
+    )
+    
+    settings_view = ft.Column(
+        controls=[
+            ft.Text("Settings", size=32, weight=ft.FontWeight.BOLD),
+            ft.Text("App configuration")
+        ],
+        expand=True,
+        spacing=10
+    )
+    
+    # Container to hold current view
+    content_container = ft.Container(
+        content=home_view,
+        expand=True,
+        padding=20
+    )
+    
+    def on_navigation_change(e):
+        index = e.control.selected_index
+        views = [home_view, explore_view, library_view, settings_view]
+        content_container.content = views[index]
+        page.update()
+    
+    nav_bar = ft.CupertinoNavigationBar(
+        destinations=[
+            ft.NavigationBarDestination(
+                icon=ft.Icons.HOME_OUTLINED,
+                selected_icon=ft.Icons.HOME,
+                label="Home"
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.EXPLORE_OUTLINED,
+                selected_icon=ft.Icons.EXPLORE,
+                label="Explore"
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.LIBRARY_BOOKS_OUTLINED,
+                selected_icon=ft.Icons.LIBRARY_BOOKS,
+                label="Library"
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.SETTINGS_OUTLINED,
+                selected_icon=ft.Icons.SETTINGS,
+                label="Settings"
+            )
+        ],
+        selected_index=0,
+        on_change=on_navigation_change,
+        bgcolor=ft.Colors.WHITE,
+        border=ft.Border(
+            top=ft.BorderSide(width=0.5, color=ft.Colors.GREY_300)
+        )
+    )
+    
+    page.add(
+        content_container,
+        nav_bar
+    )
+
+ft.app(target=main)
+```

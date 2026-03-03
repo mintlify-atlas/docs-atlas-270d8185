@@ -1,0 +1,158 @@
+---
+title: Controls Overview
+description: Introduction to Flet controls and UI frameworks
+---
+
+Flet provides a comprehensive set of UI controls to build beautiful, cross-platform applications. Controls are the building blocks of your Flet app's user interface.
+
+## What are Controls?
+
+Controls in Flet are Python objects that represent visual elements in your application. Each control can be configured with properties and can respond to user interactions through event handlers.
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Text("Hello, Flet!", size=24, weight=ft.FontWeight.BOLD)
+    )
+
+ft.app(target=main)
+```
+
+## Material vs Cupertino
+
+Flet supports two major design systems:
+
+<CardGroup cols={2}>
+  <Card title="Material Design" icon="material-ui" href="/controls/material">
+    Google's Material Design language - provides a modern, clean aesthetic used in Android and web applications.
+  </Card>
+  <Card title="Cupertino" icon="apple" href="/controls/cupertino">
+    Apple's iOS design language - delivers a native iOS look and feel for iPhone and iPad apps.
+  </Card>
+</CardGroup>
+
+### Material Design
+
+Material Design controls follow Google's design principles, featuring:
+
+- **Elevation and shadows** for depth perception
+- **Material ripple effects** for interactive feedback
+- **Bold colors** and high contrast
+- **Rounded corners** and smooth animations
+
+```python
+ft.ElevatedButton(
+    "Material Button",
+    icon=ft.Icons.ADD,
+    on_click=lambda e: print("Clicked!")
+)
+```
+
+### Cupertino (iOS-style)
+
+Cupertino controls match Apple's Human Interface Guidelines:
+
+- **Flat design** with minimal shadows
+- **Subtle animations** and transitions
+- **iOS-native colors** and typography
+- **Characteristic iOS interactions** like swipe gestures
+
+```python
+ft.CupertinoButton(
+    "iOS Button",
+    icon=ft.cupertino_icons.ADD,
+    on_click=lambda e: print("Clicked!")
+)
+```
+
+## Adaptive Controls
+
+Many Flet controls support **adaptive mode**, automatically selecting Material or Cupertino styling based on the platform:
+
+```python
+ft.Button(
+    "Adaptive Button",
+    adaptive=True  # Material on Android/Web, Cupertino on iOS
+)
+```
+
+## Control Categories
+
+Flet controls are organized into several categories:
+
+<CardGroup cols={2}>
+  <Card title="Layout" icon="grid" href="/controls/layout">
+    Arrange and position other controls - Row, Column, Stack, Container
+  </Card>
+  <Card title="Navigation" icon="compass" href="/controls/navigation">
+    Help users navigate your app - AppBar, NavigationBar, Drawer
+  </Card>
+  <Card title="Input" icon="keyboard" href="/controls/input">
+    Collect user input - TextField, Button, Checkbox, Slider
+  </Card>
+  <Card title="Dialogs" icon="window" href="/controls/dialogs">
+    Display overlays and modal content - AlertDialog, BottomSheet
+  </Card>
+</CardGroup>
+
+## Common Control Properties
+
+All Flet controls share common properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `visible` | bool | Whether the control is visible |
+| `disabled` | bool | Whether the control is disabled |
+| `width` | Number | Fixed width in pixels |
+| `height` | Number | Fixed height in pixels |
+| `expand` | bool/int | Whether to expand to fill available space |
+| `tooltip` | str | Tooltip text shown on hover |
+| `data` | any | Custom data associated with the control |
+
+```python
+ft.Container(
+    content=ft.Text("Expanded Container"),
+    expand=True,
+    bgcolor=ft.Colors.BLUE_100,
+    tooltip="This container fills available space"
+)
+```
+
+## Event Handling
+
+Controls can respond to user interactions through event handlers:
+
+```python
+def button_clicked(e):
+    print(f"Button clicked: {e.control.text}")
+    e.page.add(ft.Text("You clicked the button!"))
+
+ft.ElevatedButton(
+    "Click Me",
+    on_click=button_clicked
+)
+```
+
+Common events include:
+- `on_click` - User clicks the control
+- `on_change` - Control value changes
+- `on_focus` - Control receives focus
+- `on_blur` - Control loses focus
+- `on_hover` - Mouse enters/exits control
+
+## Next Steps
+
+Explore specific control categories:
+
+- [Material Controls](/controls/material) - Material Design controls
+- [Cupertino Controls](/controls/cupertino) - iOS-style controls
+- [Layout Controls](/controls/layout) - Arrange your UI
+- [Navigation Controls](/controls/navigation) - App navigation
+- [Input Controls](/controls/input) - User input
+- [Dialogs](/controls/dialogs) - Overlays and modals
+
+## API Reference
+
+For detailed API documentation of all controls, see the [Controls API Reference](/controls/material).

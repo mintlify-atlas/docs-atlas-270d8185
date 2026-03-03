@@ -1,0 +1,303 @@
+---
+title: Button Controls
+description: Material button components for user interactions
+---
+
+# Button Controls
+
+Material Design button components for creating interactive user interfaces.
+
+## Button
+
+A material button that supports various styles, colors, event handlers for user interaction, and can display text, icons, or both.
+
+### Properties
+
+<ParamField path="content" type="str | Control">
+  The button's label. Typically a `Text` control or a string. If a string is provided, it will be wrapped in a `Text` control.
+  
+  At least one of `icon` or `content` (string or visible control) must be provided.
+</ParamField>
+
+<ParamField path="icon" type="IconData | Icon">
+  The icon to display inside the button. Typically an `Icon` control or an `IconData`. If an `IconData` is provided, it will be wrapped in an `Icon` control.
+  
+  At least one of `icon` or `content` (string or visible control) must be provided.
+</ParamField>
+
+<ParamField path="icon_color" type="ColorValue">
+  The color of the icon. If not specified, defaults to the current foreground color.
+</ParamField>
+
+<ParamField path="color" type="ColorValue">
+  The button's foreground color. If not specified, defaults to the theme's primary color.
+</ParamField>
+
+<ParamField path="bgcolor" type="ColorValue">
+  The button's background color. If not specified, defaults to the theme's primary color.
+</ParamField>
+
+<ParamField path="elevation" type="Number" default="1">
+  The button's elevation (shadow depth).
+</ParamField>
+
+<ParamField path="style" type="ButtonStyle">
+  The button's style configuration.
+</ParamField>
+
+<ParamField path="autofocus" type="bool">
+  Whether this button should be focused initially.
+</ParamField>
+
+<ParamField path="clip_behavior" type="ClipBehavior">
+  The button's clip behavior.
+</ParamField>
+
+<ParamField path="url" type="str | Url">
+  The URL to open when the button is clicked.
+</ParamField>
+
+### Events
+
+<ParamField path="on_click" type="ControlEventHandler">
+  Called when the button is clicked.
+</ParamField>
+
+<ParamField path="on_long_press" type="ControlEventHandler">
+  Called when the button is long-pressed.
+</ParamField>
+
+<ParamField path="on_hover" type="ControlEventHandler">
+  Called when the button is hovered.
+</ParamField>
+
+<ParamField path="on_focus" type="ControlEventHandler">
+  Called when the button is focused.
+</ParamField>
+
+<ParamField path="on_blur" type="ControlEventHandler">
+  Called when the button loses focus.
+</ParamField>
+
+### Methods
+
+<ParamField path="focus()" type="async">
+  Requests focus for this control.
+</ParamField>
+
+### Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Button(
+            content="Enabled button",
+            icon=ft.Icons.ADD,
+            on_click=lambda e: print("Button clicked!")
+        ),
+        ft.Button(
+            content="Disabled button",
+            disabled=True
+        )
+    )
+
+ft.app(target=main)
+```
+
+---
+
+## ElevatedButton
+
+**Deprecated**: Use `Button` instead. This class is deprecated since version 0.80.0 and will be removed in version 1.0.
+
+`ElevatedButton` is now an alias for `Button` and inherits all its properties and methods.
+
+---
+
+## FilledButton
+
+Filled buttons have the most visual impact after the `FloatingActionButton`, and are typically used for important, final actions that complete a flow, like "Save", "Join now", or "Confirm".
+
+Inherits all properties, events, and methods from `Button`.
+
+### Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.FilledButton(
+            content="Save",
+            icon=ft.Icons.SAVE,
+            on_click=lambda e: print("Saved!")
+        )
+    )
+
+ft.app(target=main)
+```
+
+---
+
+## OutlinedButton
+
+Outlined buttons are medium-emphasis buttons. They contain actions that are important, but aren't the primary action in an app. Outlined buttons pair well with filled buttons to indicate an alternative, secondary action.
+
+### Properties
+
+<ParamField path="content" type="str | Control">
+  A Control representing custom button content. At least one of `icon` or `content` must be provided.
+</ParamField>
+
+<ParamField path="icon" type="IconData | Icon">
+  An icon to display in this button.
+</ParamField>
+
+<ParamField path="icon_color" type="ColorValue">
+  Icon color.
+</ParamField>
+
+<ParamField path="style" type="ButtonStyle">
+  The button's style configuration.
+</ParamField>
+
+<ParamField path="autofocus" type="bool" default="False">
+  True if the control will be selected as the initial focus. If there is more than one control on a page with autofocus set, then the first one added to the page will get focus.
+</ParamField>
+
+<ParamField path="clip_behavior" type="ClipBehavior" default="ClipBehavior.NONE">
+  The content will be clipped (or not) according to this option.
+</ParamField>
+
+<ParamField path="url" type="str | Url">
+  The URL to open when this button is clicked. Additionally, if `on_click` event callback is provided, it is fired after that.
+</ParamField>
+
+### Events
+
+<ParamField path="on_click" type="ControlEventHandler">
+  Called when a user clicks this button.
+</ParamField>
+
+<ParamField path="on_long_press" type="ControlEventHandler">
+  Called when this button is long-pressed.
+</ParamField>
+
+<ParamField path="on_hover" type="ControlEventHandler">
+  Called when a mouse pointer enters or exists this button's response area. The `data` property of event object contains `"true"` (string) when cursor enters and `"false"` when it exits.
+</ParamField>
+
+<ParamField path="on_focus" type="ControlEventHandler">
+  Called when this button has received focus.
+</ParamField>
+
+<ParamField path="on_blur" type="ControlEventHandler">
+  Called when this button has lost focus.
+</ParamField>
+
+### Methods
+
+<ParamField path="focus()" type="async">
+  Requests focus for this control.
+</ParamField>
+
+### Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.OutlinedButton(
+            content="Outlined button",
+            icon=ft.Icons.EDIT,
+            on_click=lambda e: print("Button clicked!")
+        )
+    )
+
+ft.app(target=main)
+```
+
+---
+
+## TextButton
+
+Text buttons are used for the lowest priority actions, especially when presenting multiple options. Text buttons can be placed on a variety of backgrounds. Until the button is interacted with, its container isn't visible.
+
+### Properties
+
+<ParamField path="content" type="str | Control">
+  A Control representing custom button content.
+</ParamField>
+
+<ParamField path="icon" type="IconData | Icon">
+  An icon to show in this button.
+</ParamField>
+
+<ParamField path="icon_color" type="ColorValue">
+  Icon color.
+</ParamField>
+
+<ParamField path="style" type="ButtonStyle">
+  Defines the style of this button.
+</ParamField>
+
+<ParamField path="autofocus" type="bool" default="False">
+  True if the control will be selected as the initial focus. If there is more than one control on a page with autofocus set, then the first one added to the page will get focus.
+</ParamField>
+
+<ParamField path="url" type="str | Url">
+  The URL to open when this button is clicked. Additionally, if `on_click` event callback is provided, it is fired after that.
+</ParamField>
+
+<ParamField path="clip_behavior" type="ClipBehavior" default="ClipBehavior.NONE">
+  Defines how the content of this button is clipped.
+</ParamField>
+
+### Events
+
+<ParamField path="on_click" type="ControlEventHandler">
+  Called when a user clicks this button.
+</ParamField>
+
+<ParamField path="on_long_press" type="ControlEventHandler">
+  Called when this button is long-pressed.
+</ParamField>
+
+<ParamField path="on_hover" type="ControlEventHandler">
+  Called when a mouse pointer enters or exists this button's response area. The `data` property of the event handler argument is `True` when cursor enters and `False` when it exits.
+</ParamField>
+
+<ParamField path="on_focus" type="ControlEventHandler">
+  Called when this button has received focus.
+</ParamField>
+
+<ParamField path="on_blur" type="ControlEventHandler">
+  Called when this button has lost focus.
+</ParamField>
+
+### Methods
+
+<ParamField path="focus()" type="async">
+  Requests focus for this control.
+</ParamField>
+
+### Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.TextButton(
+            content="Text Button",
+            icon=ft.Icons.STAR_BORDER,
+            icon_color=ft.Colors.BLUE_300,
+            on_click=lambda e: print("Button clicked!")
+        )
+    )
+
+ft.app(target=main)
+```

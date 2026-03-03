@@ -1,0 +1,332 @@
+---
+title: 'CupertinoAlertDialog'
+description: 'iOS-style alert dialog for Flet'
+keywords: ['cupertino', 'dialog', 'alert', 'ios', 'popup']
+---
+
+## CupertinoAlertDialog
+
+An iOS-style alert dialog that informs the user about situations that require acknowledgement.
+
+```python
+import flet as ft
+
+dialog = ft.CupertinoAlertDialog(
+    title=ft.Text("Delete Item?"),
+    content=ft.Text("This action cannot be undone."),
+    actions=[
+        ft.CupertinoDialogAction(
+            content="Cancel",
+            on_click=lambda e: print("Cancelled")
+        ),
+        ft.CupertinoDialogAction(
+            content="Delete",
+            destructive=True,
+            on_click=lambda e: print("Deleted")
+        )
+    ]
+)
+```
+
+### Class signature
+
+```python
+class CupertinoAlertDialog(DialogControl)
+```
+
+### Properties
+
+<ParamField path="modal" type="bool" default="False">
+  Whether this dialog cannot be dismissed by clicking the area outside of it.
+</ParamField>
+
+<ParamField path="title" type="str | Control">
+  The title of this dialog, displayed in a large font at the top of this dialog.
+  
+  Typically a `Text` control.
+</ParamField>
+
+<ParamField path="content" type="Control">
+  The content of this dialog, displayed in a light font at the center of this dialog.
+  
+  Typically a `Column` that contains the dialog's `Text` message.
+</ParamField>
+
+<ParamField path="actions" type="list[Control]">
+  A set of actions that are displayed at the bottom of the dialog.
+  
+  Typically this is a list of `CupertinoDialogAction` controls.
+</ParamField>
+
+<ParamField path="inset_animation" type="Animation" default="Animation(curve=AnimationCurve.DECELERATE, duration=Duration(milliseconds=100))">
+  The animation style to be used when the system keyboard intrudes into the space that the dialog is placed in.
+</ParamField>
+
+<ParamField path="barrier_color" type="str">
+  The color of the modal barrier below this dialog.
+  
+  If None, then `DialogTheme.barrier_color` is used. If that is also None, the default is `Colors.BLACK_54`.
+</ParamField>
+
+### Validation
+
+The dialog requires at least one of the following to be visible:
+- `title` (as a string or visible Control)
+- `content` (as a visible Control)
+- At least one visible action in `actions`
+
+If none of these conditions are met, a `ValueError` is raised.
+
+### iOS-specific behavior
+
+- Actions are arranged horizontally when there are two or fewer actions, vertically when there are more
+- The dialog has rounded corners matching iOS design guidelines
+- Backdrop blur effect is applied behind the dialog (platform-dependent)
+- Keyboard animation uses iOS-standard decelerate curve with 100ms duration
+
+### Comparison with Material
+
+<CodeGroup>
+
+```python Cupertino
+ft.CupertinoAlertDialog(
+    title=ft.Text("Alert"),
+    content=ft.Text("This is an iOS-style alert"),
+    actions=[
+        ft.CupertinoDialogAction(
+            content="Cancel"
+        ),
+        ft.CupertinoDialogAction(
+            content="OK",
+            default=True
+        )
+    ]
+)
+```
+
+```python Material
+ft.AlertDialog(
+    title=ft.Text("Alert"),
+    content=ft.Text("This is a Material alert"),
+    actions=[
+        ft.TextButton("Cancel"),
+        ft.TextButton("OK")
+    ]
+)
+```
+
+</CodeGroup>
+
+Key differences:
+- CupertinoAlertDialog uses `CupertinoDialogAction` for actions, Material uses regular buttons
+- CupertinoAlertDialog has iOS-specific styling with rounded corners and blur effects
+- CupertinoAlertDialog automatically arranges actions based on count
+- CupertinoDialogAction supports `default` and `destructive` styling
+
+### Examples
+
+#### Simple confirmation dialog
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def close_dialog(e):
+        dialog.open = False
+        page.update()
+    
+    def show_dialog(e):
+        dialog.open = True
+        page.update()
+    
+    dialog = ft.CupertinoAlertDialog(
+        title=ft.Text("Confirmation"),
+        content=ft.Text("Are you sure you want to continue?"),
+        actions=[
+            ft.CupertinoDialogAction(
+                content="No",
+                on_click=close_dialog
+            ),
+            ft.CupertinoDialogAction(
+                content="Yes",
+                default=True,
+                on_click=close_dialog
+            )
+        ]
+    )
+    
+    page.overlay.append(dialog)
+    page.add(
+        ft.CupertinoButton(
+            content="Show Dialog",
+            on_click=show_dialog
+        )
+    )
+
+ft.app(target=main)
+```
+
+#### Destructive action dialog
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def delete_item(e):
+        dialog.open = False
+        print("Item deleted")
+        page.update()
+    
+    def cancel(e):
+        dialog.open = False
+        page.update()
+    
+    def show_delete_dialog(e):
+        dialog.open = True
+        page.update()
+    
+    dialog = ft.CupertinoAlertDialog(
+        title=ft.Text("Delete Item"),
+        content=ft.Text(
+            "This action cannot be undone. The item will be permanently deleted."
+        ),
+        actions=[
+            ft.CupertinoDialogAction(
+                content="Cancel",
+                on_click=cancel
+            ),
+            ft.CupertinoDialogAction(
+                content="Delete",
+                destructive=True,
+                on_click=delete_item
+            )
+        ]
+    )
+    
+    page.overlay.append(dialog)
+    page.add(
+        ft.CupertinoButton(
+            content="Delete Item",
+            on_click=show_delete_dialog
+        )
+    )
+
+ft.app(target=main)
+```
+
+#### Multi-option dialog
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def handle_action(action_name):
+        def handler(e):
+            dialog.open = False
+            print(f"Selected: {action_name}")
+            page.update()
+        return handler
+    
+    def show_options(e):
+        dialog.open = True
+        page.update()
+    
+    dialog = ft.CupertinoAlertDialog(
+        title=ft.Text("Choose an option"),
+        content=ft.Text("Select one of the following actions:"),
+        actions=[
+            ft.CupertinoDialogAction(
+                content="Option 1",
+                on_click=handle_action("Option 1")
+            ),
+            ft.CupertinoDialogAction(
+                content="Option 2",
+                on_click=handle_action("Option 2")
+            ),
+            ft.CupertinoDialogAction(
+                content="Option 3",
+                on_click=handle_action("Option 3")
+            ),
+            ft.CupertinoDialogAction(
+                content="Cancel",
+                default=True,
+                on_click=handle_action("Cancel")
+            )
+        ]
+    )
+    
+    page.overlay.append(dialog)
+    page.add(
+        ft.CupertinoButton(
+            content="Show Options",
+            on_click=show_options
+        )
+    )
+
+ft.app(target=main)
+```
+
+---
+
+## CupertinoDialogAction
+
+A button used in Cupertino-style dialogs.
+
+```python
+import flet as ft
+
+ft.CupertinoDialogAction(
+    content="OK",
+    default=True,
+    on_click=lambda e: print("OK clicked")
+)
+```
+
+### Class signature
+
+```python
+class CupertinoDialogAction(Control)
+```
+
+### Properties
+
+<ParamField path="content" type="str | Control" required>
+  The content of this action button.
+  
+  Must be either a string or a visible Control.
+</ParamField>
+
+<ParamField path="default" type="bool" default="False">
+  Whether this action is a default action. In this case, the button will have bold text.
+  
+  Multiple actions can have this property set to True in a CupertinoAlertDialog.
+</ParamField>
+
+<ParamField path="destructive" type="bool" default="False">
+  If set to True, this button's text color will be red.
+  
+  Typically used for actions that destroy objects, such as a delete action that deletes an email.
+</ParamField>
+
+<ParamField path="text_style" type="TextStyle">
+  The text style to use for text in this button.
+  
+  Can be useful when `content` is a string.
+</ParamField>
+
+### Events
+
+<ParamField path="on_click" type="ControlEventHandler">
+  Called when a user clicks this button.
+</ParamField>
+
+### Validation
+
+The `content` must be either a string or a visible Control. A `ValueError` is raised if this condition is not met.
+
+### Usage notes
+
+- Typically used as a child of `CupertinoAlertDialog.actions` or `CupertinoActionSheet.actions`
+- The `default` property adds bold text styling to emphasize the recommended action
+- The `destructive` property adds red text color to warn about dangerous actions
+- Both `default` and `destructive` can be used on different actions in the same dialog

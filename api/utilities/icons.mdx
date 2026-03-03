@@ -1,0 +1,515 @@
+---
+title: Icons
+---
+
+Flet provides two comprehensive icon sets: Material Icons for Material Design and Cupertino Icons for iOS-style design.
+
+## Icons (Material Design)
+
+The `Icons` class provides access to the complete Material Design icon set with over 7,000 icons.
+
+### Usage
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Icon(ft.Icons.HOME),
+        ft.Icon(ft.Icons.FAVORITE, color=ft.Colors.PINK),
+        ft.Icon(ft.Icons.SETTINGS, size=40),
+    )
+
+ft.app(target=main)
+```
+
+### Common Material Icons
+
+Here are some frequently used Material icons:
+
+**Navigation:**
+```python
+ft.Icons.HOME
+ft.Icons.ARROW_BACK
+ft.Icons.ARROW_FORWARD
+ft.Icons.MENU
+ft.Icons.CLOSE
+ft.Icons.CHEVRON_LEFT
+ft.Icons.CHEVRON_RIGHT
+ft.Icons.EXPAND_MORE
+ft.Icons.EXPAND_LESS
+```
+
+**Actions:**
+```python
+ft.Icons.ADD
+ft.Icons.EDIT
+ft.Icons.DELETE
+ft.Icons.SAVE
+ft.Icons.SEARCH
+ft.Icons.FILTER_LIST
+ft.Icons.SORT
+ft.Icons.REFRESH
+ft.Icons.SETTINGS
+ft.Icons.MORE_VERT
+ft.Icons.MORE_HORIZ
+```
+
+**Communication:**
+```python
+ft.Icons.EMAIL
+ft.Icons.PHONE
+ft.Icons.MESSAGE
+ft.Icons.CHAT
+ft.Icons.VIDEOCAM
+ft.Icons.CALL
+```
+
+**Content:**
+```python
+ft.Icons.COPY
+ft.Icons.CONTENT_CUT
+ft.Icons.CONTENT_PASTE
+ft.Icons.LINK
+ft.Icons.FLAG
+ft.Icons.ATTACHMENT
+ft.Icons.CLOUD_UPLOAD
+ft.Icons.CLOUD_DOWNLOAD
+```
+
+**Media:**
+```python
+ft.Icons.PLAY_ARROW
+ft.Icons.PAUSE
+ft.Icons.STOP
+ft.Icons.SKIP_NEXT
+ft.Icons.SKIP_PREVIOUS
+ft.Icons.VOLUME_UP
+ft.Icons.VOLUME_DOWN
+ft.Icons.VOLUME_MUTE
+```
+
+**File:**
+```python
+ft.Icons.FOLDER
+ft.Icons.FOLDER_OPEN
+ft.Icons.INSERT_DRIVE_FILE
+ft.Icons.CLOUD
+ft.Icons.UPLOAD
+ft.Icons.DOWNLOAD
+```
+
+**User Interface:**
+```python
+ft.Icons.CHECK
+ft.Icons.CHECK_CIRCLE
+ft.Icons.CANCEL
+ft.Icons.ERROR
+ft.Icons.WARNING
+ft.Icons.INFO
+ft.Icons.HELP
+ft.Icons.NOTIFICATIONS
+ft.Icons.VISIBILITY
+ft.Icons.VISIBILITY_OFF
+```
+
+**Social:**
+```python
+ft.Icons.FAVORITE
+ft.Icons.FAVORITE_BORDER
+ft.Icons.THUMB_UP
+ft.Icons.THUMB_DOWN
+ft.Icons.SHARE
+ft.Icons.PERSON
+ft.Icons.PEOPLE
+ft.Icons.GROUP
+```
+
+**Places:**
+```python
+ft.Icons.LOCATION_ON
+ft.Icons.LOCATION_OFF
+ft.Icons.MAP
+ft.Icons.PLACE
+ft.Icons.DIRECTIONS
+```
+
+### Icon Variants
+
+Many Material icons come in multiple styles:
+
+- **Filled** (default): `ft.Icons.FAVORITE`
+- **Outlined**: `ft.Icons.FAVORITE_BORDER`, `ft.Icons.HOME_OUTLINED`
+- **Rounded**: `ft.Icons.HOME_ROUNDED`
+- **Sharp**: `ft.Icons.HOME_SHARP`
+
+**Example:**
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Row([
+            ft.Icon(ft.Icons.HOME),  # Filled
+            ft.Icon(ft.Icons.HOME_OUTLINED),  # Outlined
+            ft.Icon(ft.Icons.HOME_ROUNDED),  # Rounded
+            ft.Icon(ft.Icons.HOME_SHARP),  # Sharp
+        ])
+    )
+
+ft.app(target=main)
+```
+
+### random Method
+
+Select a random icon from the Material Icons collection.
+
+```python
+def random(
+    exclude: list[IconData] | None = None,
+    weights: dict[IconData, int] | None = None,
+) -> IconData | None
+```
+
+**Parameters:**
+- `exclude`: List of icons to exclude from random selection
+- `weights`: Dictionary mapping icons to their selection weights
+
+**Returns:**
+- A randomly selected IconData, or None if all icons are excluded
+
+**Example:**
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def add_random_icon(e):
+        random_icon = ft.Icons.random(
+            exclude=[ft.Icons.DELETE, ft.Icons.WARNING]
+        )
+        page.add(ft.Icon(random_icon))
+        page.update()
+    
+    page.add(
+        ft.ElevatedButton("Add Random Icon", on_click=add_random_icon)
+    )
+
+ft.app(target=main)
+```
+
+---
+
+## CupertinoIcons (iOS Design)
+
+The `CupertinoIcons` class provides access to the iOS-style Cupertino icon set.
+
+### Usage
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Icon(ft.CupertinoIcons.HOME),
+        ft.Icon(ft.CupertinoIcons.HEART, color=ft.Colors.PINK),
+        ft.Icon(ft.CupertinoIcons.SETTINGS, size=40),
+    )
+
+ft.app(target=main)
+```
+
+### Common Cupertino Icons
+
+**Navigation:**
+```python
+ft.CupertinoIcons.HOME
+ft.CupertinoIcons.BACK
+ft.CupertinoIcons.FORWARD
+ft.CupertinoIcons.CHEVRON_LEFT
+ft.CupertinoIcons.CHEVRON_RIGHT
+ft.CupertinoIcons.CHEVRON_UP
+ft.CupertinoIcons.CHEVRON_DOWN
+```
+
+**Actions:**
+```python
+ft.CupertinoIcons.ADD
+ft.CupertinoIcons.ADD_CIRCLED
+ft.CupertinoIcons.MINUS
+ft.CupertinoIcons.MINUS_CIRCLED
+ft.CupertinoIcons.DELETE
+ft.CupertinoIcons.SEARCH
+ft.CupertinoIcons.SETTINGS
+ft.CupertinoIcons.REFRESH
+```
+
+**Communication:**
+```python
+ft.CupertinoIcons.MAIL
+ft.CupertinoIcons.PHONE
+ft.CupertinoIcons.CHAT_BUBBLE
+ft.CupertinoIcons.VIDEOCAM
+```
+
+**Social:**
+```python
+ft.CupertinoIcons.HEART
+ft.CupertinoIcons.HEART_FILL
+ft.CupertinoIcons.STAR
+ft.CupertinoIcons.STAR_FILL
+ft.CupertinoIcons.SHARE
+ft.CupertinoIcons.PERSON
+ft.CupertinoIcons.PERSON_CROP_CIRCLE
+```
+
+**Media:**
+```python
+ft.CupertinoIcons.PLAY
+ft.CupertinoIcons.PLAY_FILL
+ft.CupertinoIcons.PAUSE
+ft.CupertinoIcons.PAUSE_FILL
+ft.CupertinoIcons.VOLUME_UP
+ft.CupertinoIcons.VOLUME_DOWN
+ft.CupertinoIcons.VOLUME_MUTE
+```
+
+### Filled vs Outlined
+
+Cupertino icons often come in both filled and outlined versions:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Row([
+            ft.Icon(ft.CupertinoIcons.HEART),  # Outlined
+            ft.Icon(ft.CupertinoIcons.HEART_FILL),  # Filled
+        ])
+    )
+
+ft.app(target=main)
+```
+
+### random Method
+
+Select a random icon from the Cupertino Icons collection.
+
+```python
+def random(
+    exclude: list[IconData] | None = None,
+    weights: dict[IconData, int] | None = None,
+) -> IconData | None
+```
+
+**Parameters:**
+- `exclude`: List of icons to exclude from random selection
+- `weights`: Dictionary mapping icons to their selection weights
+
+**Returns:**
+- A randomly selected IconData, or None if all icons are excluded
+
+**Example:**
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def add_random_icon(e):
+        random_icon = ft.CupertinoIcons.random()
+        page.add(ft.Icon(random_icon))
+        page.update()
+    
+    page.add(
+        ft.ElevatedButton("Add Random Cupertino Icon", on_click=add_random_icon)
+    )
+
+ft.app(target=main)
+```
+
+---
+
+## Icon Component
+
+Both icon sets are used with the `Icon` control:
+
+```python
+ft.Icon(
+    name: IconData,
+    size: Optional[float] = None,
+    color: Optional[ColorValue] = None,
+)
+```
+
+**Example with customization:**
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Row([
+            ft.Icon(
+                ft.Icons.FAVORITE,
+                color=ft.Colors.PINK,
+                size=24,
+            ),
+            ft.Icon(
+                ft.Icons.FAVORITE,
+                color=ft.Colors.RED,
+                size=48,
+            ),
+            ft.Icon(
+                ft.CupertinoIcons.HEART_FILL,
+                color=ft.Colors.RED_400,
+                size=36,
+            ),
+        ])
+    )
+
+ft.app(target=main)
+```
+
+---
+
+## When to Use Each Icon Set
+
+### Use Material Icons when:
+- Building Material Design apps
+- Targeting Android or web platforms
+- You want filled, outlined, rounded, and sharp variants
+- You need the widest selection of icons (7,000+)
+
+### Use Cupertino Icons when:
+- Building iOS-style apps
+- You want native iOS appearance
+- You prefer Apple's design language
+- Building cross-platform apps that should feel native on iOS
+
+---
+
+## Practical Examples
+
+### Navigation Bar with Icons
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.navigation_bar = ft.NavigationBar(
+        destinations=[
+            ft.NavigationBarDestination(
+                icon=ft.Icons.HOME_OUTLINED,
+                selected_icon=ft.Icons.HOME,
+                label="Home",
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.SEARCH_OUTLINED,
+                selected_icon=ft.Icons.SEARCH,
+                label="Search",
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.PERSON_OUTLINE,
+                selected_icon=ft.Icons.PERSON,
+                label="Profile",
+            ),
+        ]
+    )
+
+ft.app(target=main)
+```
+
+### Icon Buttons
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def handle_click(e):
+        print(f"Clicked {e.control.data}")
+    
+    page.add(
+        ft.Row([
+            ft.IconButton(
+                icon=ft.Icons.FAVORITE_BORDER,
+                selected_icon=ft.Icons.FAVORITE,
+                on_click=handle_click,
+                data="favorite",
+            ),
+            ft.IconButton(
+                icon=ft.Icons.DELETE_OUTLINE,
+                icon_color=ft.Colors.RED_400,
+                on_click=handle_click,
+                data="delete",
+            ),
+            ft.IconButton(
+                icon=ft.Icons.SHARE,
+                on_click=handle_click,
+                data="share",
+            ),
+        ])
+    )
+
+ft.app(target=main)
+```
+
+### List with Leading Icons
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.ListView(
+            controls=[
+                ft.ListTile(
+                    leading=ft.Icon(ft.Icons.FOLDER),
+                    title=ft.Text("Documents"),
+                ),
+                ft.ListTile(
+                    leading=ft.Icon(ft.Icons.IMAGE),
+                    title=ft.Text("Photos"),
+                ),
+                ft.ListTile(
+                    leading=ft.Icon(ft.Icons.MUSIC_NOTE),
+                    title=ft.Text("Music"),
+                ),
+            ],
+            height=200,
+        )
+    )
+
+ft.app(target=main)
+```
+
+### Status Icons
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Column([
+            ft.Row([
+                ft.Icon(ft.Icons.CHECK_CIRCLE, color=ft.Colors.GREEN),
+                ft.Text("Success"),
+            ]),
+            ft.Row([
+                ft.Icon(ft.Icons.ERROR, color=ft.Colors.RED),
+                ft.Text("Error"),
+            ]),
+            ft.Row([
+                ft.Icon(ft.Icons.WARNING, color=ft.Colors.AMBER),
+                ft.Text("Warning"),
+            ]),
+            ft.Row([
+                ft.Icon(ft.Icons.INFO, color=ft.Colors.BLUE),
+                ft.Text("Info"),
+            ]),
+        ])
+    )
+
+ft.app(target=main)
+```

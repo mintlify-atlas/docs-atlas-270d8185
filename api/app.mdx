@@ -1,0 +1,546 @@
+---
+title: "app() and run()"
+description: "App lifecycle functions API reference for Flet framework"
+---
+
+## Overview
+
+Flet provides two main functions for running applications: `run()` (recommended) and the deprecated `app()`. These functions initialize the Flet runtime, create a session, and execute your application entry point.
+
+**Source:** `flet.app`
+
+## run()
+
+<ParamField path="run" type="function">
+  Runs the Flet app.
+  
+  **Source:** `app.py:60`
+  
+  ```python
+  def run(
+      main: AppCallable,
+      before_main: Optional[AppCallable] = None,
+      name: str = "",
+      host: Optional[str] = None,
+      port: int = 0,
+      view: Optional[AppView] = AppView.FLET_APP,
+      assets_dir: Optional[str] = "assets",
+      upload_dir: Optional[str] = None,
+      web_renderer: WebRenderer = WebRenderer.AUTO,
+      route_url_strategy: RouteUrlStrategy = RouteUrlStrategy.PATH,
+      no_cdn: Optional[bool] = False,
+      export_asgi_app: Optional[bool] = False,
+  )
+  ```
+</ParamField>
+
+### Parameters
+
+<ParamField path="main" type="AppCallable" required>
+  Application entry point. Handler (function or coroutine) must have 1 parameter of instance `Page`.
+  
+  **Type:** `Callable[[Page], Union[Any, Awaitable[Any]]]`
+  
+  **Source:** `app.py:61`
+  
+  ```python
+  # Synchronous handler
+  def main(page: ft.Page):
+      page.add(ft.Text("Hello, World!"))
+  
+  # Asynchronous handler
+  async def main(page: ft.Page):
+      await asyncio.sleep(1)
+      page.add(ft.Text("Hello, World!"))
+  
+  # Generator handler (for incremental updates)
+  def main(page: ft.Page):
+      for i in range(10):
+          page.add(ft.Text(f"Item {i}"))
+          yield
+  ```
+</ParamField>
+
+<ParamField path="before_main" type="Optional[AppCallable]">
+  Called after `Page` is created but before `main`.
+  
+  **Source:** `app.py:62`
+  
+  Useful for setup tasks like authentication or configuration.
+  
+  ```python
+  def setup(page: ft.Page):
+      page.title = "My App"
+      page.theme_mode = ft.ThemeMode.DARK
+  
+  def main(page: ft.Page):
+      page.add(ft.Text("Ready!"))
+  
+  ft.run(main, before_main=setup)
+  ```
+</ParamField>
+
+<ParamField path="name" type="str" default="">
+  Page/app name used in web URL path when applicable.
+  
+  **Source:** `app.py:63`
+  
+  **Environment Override:** `FLET_WEB_APP_PATH`
+  
+  ```python
+  # Accessible at http://localhost:8000/myapp
+  ft.run(main, name="myapp")
+  ```
+</ParamField>
+
+<ParamField path="host" type="Optional[str]" default="None">
+  Host/IP to bind the web server to.
+  
+  **Source:** `app.py:64`
+  
+  **Environment Override:** `FLET_SERVER_IP`
+  
+  **Common Values:**
+  - `None` or `""`: Defaults to `127.0.0.1`
+  - `"0.0.0.0"`: Bind to all interfaces
+  - `"localhost"`: Local only
+  
+  ```python
+  # Accessible from network
+  ft.run(main, host="0.0.0.0")
+  ```
+</ParamField>
+
+<ParamField path="port" type="int" default="0">
+  TCP port to bind. If `0`, an available port is chosen when needed.
+  
+  **Source:** `app.py:65`
+  
+  **Environment Override:** `FLET_SERVER_PORT`
+  
+  **Default Ports:**
+  - Desktop app: Random free port
+  - Web server mode: 8000 (if forced)
+  
+  ```python
+  ft.run(main, port=8080)
+  ```
+</ParamField>
+
+<ParamField path="view" type="Optional[AppView]" default="AppView.FLET_APP">
+  Preferred app presentation mode.
+  
+  **Source:** `app.py:66`
+  
+  **Values:**
+  - `AppView.FLET_APP`: Native desktop window
+  - `AppView.FLET_APP_HIDDEN`: Hidden window (background app)
+  - `AppView.FLET_APP_WEB`: Desktop window with web rendering
+  - `AppView.WEB_BROWSER`: Open in web browser
+  
+  **Environment Override:** `FLET_FORCE_WEB_SERVER=true` forces `WEB_BROWSER`
+  
+  ```python
+  # Open in browser
+  ft.run(main, view=ft.AppView.WEB_BROWSER)
+  ```
+</ParamField>
+
+<ParamField path="assets_dir" type="Optional[str]" default="assets">
+  A path to app's assets directory.
+  
+  **Source:** `app.py:67`
+  
+  **Environment Override:** `FLET_ASSETS_DIR`
+  
+  Can be:
+  - Relative path (resolved from script directory)
+  - Absolute path
+  - `None` to disable assets
+  
+  ```python
+  ft.run(main, assets_dir="my_assets")
+  
+  # Access in code:
+  # page.add(ft.Image(src="/logo.png"))
+  ```
+</ParamField>
+
+<ParamField path="upload_dir" type="Optional[str]">
+  A path to a directory with uploaded files, or where uploaded files should be saved.
+  
+  **Source:** `app.py:68`
+  
+  Can be:
+  - Relative path (resolved from script directory)
+  - Absolute path
+  - `None` to disable uploads
+  
+  ```python
+  ft.run(main, upload_dir="uploads")
+  
+  # Generate upload URL:
+  # url = page.get_upload_url("file.txt", 60)
+  ```
+</ParamField>
+
+<ParamField path="web_renderer" type="WebRenderer" default="WebRenderer.AUTO">
+  The type of web renderer to use.
+  
+  **Source:** `app.py:69`
+  
+  **Values:**
+  - `WebRenderer.AUTO`: Automatically choose best renderer
+  - `WebRenderer.HTML`: HTML renderer (smaller bundle)
+  - `WebRenderer.CANVASKIT`: CanvasKit renderer (better performance)
+  
+  ```python
+  ft.run(main, web_renderer=ft.WebRenderer.CANVASKIT)
+  ```
+</ParamField>
+
+<ParamField path="route_url_strategy" type="RouteUrlStrategy" default="RouteUrlStrategy.PATH">
+  The strategy to use for generating URLs.
+  
+  **Source:** `app.py:70`
+  
+  **Values:**
+  - `RouteUrlStrategy.PATH`: Use path-based routing (`/page1`)
+  - `RouteUrlStrategy.HASH`: Use hash-based routing (`#/page1`)
+  
+  Hash-based routing is useful for static hosting without server-side routing.
+  
+  ```python
+  ft.run(main, route_url_strategy=ft.RouteUrlStrategy.HASH)
+  ```
+</ParamField>
+
+<ParamField path="no_cdn" type="Optional[bool]" default="False">
+  Whether not to load CanvasKit, Pyodide, or fonts from CDN.
+  
+  **Source:** `app.py:71`
+  
+  When `True`, all resources are served from the local server.
+  
+  ```python
+  ft.run(main, no_cdn=True)
+  ```
+</ParamField>
+
+<ParamField path="export_asgi_app" type="Optional[bool]" default="False">
+  If `True`, returns a configured ASGI app instead of running an event loop.
+  
+  **Source:** `app.py:72`
+  
+  Useful for integrating Flet with existing web frameworks.
+  
+  ```python
+  # Export for use with uvicorn, gunicorn, etc.
+  app = ft.run(main, export_asgi_app=True)
+  
+  # Run with uvicorn:
+  # uvicorn myapp:app
+  ```
+</ParamField>
+
+### Returns
+
+<ResponseField name="return" type="Union[None, FastAPI]">
+  When `export_asgi_app=True`, returns a FastAPI ASGI app. Otherwise, runs the app and returns `None`.
+  
+  **Source:** `app.py:96`
+</ResponseField>
+
+### Environment Variables
+
+The following environment variables override parameters:
+
+| Variable | Overrides | Description |
+|----------|-----------|-------------|
+| `FLET_WEB_APP_PATH` | `name` | Web app path |
+| `FLET_SERVER_IP` | `host` | Server host/IP |
+| `FLET_SERVER_PORT` | `port` | Server port |
+| `FLET_ASSETS_DIR` | `assets_dir` | Assets directory |
+| `FLET_FORCE_WEB_SERVER` | `view` | Force web browser mode |
+| `FLET_SERVER_UDS_PATH` | - | Unix domain socket path |
+| `FLET_DISPLAY_URL_PREFIX` | - | URL prefix for display |
+
+## run_async()
+
+<ParamField path="run_async" type="async function">
+  Asynchronously run a Flet app using socket or web server transport.
+  
+  **Source:** `app.py:142`
+  
+  ```python
+  async def run_async(
+      main: AppCallable,
+      before_main: Optional[AppCallable] = None,
+      name: str = "",
+      host: Optional[str] = None,
+      port: int = 0,
+      view: Optional[AppView] = AppView.FLET_APP,
+      assets_dir: Optional[str] = "assets",
+      upload_dir: Optional[str] = None,
+      web_renderer: WebRenderer = WebRenderer.AUTO,
+      route_url_strategy: RouteUrlStrategy = RouteUrlStrategy.PATH,
+      no_cdn: Optional[bool] = False,
+  )
+  ```
+</ParamField>
+
+### Parameters
+
+Same as `run()`, except:
+- No `export_asgi_app` parameter
+- Must be called with `await` from an async context
+
+### Usage
+
+```python
+import asyncio
+import flet as ft
+
+async def main(page: ft.Page):
+    await asyncio.sleep(1)
+    page.add(ft.Text("Hello, Async World!"))
+
+async def run_app():
+    await ft.run_async(main)
+
+asyncio.run(run_app())
+```
+
+## AppCallable Type
+
+**Source:** `app.py:34`
+
+```python
+AppCallable = Callable[[Page], Union[Any, Awaitable[Any]]]
+```
+
+Type alias for Flet app lifecycle callbacks. Represents a callable (synchronous or asynchronous) that accepts a single `Page` argument. The return value is ignored.
+
+Used for both `main` and `before_main` handlers.
+
+## Deprecated Functions
+
+<Warning>
+The following functions are deprecated and will be removed in future versions.
+</Warning>
+
+### app()
+
+<ParamField path="app" type="function">
+  **DEPRECATED:** Use `run()` instead.
+  
+  Deprecated in version 0.80.0.
+  
+  **Source:** `app.py:44`
+  
+  ```python
+  # Old (deprecated)
+  ft.app(target=main)
+  
+  # New (recommended)
+  ft.run(main)
+  ```
+</ParamField>
+
+### app_async()
+
+<ParamField path="app_async" type="async function">
+  **DEPRECATED:** Use `run_async()` instead.
+  
+  Deprecated in version 0.80.0.
+  
+  **Source:** `app.py:52`
+  
+  ```python
+  # Old (deprecated)
+  await ft.app_async(target=main)
+  
+  # New (recommended)
+  await ft.run_async(main)
+  ```
+</ParamField>
+
+## Usage Examples
+
+### Basic Desktop App
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.title = "My Desktop App"
+    page.add(ft.Text("Hello, Desktop!"))
+
+ft.run(main)
+```
+
+### Web Application
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.title = "My Web App"
+    page.add(ft.Text("Hello, Web!"))
+
+ft.run(
+    main,
+    view=ft.AppView.WEB_BROWSER,
+    host="0.0.0.0",
+    port=8080
+)
+```
+
+### Async Application
+
+```python
+import flet as ft
+import asyncio
+
+async def main(page: ft.Page):
+    page.title = "Async App"
+    
+    async def load_data():
+        await asyncio.sleep(2)
+        page.add(ft.Text("Data loaded!"))
+        page.update()
+    
+    page.add(ft.Text("Loading..."))
+    await load_data()
+
+ft.run(main)
+```
+
+### Generator-based Updates
+
+```python
+import flet as ft
+import time
+
+def main(page: ft.Page):
+    page.title = "Progress Example"
+    
+    progress = ft.ProgressBar(width=400)
+    page.add(progress)
+    
+    for i in range(101):
+        progress.value = i / 100
+        time.sleep(0.05)
+        yield  # Update page after each iteration
+
+ft.run(main)
+```
+
+### With Setup Hook
+
+```python
+import flet as ft
+
+def setup(page: ft.Page):
+    """Called before main"""
+    page.title = "Configured App"
+    page.theme_mode = ft.ThemeMode.DARK
+    page.padding = 20
+
+def main(page: ft.Page):
+    """Main app logic"""
+    page.add(
+        ft.Text("App is configured!"),
+        ft.Text(f"Theme: {page.theme_mode}")
+    )
+
+ft.run(main, before_main=setup)
+```
+
+### ASGI Export for Production
+
+```python
+# app.py
+import flet as ft
+
+def main(page: ft.Page):
+    page.title = "Production App"
+    page.add(ft.Text("Running in production!"))
+
+# Export ASGI app
+app = ft.run(
+    main,
+    export_asgi_app=True,
+    assets_dir="assets",
+    upload_dir="uploads"
+)
+
+# Run with: uvicorn app:app --host 0.0.0.0 --port 8000
+```
+
+### Multi-platform Configuration
+
+```python
+import flet as ft
+import os
+
+def main(page: ft.Page):
+    page.title = "Multi-platform App"
+    
+    if page.web:
+        page.add(ft.Text("Running in browser"))
+    else:
+        page.add(ft.Text("Running as desktop app"))
+
+# Development: Desktop app
+if os.getenv("ENV") == "dev":
+    ft.run(main, view=ft.AppView.FLET_APP)
+
+# Production: Web browser
+else:
+    ft.run(
+        main,
+        view=ft.AppView.WEB_BROWSER,
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", 8080))
+    )
+```
+
+### With Custom Assets and Uploads
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.title = "Assets & Uploads"
+    
+    # Display image from assets
+    page.add(
+        ft.Image(src="/logo.png", width=200)
+    )
+    
+    # File upload
+    def upload_file(e):
+        upload_url = page.get_upload_url("uploaded.txt", 300)
+        print(f"Upload to: {upload_url}")
+    
+    page.add(
+        ft.ElevatedButton(
+            "Upload File",
+            on_click=upload_file
+        )
+    )
+
+ft.run(
+    main,
+    assets_dir="static/assets",
+    upload_dir="static/uploads"
+)
+```
+
+## See Also
+
+- [Page](/api/page) - Page class reference
+- [AppView(/api/app) - App view modes
+- [WebRenderer(/guides/web-apps) - Web renderer types
+- [RouteUrlStrategy(/concepts/routing) - URL routing strategies

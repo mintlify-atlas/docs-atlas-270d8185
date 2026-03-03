@@ -1,0 +1,319 @@
+---
+title: 'Stack'
+description: 'A layout control that positions children on top of each other'
+icon: 'layer-group'
+---
+
+## Overview
+
+Stack positions its children on top of each other, following a LIFO (Last In First Out) order. The last control in the list is displayed on top. This control is useful for overlaying controls, creating complex UI compositions, or implementing implicit animations that require knowing absolute positions.
+
+## Basic Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Stack(
+            width=300,
+            height=300,
+            controls=[
+                ft.Image(
+                    src="https://picsum.photos/300/300",
+                    width=300,
+                    height=300,
+                    fit=ft.BoxFit.CONTAIN,
+                ),
+                ft.Row(
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    controls=[
+                        ft.Text(
+                            value="Image title",
+                            color=ft.Colors.SURFACE_TINT,
+                            size=40,
+                            weight=ft.FontWeight.BOLD,
+                            opacity=0.5,
+                        )
+                    ],
+                ),
+            ],
+        )
+    )
+
+ft.app(main)
+```
+
+## Class Definition
+
+```python
+class Stack(LayoutControl, AdaptiveControl):
+    controls: list[Control] = field(default_factory=list)
+    clip_behavior: ClipBehavior = ClipBehavior.HARD_EDGE
+    alignment: Optional[Alignment] = None
+    fit: StackFit = StackFit.LOOSE
+```
+
+## Properties
+
+### controls
+
+<ParamField path="controls" type="list[Control]" default="[]">
+  A list of controls to display.
+  
+  For the display order, it follows the order of the list, so the **last control in the list will be displayed on top** (LIFO - Last In First Out).
+  
+  Controls can be positioned absolutely using the `top`, `left`, `right`, and `bottom` properties on the control itself.
+</ParamField>
+
+### clip_behavior
+
+<ParamField path="clip_behavior" type="ClipBehavior" default="ClipBehavior.HARD_EDGE">
+  The content will be clipped (or not) according to this option.
+  
+  Options:
+  - `ClipBehavior.HARD_EDGE` - Clip content with hard edges
+  - `ClipBehavior.ANTI_ALIAS` - Clip with anti-aliasing
+  - `ClipBehavior.ANTI_ALIAS_WITH_SAVE_LAYER` - Clip with anti-aliasing and save layer
+  - `ClipBehavior.NONE` - No clipping
+</ParamField>
+
+### alignment
+
+<ParamField path="alignment" type="Alignment" default="None">
+  Specifies the alignment for non-positioned controls (those without explicit `top`, `left`, `right`, or `bottom` properties) and partially-positioned controls.
+  
+  Examples:
+  - `ft.alignment.center` - Center alignment
+  - `ft.alignment.top_left` - Top-left alignment
+  - `ft.alignment.bottom_right` - Bottom-right alignment
+  - `Alignment(x, y)` - Custom alignment where x and y range from -1.0 to 1.0
+</ParamField>
+
+### fit
+
+<ParamField path="fit" type="StackFit" default="StackFit.LOOSE">
+  How to size the non-positioned controls.
+  
+  Options:
+  - `StackFit.LOOSE` - The constraints from parent are loosened. For example, if the stack has constraints that force it to 350x600, non-positioned children can have any width from 0 to 350 and any height from 0 to 600.
+  
+  - `StackFit.EXPAND` - The constraints from parent are tightened to the biggest size allowed. For example, if the stack has loose constraints with width 10-100 and height 0-600, non-positioned children would all be sized as 100 pixels wide and 600 high.
+  
+  - `StackFit.PASS_THROUGH` - The constraints from parent are passed unmodified to non-positioned children. For example, if a Stack is an expanded child of a Row, the horizontal constraints will be tight and the vertical constraints will be loose.
+</ParamField>
+
+## Layout Behavior
+
+### How Children Are Arranged
+
+1. **Z-Order**: Controls are stacked in the order they appear in the list. The first control is at the bottom, and the last control is on top.
+
+2. **Non-Positioned Controls**: Controls without explicit positioning properties are placed according to the `alignment` property and sized according to the `fit` property.
+
+3. **Positioned Controls**: Controls with `top`, `left`, `right`, or `bottom` properties are positioned absolutely within the Stack:
+
+```python
+ft.Stack(
+    controls=[
+        ft.Container(
+            content=ft.Text("Background"),
+            width=300,
+            height=300,
+            bgcolor=ft.Colors.BLUE,
+        ),
+        ft.Container(
+            content=ft.Text("Top-Right"),
+            top=10,
+            right=10,
+            width=100,
+            height=50,
+            bgcolor=ft.Colors.RED,
+        ),
+    ],
+)
+```
+
+### Positioning Controls
+
+You can position controls absolutely by setting their layout properties:
+
+- `top`: Distance from the top edge
+- `left`: Distance from the left edge
+- `right`: Distance from the right edge
+- `bottom`: Distance from the bottom edge
+
+These properties are set on the child control, not the Stack itself.
+
+## Examples
+
+### Image with Text Overlay
+
+```python
+ft.Stack(
+    width=400,
+    height=300,
+    controls=[
+        ft.Image(
+            src="background.jpg",
+            width=400,
+            height=300,
+            fit=ft.BoxFit.COVER,
+        ),
+        ft.Container(
+            gradient=ft.LinearGradient(
+                begin=ft.alignment.top_center,
+                end=ft.alignment.bottom_center,
+                colors=[ft.Colors.TRANSPARENT, ft.Colors.BLACK87],
+            ),
+        ),
+        ft.Container(
+            content=ft.Text(
+                "Beautiful Landscape",
+                size=32,
+                weight=ft.FontWeight.BOLD,
+                color=ft.Colors.WHITE,
+            ),
+            bottom=20,
+            left=20,
+        ),
+    ],
+)
+```
+
+### Positioned Badges
+
+```python
+ft.Stack(
+    width=100,
+    height=100,
+    controls=[
+        ft.Container(
+            width=100,
+            height=100,
+            bgcolor=ft.Colors.BLUE,
+            border_radius=10,
+        ),
+        ft.Container(
+            content=ft.Text("5", color=ft.Colors.WHITE, size=12),
+            width=20,
+            height=20,
+            bgcolor=ft.Colors.RED,
+            border_radius=10,
+            alignment=ft.alignment.center,
+            top=0,
+            right=0,
+        ),
+    ],
+)
+```
+
+### Centered Overlay
+
+```python
+ft.Stack(
+    width=300,
+    height=300,
+    alignment=ft.alignment.center,
+    controls=[
+        ft.Container(
+            width=300,
+            height=300,
+            bgcolor=ft.Colors.BLUE_200,
+        ),
+        ft.Container(
+            width=200,
+            height=200,
+            bgcolor=ft.Colors.GREEN_200,
+        ),
+        ft.Container(
+            width=100,
+            height=100,
+            bgcolor=ft.Colors.RED_200,
+        ),
+    ],
+)
+```
+
+### Card with Corner Button
+
+```python
+ft.Stack(
+    controls=[
+        ft.Container(
+            width=300,
+            height=200,
+            bgcolor=ft.Colors.SURFACE_VARIANT,
+            border_radius=10,
+            padding=20,
+            content=ft.Column(
+                controls=[
+                    ft.Text("Card Title", size=24, weight=ft.FontWeight.BOLD),
+                    ft.Text("This is some card content that can be quite long."),
+                ],
+            ),
+        ),
+        ft.IconButton(
+            icon=ft.Icons.CLOSE,
+            top=5,
+            right=5,
+            icon_size=20,
+        ),
+    ],
+)
+```
+
+## StackFit Enum
+
+The `StackFit` enum controls how non-positioned children are sized:
+
+```python
+class StackFit(Enum):
+    LOOSE = "loose"        # Constraints are loosened
+    EXPAND = "expand"      # Constraints are tightened to maximum
+    PASS_THROUGH = "passThrough"  # Constraints are passed unchanged
+```
+
+### LOOSE Example
+
+```python
+ft.Stack(
+    width=300,
+    height=300,
+    fit=ft.StackFit.LOOSE,
+    controls=[
+        ft.Container(width=100, height=100, bgcolor=ft.Colors.RED),
+    ],
+)
+# Child can be any size from 0x0 to 300x300
+```
+
+### EXPAND Example
+
+```python
+ft.Stack(
+    width=300,
+    height=300,
+    fit=ft.StackFit.EXPAND,
+    controls=[
+        ft.Container(bgcolor=ft.Colors.RED),
+    ],
+)
+# Child will be forced to 300x300
+```
+
+## Use Cases
+
+1. **Image Overlays**: Add text, gradients, or buttons over images
+2. **Badges**: Position notification badges on icons or avatars
+3. **Complex Layouts**: Create intricate UI designs with overlapping elements
+4. **Animations**: Implement implicit animations with absolute positioning
+5. **Loading Indicators**: Show spinners over content
+6. **Watermarks**: Add watermarks to images or content
+
+## Related Controls
+
+- [Column](/api/layout/column) - Vertical layout
+- [Row](/api/layout/row) - Horizontal layout
+- [ListView](/api/layout/listview) - Scrollable list
+- [GridView](/api/layout/gridview) - Grid layout

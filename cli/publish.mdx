@@ -1,0 +1,562 @@
+---
+title: flet publish
+description: Publish Flet apps as standalone static web applications.
+---
+
+The `flet publish` command compiles and packages your Flet app as a standalone static web application that can be deployed to any static hosting service (GitHub Pages, Netlify, Vercel, etc.).
+
+## Basic Usage
+
+```bash
+flet publish [script] [options]
+```
+
+## How It Works
+
+`flet publish` creates a static web application by:
+
+1. Packaging your Python app and dependencies into a `.tar.gz` archive
+2. Copying the Flet web runtime (Flutter web + Pyodide)
+3. Configuring the app to run entirely in the browser using WebAssembly
+4. Generating PWA (Progressive Web App) manifests
+5. Outputting everything to the `dist/` directory
+
+The result is a collection of static files that can be hosted on any web server.
+
+## Examples
+
+### Publish Current Directory
+
+```bash
+flet publish
+```
+
+Publishes `main.py` from the current directory to `dist/`.
+
+### Publish Specific Script
+
+```bash
+flet publish app.py
+```
+
+### Publish with Custom Output
+
+```bash
+flet publish --distpath build/web
+```
+
+### Publish for GitHub Pages
+
+```bash
+flet publish --base-url /my-repo/
+```
+
+### Publish with Custom PWA Metadata
+
+```bash
+flet publish \
+  --app-name "Task Manager" \
+  --app-short-name "Tasks" \
+  --app-description "Manage your daily tasks" \
+  --pwa-theme-color "#2196F3"
+```
+
+### Publish for Offline Use
+
+```bash
+flet publish --no-cdn
+```
+
+Bundles all dependencies (CanvasKit, Pyodide) for offline deployment.
+
+## Arguments
+
+<ParamField path="script" type="string" default=".">
+  Path to the Python script that starts your Flet app.
+
+  ```bash
+  flet publish app.py
+  flet publish src/main.py
+  ```
+
+  If a directory is provided, looks for `main.py` inside it.
+</ParamField>
+
+## Options
+
+### Output
+
+<ParamField path="--distpath" type="string" default="dist">
+  Directory where the published web app should be placed.
+
+  ```bash
+  flet publish --distpath build/web
+  ```
+
+  The directory is cleaned before publishing.
+</ParamField>
+
+### App Metadata
+
+<ParamField path="--app-name" type="string">
+  Full name of the application. Used in PWA metadata and may appear in the install prompt.
+
+  ```bash
+  flet publish --app-name "My Awesome App"
+  ```
+
+  Falls back to `tool.flet.product` or `project.name` in `pyproject.toml`.
+</ParamField>
+
+<ParamField path="--app-short-name" type="string">
+  A shorter version of the application name, often used in homescreen icons or install prompts.
+
+  ```bash
+  flet publish --app-short-name "MyApp"
+  ```
+
+  Falls back to `project.name` in `pyproject.toml`.
+</ParamField>
+
+<ParamField path="--app-description" type="string">
+  Short description of the application. Used in PWA manifests and metadata.
+
+  ```bash
+  flet publish --app-description "A productivity tool"
+  ```
+
+  Falls back to `project.description` in `pyproject.toml`.
+</ParamField>
+
+### PWA Configuration
+
+<ParamField path="--pwa-background-color" type="string">
+  Initial background color of your web app during the loading phase (used in splash screens).
+
+  ```bash
+  flet publish --pwa-background-color "#ffffff"
+  ```
+
+  Falls back to `tool.flet.web.pwa_background_color` in `pyproject.toml`.
+</ParamField>
+
+<ParamField path="--pwa-theme-color" type="string">
+  Default color of the browser UI (e.g., address bar) when your app is installed as a PWA.
+
+  ```bash
+  flet publish --pwa-theme-color "#2196F3"
+  ```
+
+  Falls back to `tool.flet.web.pwa_theme_color` in `pyproject.toml`.
+</ParamField>
+
+### Web Renderer
+
+<ParamField path="--web-renderer" type="enum" default="auto">
+  Flutter web renderer to use.
+
+  Options:
+  - `auto` - Automatically choose based on device
+  - `canvaskit` - WebAssembly-based renderer (best compatibility)
+  - `skwasm` - Experimental WASM renderer (better performance)
+
+  ```bash
+  flet publish --web-renderer canvaskit
+  ```
+
+  Can also be set via `FLET_WEB_RENDERER` environment variable or `tool.flet.web.renderer` in `pyproject.toml`.
+</ParamField>
+
+### URL Configuration
+
+<ParamField path="--base-url" type="string" default="/">
+  Base URL path to serve the app from. Useful if the app is hosted in a subdirectory.
+
+  ```bash
+  flet publish --base-url /my-app/
+  ```
+
+  **Important**: Must start and end with `/`.
+
+  Falls back to `tool.flet.web.base_url` in `pyproject.toml`.
+
+  Examples:
+  - Root: `/` (default)
+  - Subdirectory: `/my-app/`
+  - GitHub Pages: `/repository-name/`
+</ParamField>
+
+<ParamField path="--route-url-strategy" type="enum" default="path">
+  Controls how routes are handled in the browser.
+
+  Options:
+  - `path` - Uses HTML5 history API (`/about`)
+  - `hash` - Uses URL fragments (`/#/about`)
+
+  ```bash
+  flet publish --route-url-strategy hash
+  ```
+
+  **Use `hash` when**:
+  - Deploying to static hosts without server-side routing
+  - GitHub Pages, Netlify, etc. (unless configured for SPA)
+
+  **Use `path` when**:
+  - Server can handle SPA routing (returns `index.html` for all routes)
+  - Cleaner URLs are preferred
+
+  Can also be set via `FLET_WEB_ROUTE_URL_STRATEGY` environment variable or `tool.flet.web.route_url_strategy` in `pyproject.toml`.
+</ParamField>
+
+### Assets
+
+<ParamField path="-a, --assets" type="string">
+  Path to a directory containing static assets used by the app (e.g., images, fonts, icons).
+
+  ```bash
+  flet publish --assets static/
+  ```
+
+  Can also be set via `FLET_ASSETS_DIR` environment variable.
+
+  Assets are copied to the dist directory and available at runtime.
+</ParamField>
+
+### Dependencies
+
+<ParamField path="--pre" type="flag">
+  Allow micropip to install pre-release Python packages.
+
+  ```bash
+  flet publish --pre
+  ```
+
+  Use this if your app depends on a prerelease version of a package.
+</ParamField>
+
+### CDN Options
+
+<ParamField path="--no-cdn" type="flag">
+  Disable loading of CanvasKit, Pyodide, and fonts from CDNs.
+
+  ```bash
+  flet publish --no-cdn
+  ```
+
+  Use this for:
+  - Full offline deployments
+  - Air-gapped environments
+  - Corporate intranets
+  - Avoiding external dependencies
+
+  **Note**: Significantly increases bundle size (adds ~50-100 MB).
+
+  Can also be set via setting `tool.flet.web.cdn = false` in `pyproject.toml`.
+</ParamField>
+
+## Published Output
+
+The `dist/` directory contains:
+
+```
+dist/
+├── index.html          # Main HTML file
+├── manifest.json       # PWA manifest
+├── flutter.js          # Flutter loader
+├── flutter_service_worker.js
+├── canvaskit/          # Flutter web renderer
+├── assets/             # Your app assets
+│   └── FontManifest.json
+├── app.tar.gz          # Your packaged Python app
+└── pyodide/            # Python runtime (if --no-cdn)
+```
+
+## Dependency Resolution
+
+The publish command determines Python dependencies from:
+
+1. **pyproject.toml** (preferred):
+   ```toml
+   [project]
+   dependencies = [
+       "flet>=0.24.0",
+       "requests",
+   ]
+   ```
+
+   Or Poetry format:
+   ```toml
+   [tool.poetry.dependencies]
+   python = "^3.8"
+   flet = "^0.24.0"
+   requests = "^2.31.0"
+   ```
+
+2. **requirements.txt**:
+   ```
+   flet>=0.24.0
+   requests
+   pandas
+   ```
+
+3. **Default**: If neither exists, only `flet` is included.
+
+Dependencies are installed by Pyodide at runtime in the browser.
+
+## Deployment Examples
+
+### Deploy to GitHub Pages
+
+```bash
+# Publish with base URL
+flet publish --base-url /my-repo/ --route-url-strategy hash
+
+# Copy to gh-pages branch
+cd dist
+git init
+git add .
+git commit -m "Deploy"
+git branch -M gh-pages
+git remote add origin https://github.com/user/my-repo.git
+git push -f origin gh-pages
+```
+
+### Deploy to Netlify
+
+```bash
+flet publish
+npm install -g netlify-cli
+netlify deploy --dir dist --prod
+```
+
+Or use Netlify's drag-and-drop:
+1. Run `flet publish`
+2. Go to [Netlify Drop](https://app.netlify.com/drop)
+3. Drag the `dist` folder
+
+### Deploy to Vercel
+
+```bash
+flet publish
+npm install -g vercel
+vercel --prod dist
+```
+
+### Deploy to Firebase Hosting
+
+```bash
+flet publish --distpath public
+firebase init hosting
+firebase deploy
+```
+
+### Deploy to AWS S3
+
+```bash
+flet publish
+aws s3 sync dist/ s3://my-bucket --delete
+aws s3 website s3://my-bucket --index-document index.html
+```
+
+### Self-Hosted Server
+
+```bash
+flet publish
+flet serve
+```
+
+Or copy `dist/` to your web server:
+
+```bash
+flet publish
+scp -r dist/* user@server:/var/www/html/
+```
+
+## Configuration File
+
+Configure publish settings in `pyproject.toml`:
+
+```toml
+[project]
+name = "my-app"
+version = "1.0.0"
+description = "My awesome Flet app"
+
+[tool.flet]
+product = "My Awesome App"
+
+[tool.flet.web]
+renderer = "canvaskit"
+route_url_strategy = "path"
+base_url = "/"
+pwa_background_color = "#ffffff"
+pwa_theme_color = "#2196F3"
+cdn = true
+```
+
+Command-line arguments override `pyproject.toml` settings.
+
+## Testing Published App
+
+After publishing, test locally:
+
+```bash
+flet publish
+flet serve
+```
+
+Open http://localhost:8000 in your browser.
+
+Or use Python's built-in server:
+
+```bash
+cd dist
+python -m http.server 8000
+```
+
+**Note**: Some features (like Pyodide) require special CORS headers. Use `flet serve` for proper testing.
+
+## PWA Features
+
+Published apps are Progressive Web Apps (PWA) and can be:
+
+- **Installed** on desktop and mobile devices
+- **Run offline** (after initial load)
+- **Added to home screen** on mobile
+- **Run in standalone mode** (without browser UI)
+
+### Install Prompt
+
+Users can install your app:
+
+1. Visit the published URL
+2. Browser shows "Install" or "Add to Home Screen" prompt
+3. App runs as standalone application
+
+### Offline Support
+
+Service worker enables offline functionality:
+
+- App shell cached on first visit
+- Works without internet after initial load
+- Python code runs entirely in browser
+
+## Package Exclusions
+
+These files/directories are automatically excluded from `app.tar.gz`:
+
+- Hidden files/directories (`.git`, `.env`, etc.)
+- `__pycache__`
+- `requirements.txt` (replaced with generated one)
+- Assets directory (copied separately)
+- Dist directory (to avoid recursion)
+
+## Performance Optimization
+
+### Reduce Bundle Size
+
+1. **Use CDN** (default):
+   ```bash
+   flet publish  # ~2-5 MB
+   ```
+
+2. **Minimize dependencies**:
+   Only include required packages in `pyproject.toml`.
+
+3. **Optimize assets**:
+   - Compress images
+   - Use web-friendly formats (WebP, AVIF)
+   - Remove unused fonts
+
+### Improve Load Time
+
+1. **Use `canvaskit` renderer**:
+   ```bash
+   flet publish --web-renderer canvaskit
+   ```
+
+2. **Enable CDN**:
+   Faster than bundling dependencies.
+
+3. **Compress assets**:
+   Configure server gzip/brotli compression.
+
+## Troubleshooting
+
+### App Doesn't Load
+
+Check browser console for errors.
+
+Common issues:
+- Incorrect `--base-url`
+- CORS headers missing (use `flet serve` for testing)
+- Missing dependencies
+
+### Dependencies Not Installing
+
+Ensure packages are Pyodide-compatible:
+
+Not all Python packages work in browser. Check [Pyodide package list](https://pyodide.org/en/stable/usage/packages-in-pyodide.html).
+
+### Routing Not Working
+
+Use hash strategy for static hosts:
+
+```bash
+flet publish --route-url-strategy hash
+```
+
+### Large Bundle Size
+
+Avoid `--no-cdn` unless necessary:
+
+```bash
+# Good (small)
+flet publish
+
+# Large (50-100 MB extra)
+flet publish --no-cdn
+```
+
+### Assets Not Loading
+
+Verify assets path:
+
+```bash
+flet publish --assets ./assets
+```
+
+Ensure assets directory exists and contains files.
+
+## Comparison with flet build web
+
+Both commands create web apps, but with different approaches:
+
+| Feature | `flet publish` | `flet build web` |
+|---------|---------------|------------------|
+| **Runtime** | Python in browser (Pyodide) | Compiled Dart |
+| **Bundle size** | Larger (~50 MB with CDN) | Smaller (~5-10 MB) |
+| **Deployment** | Static hosting | Static hosting |
+| **Load time** | Slower (loads Python) | Faster |
+| **Python features** | Full Python support | Limited |
+| **Offline** | After first load | After first load |
+| **Best for** | Full Python apps, rapid development | Production, performance-critical |
+
+**Recommendation**: Use `flet build web` for production deployments when possible. Use `flet publish` for rapid prototyping or when full Python compatibility is required.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Serve Command" icon="server" href="/cli/serve">
+    Test published apps locally
+  </Card>
+  <Card title="Build Web" icon="hammer" href="/cli/build">
+    Build optimized web apps
+  </Card>
+  <Card title="Deployment Guide" icon="cloud" href="/guides/python/deployment">
+    Deploy to various platforms
+  </Card>
+  <Card title="PWA Guide" icon="mobile-screen" href="/guides/python/pwa">
+    Progressive Web App features
+  </Card>
+</CardGroup>

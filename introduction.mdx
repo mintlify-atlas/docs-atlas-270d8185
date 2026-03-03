@@ -1,0 +1,114 @@
+---
+title: Introduction to Flet
+description: Build beautiful, multi-platform apps in Python without frontend experience. Deploy to desktop, mobile, and web from a single codebase.
+---
+
+# Introduction to Flet
+
+Flet is a framework that allows you to build mobile, desktop, and web applications in Python without any prior experience in frontend development.
+
+## Why Flet?
+
+Flet empowers Python developers to create beautiful, production-ready applications across all platforms using the language they already know. No need to learn Dart, Swift, Kotlin, HTML, or JavaScript.
+
+<CardGroup cols={2}>
+  <Card title="Single codebase" icon="code">
+    Write your app once and deploy it to iOS, Android, Windows, Linux, macOS, and web. Your app will look great on every platform.
+  </Card>
+  
+  <Card title="Pure Python" icon="python">
+    Build complete cross-platform apps using only Python. Leverage the power of Flutter's beautiful UI without leaving your favorite language.
+  </Card>
+  
+  <Card title="150+ built-in controls" icon="grid">
+    Beautiful UI widgets with Material and Cupertino design: layouts, navigation, dialogs, charts, and more. Flet uses Flutter to render UI.
+  </Card>
+  
+  <Card title="50+ Python packages" icon="package">
+    Use numpy, pandas, pydantic, cryptography, opencv, pillow, and other popular libraries on iOS and Android.
+  </Card>
+  
+  <Card title="Full web support" icon="browser">
+    Apps run natively in browsers using WebAssembly and Pyodide with no server required. Or deploy as a Python web app with real-time UI updates.
+  </Card>
+  
+  <Card title="Built-in packaging" icon="box">
+    Build standalone executables or bundles for all platforms. Instantly deploy to App Store and Google Play.
+  </Card>
+</CardGroup>
+
+## Key features
+
+### Test on real devices
+
+Test your project on your own mobile device with Flet App. See your app updates in real-time as you make changes during development.
+
+### Extensible architecture
+
+Easily wrap any of thousands of Flutter packages to use with Flet, or build new controls in pure Python using built-in UI primitives.
+
+### Accessibility built-in
+
+Flet is built with Flutter, which has solid accessibility foundations on Android, iOS, web, and desktop platforms.
+
+## How it works
+
+Flet apps follow a simple pattern:
+
+1. **Define your UI** - Create controls like buttons, text fields, and layouts using Python objects
+2. **Handle events** - Write Python functions to respond to user interactions
+3. **Update the UI** - Modify control properties and Flet automatically updates the display
+4. **Deploy anywhere** - Run your app as a desktop app, web app, or mobile app
+
+<Note>
+Flet uses Flutter as its rendering engine, giving you access to high-performance, beautiful UIs that feel native on every platform.
+</Note>
+
+## Example: Hello World
+
+Here's a minimal Flet app that displays "Hello, world!":
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(ft.Text(value="Hello, world!"))
+
+ft.run(main)
+```
+
+That's it! This simple code creates a fully functional app that works on desktop, mobile, and web.
+
+## Get started
+
+Ready to build your first Flet app? Here's what to do next:
+
+<CardGroup cols={2}>
+  <Card title="Install Flet" icon="download" href="/installation">
+    Set up Flet on your development machine with pip or conda.
+  </Card>
+  
+  <Card title="Quick start tutorial" icon="rocket" href="/quickstart">
+    Build your first interactive Flet app in minutes.
+  </Card>
+</CardGroup>
+
+## Learn more
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="book" href="/api-reference">
+    Explore all available controls and their properties.
+  </Card>
+  
+  <Card title="Examples" icon="code" href="https://github.com/flet-dev/flet/tree/main/sdk/python/examples">
+    Browse sample applications and code snippets.
+  </Card>
+</CardGroup>
+
+## Community
+
+Join thousands of developers building with Flet:
+
+- [GitHub Discussions](https://github.com/flet-dev/flet/discussions) - Ask questions and share your projects
+- [Discord](https://discord.gg/dzWXP8SHG8) - Chat with the community in real-time
+- [Gallery](https://flet.dev/gallery) - See what others are building with Flet

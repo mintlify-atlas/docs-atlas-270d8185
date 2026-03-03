@@ -1,0 +1,395 @@
+---
+title: Material Design Controls
+description: Material Design controls for modern, beautiful UIs
+---
+
+Material Design controls implement Google's Material Design language, providing a modern and clean aesthetic commonly used in Android applications and progressive web apps.
+
+## Overview
+
+Material controls feature:
+- Elevation and shadow effects for depth
+- Ripple effects on interactive elements
+- Bold colors and high contrast
+- Smooth, physics-based animations
+- Responsive layouts
+
+## Buttons
+
+Material Design offers several button styles for different contexts:
+
+<CardGroup cols={2}>
+  <Card title="ElevatedButton" icon="rectangle-ad">
+    Raised button with shadow, used for primary actions
+  </Card>
+  <Card title="FilledButton" icon="square">
+    Filled button with bold background color
+  </Card>
+  <Card title="OutlinedButton" icon="square-dashed">
+    Button with border outline, for secondary actions
+  </Card>
+  <Card title="TextButton" icon="text">
+    Flat button without background, for tertiary actions
+  </Card>
+</CardGroup>
+
+### Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.ElevatedButton(
+            "Elevated",
+            icon=ft.Icons.ADD,
+            on_click=lambda e: print("Elevated clicked")
+        ),
+        ft.FilledButton(
+            "Filled",
+            icon=ft.Icons.SEND,
+            on_click=lambda e: print("Filled clicked")
+        ),
+        ft.OutlinedButton(
+            "Outlined",
+            icon=ft.Icons.EDIT,
+            on_click=lambda e: print("Outlined clicked")
+        ),
+        ft.TextButton(
+            "Text",
+            icon=ft.Icons.INFO,
+            on_click=lambda e: print("Text clicked")
+        ),
+    )
+
+ft.app(target=main)
+```
+
+## Input Controls
+
+<CardGroup cols={2}>
+  <Card title="TextField" icon="input-text">
+    Single or multi-line text input
+  </Card>
+  <Card title="Checkbox" icon="square-check">
+    Binary selection control
+  </Card>
+  <Card title="Radio" icon="circle-dot">
+    Single selection from multiple options
+  </Card>
+  <Card title="Switch" icon="toggle-on">
+    Toggle between two states
+  </Card>
+  <Card title="Slider" icon="sliders">
+    Select a value from a range
+  </Card>
+  <Card title="Dropdown" icon="caret-down">
+    Select from a dropdown list
+  </Card>
+</CardGroup>
+
+### TextField Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def on_text_change(e):
+        print(f"Text changed: {e.control.value}")
+    
+    page.add(
+        ft.TextField(
+            label="Name",
+            hint_text="Enter your name",
+            helper_text="This is your display name",
+            on_change=on_text_change
+        ),
+        ft.TextField(
+            label="Password",
+            password=True,
+            can_reveal_password=True
+        ),
+        ft.TextField(
+            label="Bio",
+            multiline=True,
+            min_lines=3,
+            max_lines=5
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### Checkbox and Switch Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def checkbox_changed(e):
+        print(f"Checkbox value: {e.control.value}")
+    
+    page.add(
+        ft.Checkbox(
+            label="I agree to the terms",
+            value=False,
+            on_change=checkbox_changed
+        ),
+        ft.Switch(
+            label="Enable notifications",
+            value=True,
+            on_change=lambda e: print(f"Switch: {e.control.value}")
+        ),
+    )
+
+ft.app(target=main)
+```
+
+## Display Controls
+
+<CardGroup cols={2}>
+  <Card title="Card" icon="id-card">
+    Material card with elevation
+  </Card>
+  <Card title="ListTile" icon="list">
+    Standard list item with icon and text
+  </Card>
+  <Card title="DataTable" icon="table">
+    Display structured data in rows and columns
+  </Card>
+  <Card title="Chip" icon="tag">
+    Compact element representing an attribute or action
+  </Card>
+  <Card title="Badge" icon="certificate">
+    Small status indicator
+  </Card>
+  <Card title="Divider" icon="minus">
+    Horizontal line to separate content
+  </Card>
+</CardGroup>
+
+### Card and ListTile Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Card(
+            content=ft.Container(
+                content=ft.Column([
+                    ft.ListTile(
+                        leading=ft.Icon(ft.Icons.ALBUM),
+                        title=ft.Text("Song Title"),
+                        subtitle=ft.Text("Artist Name"),
+                        trailing=ft.IconButton(
+                            icon=ft.Icons.PLAY_ARROW,
+                            on_click=lambda e: print("Play")
+                        ),
+                    ),
+                    ft.Row([
+                        ft.TextButton("Share"),
+                        ft.TextButton("Download"),
+                    ]),
+                ]),
+                padding=10,
+            ),
+            elevation=5,
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Navigation Controls
+
+<CardGroup cols={2}>
+  <Card title="AppBar" icon="window-maximize">
+    Top app bar with title and actions
+  </Card>
+  <Card title="NavigationBar" icon="bars">
+    Bottom navigation bar
+  </Card>
+  <Card title="NavigationRail" icon="sidebar">
+    Side navigation rail
+  </Card>
+  <Card title="NavigationDrawer" icon="bars-staggered">
+    Sliding drawer navigation
+  </Card>
+  <Card title="Tabs" icon="folder-tree">
+    Tabbed navigation interface
+  </Card>
+</CardGroup>
+
+### AppBar Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.appbar = ft.AppBar(
+        title=ft.Text("My App"),
+        center_title=True,
+        bgcolor=ft.Colors.BLUE,
+        actions=[
+            ft.IconButton(ft.Icons.SEARCH),
+            ft.IconButton(ft.Icons.MORE_VERT),
+        ],
+    )
+    
+    page.add(ft.Text("Content goes here"))
+
+ft.app(target=main)
+```
+
+## Progress Indicators
+
+<CardGroup cols={2}>
+  <Card title="ProgressBar" icon="spinner">
+    Linear progress indicator
+  </Card>
+  <Card title="ProgressRing" icon="circle-notch">
+    Circular progress indicator
+  </Card>
+</CardGroup>
+
+### Progress Example
+
+```python
+import flet as ft
+import time
+
+def main(page: ft.Page):
+    # Indeterminate progress
+    page.add(
+        ft.ProgressRing(),
+        ft.ProgressBar(),
+    )
+    
+    # Determinate progress
+    progress = ft.ProgressBar(value=0.5, width=200)
+    page.add(progress)
+
+ft.app(target=main)
+```
+
+## Selectors
+
+<CardGroup cols={2}>
+  <Card title="DatePicker" icon="calendar">
+    Select a date from a calendar
+  </Card>
+  <Card title="TimePicker" icon="clock">
+    Select a time
+  </Card>
+  <Card title="Autocomplete" icon="magnifying-glass">
+    Text field with autocomplete suggestions
+  </Card>
+</CardGroup>
+
+### DatePicker Example
+
+```python
+import flet as ft
+import datetime
+
+def main(page: ft.Page):
+    def date_picker_changed(e):
+        print(f"Selected date: {e.control.value}")
+    
+    date_picker = ft.DatePicker(
+        first_date=datetime.datetime(2020, 1, 1),
+        last_date=datetime.datetime(2030, 12, 31),
+        on_change=date_picker_changed,
+    )
+    
+    page.overlay.append(date_picker)
+    
+    page.add(
+        ft.ElevatedButton(
+            "Pick Date",
+            icon=ft.Icons.CALENDAR_MONTH,
+            on_click=lambda e: date_picker.pick_date()
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Dialogs and Overlays
+
+<CardGroup cols={2}>
+  <Card title="AlertDialog" icon="message-exclamation">
+    Modal dialog for important decisions
+  </Card>
+  <Card title="BottomSheet" icon="window-restore">
+    Sheet that slides up from bottom
+  </Card>
+  <Card title="SnackBar" icon="comment">
+    Brief message at bottom of screen
+  </Card>
+  <Card title="Banner" icon="bullhorn">
+    Important message at top of screen
+  </Card>
+</CardGroup>
+
+### AlertDialog Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def close_dialog(e):
+        dialog.open = False
+        page.update()
+    
+    dialog = ft.AlertDialog(
+        title=ft.Text("Confirm Action"),
+        content=ft.Text("Are you sure you want to proceed?"),
+        actions=[
+            ft.TextButton("Cancel", on_click=close_dialog),
+            ft.TextButton("OK", on_click=close_dialog),
+        ],
+    )
+    
+    page.overlay.append(dialog)
+    
+    page.add(
+        ft.ElevatedButton(
+            "Show Dialog",
+            on_click=lambda e: (setattr(dialog, 'open', True), page.update())
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Special Controls
+
+<CardGroup cols={2}>
+  <Card title="FloatingActionButton" icon="circle-plus">
+    Prominent circular action button
+  </Card>
+  <Card title="PopupMenuButton" icon="ellipsis-vertical">
+    Menu that appears on press
+  </Card>
+  <Card title="Tooltip" icon="circle-info">
+    Informational popup on hover
+  </Card>
+  <Card title="SearchBar" icon="magnifying-glass">
+    Expandable search input
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+- Learn about [Cupertino Controls](/controls/cupertino) for iOS-style UIs
+- Explore [Layout Controls](/controls/layout) to arrange Material controls
+- Check the [Material Design Guidelines](https://m3.material.io/) for design best practices
+
+## API Reference
+
+For detailed properties and methods, see:
+- [Material Controls API](/api/material/button)
+- [Button API](/api/material/button)
+- [TextField API](/api/material/textfield)

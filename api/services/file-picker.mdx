@@ -1,0 +1,366 @@
+---
+title: FilePicker
+description: Use the native file explorer to pick and upload files
+---
+
+The `FilePicker` service allows you to use the native file explorer to pick single or multiple files, with extension filtering support and upload capabilities.
+
+<Warning>
+  On Linux, this control requires [Zenity](https://help.gnome.org/users/zenity/stable/) when running Flet as a desktop app. It is not required when running Flet in a browser.
+  
+  To install Zenity on Ubuntu/Debian:
+  ```bash
+  sudo apt-get install zenity
+  ```
+</Warning>
+
+## Usage
+
+Add the `FilePicker` service to your page overlay and use its methods to open file dialogs:
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    async def pick_files_result(e: ft.FilePickerResultEvent):
+        if e.files:
+            for file in e.files:
+                print(f"Selected: {file.name} ({file.size} bytes)")
+    
+    file_picker = ft.FilePicker(on_result=pick_files_result)
+    page.overlay.append(file_picker)
+    
+    page.add(
+        ft.ElevatedButton(
+            "Pick files",
+            on_click=lambda _: file_picker.pick_files(allow_multiple=True)
+        )
+    )
+
+ft.app(main)
+```
+
+## Methods
+
+### `pick_files()`
+
+Opens a file picker dialog to select one or more files.
+
+```python
+await file_picker.pick_files(
+    dialog_title: Optional[str] = None,
+    initial_directory: Optional[str] = None,
+    file_type: FilePickerFileType = FilePickerFileType.ANY,
+    allowed_extensions: Optional[list[str]] = None,
+    allow_multiple: bool = False,
+    with_data: bool = False
+) -> list[FilePickerFile]
+```
+
+<ParamField path="dialog_title" type="str" optional>
+  The title of the dialog window.
+</ParamField>
+
+<ParamField path="initial_directory" type="str" optional>
+  The initial directory where the dialog should open.
+</ParamField>
+
+<ParamField path="file_type" type="FilePickerFileType" default="FilePickerFileType.ANY">
+  The file types allowed to be selected. Options: `ANY`, `MEDIA`, `IMAGE`, `VIDEO`, `AUDIO`, `CUSTOM`.
+</ParamField>
+
+<ParamField path="allowed_extensions" type="list[str]" optional>
+  The allowed file extensions. Only effective when `file_type` is `FilePickerFileType.CUSTOM`.
+</ParamField>
+
+<ParamField path="allow_multiple" type="bool" default="False">
+  Allow the selection of multiple files at once.
+</ParamField>
+
+<ParamField path="with_data" type="bool" default="False">
+  Read selected file contents into the `bytes` field of `FilePickerFile`.
+</ParamField>
+
+**Returns:** A list of `FilePickerFile` objects representing the selected files.
+
+**Example:**
+
+```python
+files = await file_picker.pick_files(
+    dialog_title="Select images",
+    file_type=ft.FilePickerFileType.CUSTOM,
+    allowed_extensions=["png", "jpg", "jpeg"],
+    allow_multiple=True
+)
+
+for file in files:
+    print(f"{file.name}: {file.size} bytes")
+    if file.path:
+        print(f"  Path: {file.path}")
+```
+
+### `save_file()`
+
+Opens a save file dialog which lets the user select a file path and name to save a file.
+
+```python
+await file_picker.save_file(
+    dialog_title: Optional[str] = None,
+    file_name: Optional[str] = None,
+    initial_directory: Optional[str] = None,
+    file_type: FilePickerFileType = FilePickerFileType.ANY,
+    allowed_extensions: Optional[list[str]] = None,
+    src_bytes: Optional[bytes] = None
+) -> Optional[str]
+```
+
+<ParamField path="dialog_title" type="str" optional>
+  The title of the dialog window.
+</ParamField>
+
+<ParamField path="file_name" type="str" optional>
+  The default file name. Required in web mode.
+</ParamField>
+
+<ParamField path="initial_directory" type="str" optional>
+  The initial directory where the dialog should open.
+</ParamField>
+
+<ParamField path="file_type" type="FilePickerFileType" default="FilePickerFileType.ANY">
+  The file types allowed to be selected.
+</ParamField>
+
+<ParamField path="allowed_extensions" type="list[str]" optional>
+  The allowed file extensions.
+</ParamField>
+
+<ParamField path="src_bytes" type="bytes" optional>
+  The contents of the file. Required in web, iOS, or Android modes.
+</ParamField>
+
+**Returns:** The selected file path, or `None` if the dialog was cancelled.
+
+**Note:** On desktop platforms, this method only opens a dialog for the user to select a location and file name, and returns the chosen path. The file itself is not created or saved.
+
+**Example:**
+
+```python
+file_path = await file_picker.save_file(
+    dialog_title="Save report",
+    file_name="report.pdf",
+    file_type=ft.FilePickerFileType.CUSTOM,
+    allowed_extensions=["pdf"]
+)
+
+if file_path:
+    print(f"Save to: {file_path}")
+```
+
+### `get_directory_path()`
+
+Selects a directory and returns its absolute path.
+
+```python
+await file_picker.get_directory_path(
+    dialog_title: Optional[str] = None,
+    initial_directory: Optional[str] = None
+) -> Optional[str]
+```
+
+<ParamField path="dialog_title" type="str" optional>
+  The title of the dialog window.
+</ParamField>
+
+<ParamField path="initial_directory" type="str" optional>
+  The initial directory where the dialog should open.
+</ParamField>
+
+**Returns:** The selected directory path or `None` if the dialog was cancelled.
+
+**Platform Support:** Desktop platforms only (not available in web mode).
+
+**Raises:** `FletUnsupportedPlatformException` if called in web mode.
+
+**Example:**
+
+```python
+directory = await file_picker.get_directory_path(
+    dialog_title="Select output directory"
+)
+
+if directory:
+    print(f"Selected directory: {directory}")
+```
+
+### `upload()`
+
+Uploads picked files to specified upload URLs.
+
+```python
+await file_picker.upload(files: list[FilePickerUploadFile])
+```
+
+<ParamField path="files" type="list[FilePickerUploadFile]" required>
+  A list of `FilePickerUploadFile` objects specifying which files to upload and where.
+</ParamField>
+
+Before calling this method, `pick_files()` must first be called to ensure the internal file picker selection is not empty. Once called, Flet asynchronously starts uploading selected files one-by-one and reports progress via the `on_upload` event.
+
+**Example:**
+
+```python
+# First pick files
+files = await file_picker.pick_files(allow_multiple=True)
+
+# Then upload them
+upload_list = [
+    ft.FilePickerUploadFile(
+        upload_url=f"https://api.example.com/upload/{file.name}",
+        method="PUT",
+        id=file.id
+    )
+    for file in files
+]
+
+await file_picker.upload(upload_list)
+```
+
+## Events
+
+### `on_upload`
+
+Called when a file is uploaded via the `upload()` method.
+
+```python
+file_picker.on_upload = handle_upload
+```
+
+The event handler receives a `FilePickerUploadEvent` with:
+
+- `file_name` (str): The name of the uploaded file
+- `progress` (Optional[float]): A value from 0.0 to 1.0 representing upload progress
+- `error` (Optional[str]): An error message if the upload failed
+
+This callback is invoked at least twice for each uploaded file:
+- Once with `0.0` progress before the upload starts
+- Once with `1.0` progress when the upload completes
+- For files larger than 1 MB, additional progress events are emitted at every 10% increment
+
+**Example:**
+
+```python
+def handle_upload(e: ft.FilePickerUploadEvent):
+    if e.error:
+        print(f"Upload failed: {e.error}")
+    elif e.progress == 1.0:
+        print(f"{e.file_name} uploaded successfully!")
+    else:
+        print(f"{e.file_name}: {e.progress * 100:.0f}%")
+
+file_picker.on_upload = handle_upload
+```
+
+## Data Classes
+
+### `FilePickerFile`
+
+Metadata for a file selected via `pick_files()`.
+
+**Properties:**
+
+- `id` (int): Selection-scoped file identifier assigned by Flet
+- `name` (str): File name (basename), without directory path
+- `size` (int): File size in bytes
+- `path` (Optional[str]): Absolute path to the file (None on web)
+- `bytes` (Optional[bytes]): File contents (only when `with_data=True`)
+
+### `FilePickerUploadFile`
+
+Upload descriptor for one file to be uploaded.
+
+**Properties:**
+
+- `upload_url` (str): Upload destination URL
+- `method` (str): HTTP method (usually `PUT` or `POST`), defaults to `PUT`
+- `id` (Optional[int]): File ID from `FilePickerFile`
+- `name` (Optional[str]): File name as fallback when ID is missing
+
+### `FilePickerFileType`
+
+Enum defining allowed file types:
+
+- `ANY`: Allows any file type
+- `MEDIA`: A combination of `VIDEO` and `IMAGE`
+- `IMAGE`: Allows only image files
+- `VIDEO`: Allows only video files
+- `AUDIO`: Allows only audio files
+- `CUSTOM`: Allows only custom file types specified in `allowed_extensions`
+
+## Complete Example
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    page.title = "FilePicker Demo"
+    
+    selected_files = ft.Text()
+    
+    async def pick_files_clicked(e):
+        files = await file_picker.pick_files(
+            allow_multiple=True,
+            file_type=ft.FilePickerFileType.CUSTOM,
+            allowed_extensions=["txt", "pdf", "png"]
+        )
+        
+        if files:
+            selected_files.value = "\n".join(
+                [f"{f.name} ({f.size} bytes)" for f in files]
+            )
+        else:
+            selected_files.value = "No files selected"
+        await page.update_async()
+    
+    async def save_file_clicked(e):
+        file_path = await file_picker.save_file(
+            file_name="document.txt",
+            file_type=ft.FilePickerFileType.CUSTOM,
+            allowed_extensions=["txt"]
+        )
+        
+        if file_path:
+            selected_files.value = f"Will save to: {file_path}"
+        await page.update_async()
+    
+    async def pick_directory_clicked(e):
+        directory = await file_picker.get_directory_path()
+        
+        if directory:
+            selected_files.value = f"Selected directory: {directory}"
+        await page.update_async()
+    
+    file_picker = ft.FilePicker()
+    page.overlay.append(file_picker)
+    
+    page.add(
+        ft.Row([
+            ft.ElevatedButton("Pick files", on_click=pick_files_clicked),
+            ft.ElevatedButton("Save file", on_click=save_file_clicked),
+            ft.ElevatedButton("Pick directory", on_click=pick_directory_clicked),
+        ]),
+        selected_files,
+    )
+
+ft.app(main)
+```
+
+## Platform Availability
+
+| Method | Android | iOS | macOS | Windows | Linux | Web |
+|--------|---------|-----|-------|---------|-------|-----|
+| `pick_files()` | ✓ | ✓ | ✓ | ✓ | ✓* | ✓ |
+| `save_file()` | ✓ | ✓ | ✓ | ✓ | ✓* | ✓ |
+| `get_directory_path()` | ✓ | ✓ | ✓ | ✓ | ✓* | ✗ |
+| `upload()` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+\* Requires Zenity to be installed

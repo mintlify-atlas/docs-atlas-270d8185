@@ -1,0 +1,374 @@
+---
+title: TextField
+description: Text input control for user data entry
+---
+
+# TextField
+
+A text field lets the user enter text, either with hardware keyboard or with an onscreen keyboard.
+
+## Properties
+
+### Basic Properties
+
+<ParamField path="value" type="str" default="">
+  Current value of the TextField.
+</ParamField>
+
+<ParamField path="label" type="str | Control">
+  Optional text that describes the input field. When the input field is empty and unfocused, the label is displayed on top of the input field. When the input field receives focus (or if the field is non-empty) the label moves above the input field.
+</ParamField>
+
+<ParamField path="hint_text" type="str">
+  Text that suggests what sort of input the field accepts. Displayed on top of the input when it's empty and either the label is None or the input has focus.
+</ParamField>
+
+<ParamField path="helper" type="str | Control">
+  Text that provides context about the input's value, such as how the value will be used. Displayed below the input decorator. If a non-null `error` value is specified then the helper text is not shown.
+</ParamField>
+
+<ParamField path="icon" type="IconData | Icon">
+  The icon to show before the input field and outside of the decoration's container.
+</ParamField>
+
+### Text Configuration
+
+<ParamField path="text_size" type="Number">
+  Text size in virtual pixels.
+</ParamField>
+
+<ParamField path="text_style" type="TextStyle">
+  The TextStyle to use for the text being edited.
+</ParamField>
+
+<ParamField path="text_align" type="TextAlign" default="TextAlign.LEFT">
+  How the text should be aligned horizontally.
+</ParamField>
+
+<ParamField path="text_vertical_align" type="VerticalAlignment | Number" default="VerticalAlignment.CENTER">
+  Defines how the text should be aligned vertically. Value can either be a number ranging from `-1.0` (topmost location) to `1.0` (bottommost location) or of type `VerticalAlignment`.
+</ParamField>
+
+### Input Behavior
+
+<ParamField path="keyboard_type" type="KeyboardType" default="KeyboardType.TEXT">
+  The type of keyboard to use for editing the text. Options include: `TEXT`, `MULTILINE`, `NUMBER`, `PHONE`, `DATETIME`, `EMAIL`, `URL`, `VISIBLE_PASSWORD`, `NAME`, `STREET_ADDRESS`, `WEB_SEARCH`, `TWITTER`.
+</ParamField>
+
+<ParamField path="multiline" type="bool" default="False">
+  Whether this field can contain multiple lines of text.
+</ParamField>
+
+<ParamField path="min_lines" type="int" default="1">
+  The minimum number of lines to occupy when the content spans fewer lines. This affects the height of the field itself and does not limit the number of lines that can be entered.
+  
+  Must be positive and not exceed `max_lines` when both are set.
+</ParamField>
+
+<ParamField path="max_lines" type="int" default="1">
+  The maximum number of lines to show at one time, wrapping if necessary. If this is `1`, the text will not wrap, but will scroll horizontally instead.
+  
+  Must be positive and not less than `min_lines`.
+</ParamField>
+
+<ParamField path="max_length" type="int">
+  Limits a maximum number of characters that can be entered into TextField. Must be either `-1` or a positive integer.
+</ParamField>
+
+<ParamField path="password" type="bool" default="False">
+  Whether to hide the text being edited.
+</ParamField>
+
+<ParamField path="can_reveal_password" type="bool" default="False">
+  Displays a toggle icon button that allows revealing the entered password. Is shown if both `password` and `can_reveal_password` are `True`. The icon is displayed in the same location as `suffix` and in case both are provided, then the `suffix` is not shown.
+</ParamField>
+
+<ParamField path="read_only" type="bool" default="False">
+  Whether the text can be changed. When this is set to `True`, the text cannot be modified by any shortcut or keyboard operation. The text is still selectable.
+</ParamField>
+
+<ParamField path="shift_enter" type="bool" default="False">
+  Changes the behavior of `Enter` button in `multiline` TextField to be chat-like, i.e. new line can be added with `Shift`+`Enter` and pressing just `Enter` fires `on_submit` event.
+</ParamField>
+
+<ParamField path="ignore_up_down_keys" type="bool" default="False">
+  Whether to intercept Arrow-Up and Arrow-Down when this field has focus. When set to `True`, pressing those keys does not move the caret to the beginning or end of the text respectively.
+</ParamField>
+
+### Text Formatting
+
+<ParamField path="capitalization" type="TextCapitalization" default="TextCapitalization.NONE">
+  Enables automatic on-the-fly capitalization of entered text. Options: `CHARACTERS`, `WORDS`, `SENTENCES`, `NONE`.
+</ParamField>
+
+<ParamField path="autocorrect" type="bool" default="True">
+  Whether to enable autocorrection.
+</ParamField>
+
+<ParamField path="enable_suggestions" type="bool" default="True">
+  Whether to show input suggestions as the user types. This flag only affects Android. On iOS, suggestions are tied directly to `autocorrect`.
+</ParamField>
+
+<ParamField path="smart_dashes_type" type="bool" default="True">
+  Whether to allow the platform to automatically format dashes. This flag only affects iOS versions 11 and above.
+</ParamField>
+
+<ParamField path="smart_quotes_type" type="bool" default="True">
+  Whether to allow the platform to automatically format quotes. This flag only affects iOS.
+</ParamField>
+
+### Input Filtering
+
+<ParamField path="input_filter" type="InputFilter">
+  Provides as-you-type filtering/validation. Similar to the `on_change` callback, the input filters are not applied when the content of the field is changed programmatically.
+</ParamField>
+
+### Selection
+
+<ParamField path="selection" type="TextSelection">
+  Represents the current text selection or caret position in the field. Setting this property visually updates the field's selection and triggers the `on_selection_change` event. To ensure the selection is visible and the event is fired, the text field must be focused.
+</ParamField>
+
+### Cursor Styling
+
+<ParamField path="show_cursor" type="bool" default="True">
+  Whether the field's cursor is to be shown.
+</ParamField>
+
+<ParamField path="cursor_color" type="ColorValue">
+  The color of TextField cursor.
+</ParamField>
+
+<ParamField path="cursor_width" type="Number" default="2.0">
+  Sets cursor width.
+</ParamField>
+
+<ParamField path="cursor_height" type="Number">
+  Sets cursor height.
+</ParamField>
+
+<ParamField path="cursor_radius" type="Number">
+  Sets cursor radius.
+</ParamField>
+
+<ParamField path="selection_color" type="ColorValue">
+  The color of TextField selection.
+</ParamField>
+
+### Visual Styling
+
+<ParamField path="color" type="ColorValue">
+  Text color.
+</ParamField>
+
+<ParamField path="bgcolor" type="ColorValue">
+  TextField background color. Will not be visible if `filled` is `False`.
+</ParamField>
+
+<ParamField path="border" type="InputBorder" default="InputBorder.OUTLINE">
+  Border around input. Options: `NONE`, `OUTLINE`, `UNDERLINE`.
+</ParamField>
+
+<ParamField path="border_radius" type="BorderRadiusValue">
+  The border radius of the input decoration.
+</ParamField>
+
+<ParamField path="border_width" type="Number" default="1">
+  The width of the border in virtual pixels. Set to `0` to completely remove the border.
+</ParamField>
+
+<ParamField path="border_color" type="ColorValue">
+  The border color. Set to `Colors.TRANSPARENT` to invisible/hide the border.
+</ParamField>
+
+<ParamField path="focused_color" type="ColorValue">
+  The text's color when focused.
+</ParamField>
+
+<ParamField path="focused_bgcolor" type="ColorValue">
+  Background color in focused state. Will not be visible if `filled` is `False`.
+</ParamField>
+
+<ParamField path="focused_border_width" type="Number">
+  Border width in focused state.
+</ParamField>
+
+<ParamField path="focused_border_color" type="ColorValue">
+  Border color in focused state.
+</ParamField>
+
+<ParamField path="filled" type="bool">
+  If `True` the decoration's container is filled with theme `fill_color`. If `None` (default), it is implicitly set to `True` when at least one color property is not `None`.
+</ParamField>
+
+<ParamField path="fill_color" type="ColorValue">
+  Background color of TextField. Will not be visible if `filled` is `False`.
+</ParamField>
+
+<ParamField path="hover_color" type="ColorValue">
+  Background color of TextField when hovered. Will not be visible if `filled` is `False`.
+</ParamField>
+
+### Decorations
+
+<ParamField path="prefix" type="str | Control">
+  A Control to place on the line before the input. This can be used to add padding or a custom control in front of the input.
+</ParamField>
+
+<ParamField path="prefix_icon" type="IconData | Icon">
+  An icon that appears before the editable part of the text field, within the decoration's container.
+</ParamField>
+
+<ParamField path="suffix" type="str | Control">
+  A Control to place on the line after the input. This can be used to add padding or a custom control after the input.
+</ParamField>
+
+<ParamField path="suffix_icon" type="IconData | Icon">
+  An icon that appears after the editable part of the text field and after the `suffix`, within the decoration's container.
+</ParamField>
+
+<ParamField path="counter" type="str | Control">
+  A Control to place below the line as a character count. If `None` or an empty string then nothing will appear in the counter's location.
+</ParamField>
+
+<ParamField path="error" type="str | Control">
+  Text that appears below the input border. If non-null, the border's color animates to red and the `helper` is not shown.
+</ParamField>
+
+### Padding and Layout
+
+<ParamField path="content_padding" type="PaddingValue">
+  The padding for the input decoration's container.
+</ParamField>
+
+<ParamField path="dense" type="bool">
+  Whether this control is part of a dense form (i.e., uses less vertical space).
+</ParamField>
+
+### Other Properties
+
+<ParamField path="autofocus" type="bool" default="False">
+  True if the control will be selected as the initial focus. If there is more than one control on a page with autofocus set, then the first one added to the page will get focus.
+</ParamField>
+
+<ParamField path="autofill_hints" type="AutofillHint | list[AutofillHint]">
+  Helps the autofill service identify the type of this text input.
+</ParamField>
+
+<ParamField path="clip_behavior" type="ClipBehavior" default="ClipBehavior.HARD_EDGE">
+  Defines how the content is clipped.
+</ParamField>
+
+<ParamField path="mouse_cursor" type="MouseCursor">
+  The mouse cursor to use when hovering over this control.
+</ParamField>
+
+## Events
+
+<ParamField path="on_change" type="ControlEventHandler">
+  Called when the typed input for the TextField has changed.
+</ParamField>
+
+<ParamField path="on_selection_change" type="EventHandler[TextSelectionChangeEvent]">
+  Called when the text selection or caret position changes. This can be triggered either by user interaction or programmatically through the `selection` property.
+</ParamField>
+
+<ParamField path="on_submit" type="ControlEventHandler">
+  Called when user presses ENTER while focus is on TextField.
+</ParamField>
+
+<ParamField path="on_focus" type="ControlEventHandler">
+  Called when the control has received focus.
+</ParamField>
+
+<ParamField path="on_blur" type="ControlEventHandler">
+  Called when the control has lost focus.
+</ParamField>
+
+## Methods
+
+<ParamField path="focus()" type="async">
+  Request focus for this control.
+  
+  Example:
+  ```python
+  async def main(page: ft.Page):
+      page.add(ctf := ft.TextField())
+      await ctf.focus()
+  ```
+</ParamField>
+
+## Helper Classes
+
+### InputFilter
+
+An input filter that uses a regular expression to allow or deny certain patterns in the input.
+
+**Properties:**
+- `regex_string` (str): A regular expression pattern for the filter. Recommended to use raw strings (e.g., `r"pattern"`).
+- `allow` (bool): Whether to allow or deny/block the matched patterns. Default: `True`.
+- `replacement_string` (str): A string used to replace banned/denied patterns. Default: empty string.
+- `multiline` (bool): Whether the regexp matches multiple lines. Default: `False`.
+- `case_sensitive` (bool): Whether the regular expression is case sensitive. Default: `True`.
+- `unicode` (bool): Whether the regular expression uses Unicode mode. Default: `False`.
+- `dot_all` (bool): Whether `"."` matches line terminators. Default: `False`.
+
+### NumbersOnlyInputFilter
+
+A pre-configured filter that allows only numbers.
+
+```python
+ft.TextField(input_filter=ft.NumbersOnlyInputFilter())
+```
+
+### TextOnlyInputFilter
+
+A pre-configured filter that allows only text (letters).
+
+```python
+ft.TextField(input_filter=ft.TextOnlyInputFilter())
+```
+
+## Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def on_text_change(e):
+        print(f"Text changed: {e.control.value}")
+    
+    def on_submit(e):
+        print(f"Submitted: {e.control.value}")
+    
+    page.add(
+        ft.TextField(
+            label="Name",
+            hint_text="Jane Doe",
+            on_change=on_text_change,
+            on_submit=on_submit
+        ),
+        ft.TextField(
+            label="Password",
+            password=True,
+            can_reveal_password=True
+        ),
+        ft.TextField(
+            label="Multiline",
+            multiline=True,
+            min_lines=3,
+            max_lines=5
+        ),
+        ft.TextField(
+            label="Email",
+            keyboard_type=ft.KeyboardType.EMAIL,
+            autofill_hints=ft.AutofillHint.EMAIL
+        ),
+        ft.TextField(
+            label="Numbers only",
+            input_filter=ft.NumbersOnlyInputFilter()
+        )
+    )
+
+ft.app(target=main)
+```

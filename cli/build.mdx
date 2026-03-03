@@ -1,0 +1,732 @@
+---
+title: flet build
+description: Build Flet applications into platform-specific executables and packages.
+---
+
+The `flet build` command compiles your Flet Python app into a platform-specific executable or installable bundle. It supports building for desktop (macOS, Linux, Windows), web, Android (APK/AAB), and iOS (IPA).
+
+## Basic Usage
+
+```bash
+flet build <target_platform> [python_app_path] [options]
+```
+
+## Target Platforms
+
+The following target platforms are available:
+
+<ParamField path="target_platform" type="enum" required>
+  The platform or package type to build:
+  
+  - `macos` - macOS application bundle (.app)
+  - `linux` - Linux executable bundle
+  - `windows` - Windows executable
+  - `web` - Progressive Web App (PWA)
+  - `apk` - Android application package
+  - `aab` - Android App Bundle (for Play Store)
+  - `ipa` - iOS application archive
+  - `ios-simulator` - iOS app for simulator testing
+</ParamField>
+
+## Build Platform Matrix
+
+Not all platforms can be built from every operating system:
+
+| Command | Can be run on |
+|---------|---------------|
+| `flet build macos` | macOS only |
+| `flet build linux` | Linux only |
+| `flet build windows` | Windows only |
+| `flet build web` | macOS, Windows, Linux |
+| `flet build apk` | macOS, Windows, Linux |
+| `flet build aab` | macOS, Windows, Linux |
+| `flet build ipa` | macOS only |
+| `flet build ios-simulator` | macOS only |
+
+## Examples
+
+### Build for macOS
+
+```bash
+flet build macos
+```
+
+Creates a `.app` bundle in `build/macos/`.
+
+### Build for Windows
+
+```bash
+flet build windows
+```
+
+Creates an executable in `build/windows/`.
+
+### Build Web App
+
+```bash
+flet build web
+```
+
+Generates a static web app in `build/web/`.
+
+### Build Android APK
+
+```bash
+flet build apk
+```
+
+Creates an APK in `build/apk/`.
+
+### Build iOS App
+
+```bash
+flet build ipa --ios-team-id XXXXXXXXXX
+```
+
+Builds a signed IPA for distribution.
+
+### Build for Multiple Architectures
+
+```bash
+flet build macos --arch universal
+flet build apk --arch arm64-v8a armeabi-v7a
+```
+
+## Arguments
+
+<ParamField path="python_app_path" type="string" default=".">
+  Path to a directory with a Flet Python program. If omitted, uses the current directory.
+
+  ```bash
+  flet build macos ./src
+  ```
+</ParamField>
+
+## Common Options
+
+### Output Directory
+
+<ParamField path="-o, --output" type="string">
+  Output directory for the final executable/bundle.
+
+  Default: `<python_app_path>/build/<target_platform>`
+
+  ```bash
+  flet build web --output dist/web
+  ```
+</ParamField>
+
+### Project Metadata
+
+<ParamField path="--project" type="string">
+  Project name for bundle IDs and identifiers. Used as the default for artifact and product names.
+
+  ```bash
+  flet build apk --project my-app
+  ```
+
+  Falls back to `project.name` in `pyproject.toml`.
+</ParamField>
+
+<ParamField path="--product" type="string">
+  Display name shown in app launchers, window titles, and about dialogs.
+
+  ```bash
+  flet build macos --product "My Awesome App"
+  ```
+
+  Falls back to `tool.flet.product` in `pyproject.toml`.
+</ParamField>
+
+<ParamField path="--description" type="string">
+  Short description of the application.
+
+  ```bash
+  flet build web --description "A productivity tool"
+  ```
+
+  Falls back to `project.description` in `pyproject.toml`.
+</ParamField>
+
+<ParamField path="--org" type="string">
+  Organization name in reverse domain notation (e.g., `com.mycompany`).
+
+  ```bash
+  flet build apk --org com.example
+  ```
+
+  Used in bundle IDs: `com.example.my-app`
+</ParamField>
+
+<ParamField path="--company" type="string">
+  Company name to display in about app dialogs.
+
+  ```bash
+  flet build windows --company "ACME Corporation"
+  ```
+</ParamField>
+
+### Versioning
+
+<ParamField path="--build-number" type="integer">
+  Build number - an identifier used as an internal version number.
+
+  ```bash
+  flet build apk --build-number 42
+  ```
+
+  On Android, this becomes `versionCode`. On iOS, `CFBundleVersion`.
+
+  Falls back to `tool.flet.build_number` in `pyproject.toml`.
+</ParamField>
+
+<ParamField path="--build-version" type="string">
+  Build version - a `x.y.z` string used as the version number shown to users.
+
+  ```bash
+  flet build apk --build-version 1.2.3
+  ```
+
+  Falls back to `project.version` or `tool.poetry.version` in `pyproject.toml`.
+</ParamField>
+
+### Architecture
+
+<ParamField path="--arch" type="string[]">
+  Build for specific CPU architectures. Can be specified multiple times.
+
+  **macOS**:
+  - `x64` - Intel 64-bit
+  - `arm64` - Apple Silicon
+  - `universal` - Universal binary (both architectures)
+
+  **Android**:
+  - `arm64-v8a` - 64-bit ARM
+  - `armeabi-v7a` - 32-bit ARM
+  - `x86_64` - 64-bit Intel/AMD
+
+  ```bash
+  flet build macos --arch universal
+  flet build apk --arch arm64-v8a armeabi-v7a
+  ```
+</ParamField>
+
+## Platform-Specific Options
+
+### Android Options
+
+<ParamField path="--split-per-abi" type="flag">
+  Split the APKs per ABI (Application Binary Interface).
+
+  ```bash
+  flet build apk --split-per-abi
+  ```
+
+  Creates separate APK files for each architecture, reducing download size.
+</ParamField>
+
+<ParamField path="--android-adaptive-icon-background" type="string">
+  Background color for Android adaptive icons.
+
+  ```bash
+  flet build apk --android-adaptive-icon-background "#FF5722"
+  ```
+</ParamField>
+
+<ParamField path="--android-permissions" type="string[]">
+  Permissions to add to `AndroidManifest.xml`.
+
+  ```bash
+  flet build apk --android-permissions android.permission.CAMERA=True
+  ```
+
+  Format: `<permission_name>=True|False`
+</ParamField>
+
+<ParamField path="--android-features" type="string[]">
+  Features to add to `AndroidManifest.xml`.
+
+  ```bash
+  flet build apk --android-features android.hardware.camera=True
+  ```
+
+  Format: `<feature_name>=True|False`
+</ParamField>
+
+#### Android Signing
+
+<ParamField path="--android-signing-key-store" type="string">
+  Path to an upload keystore `.jks` file.
+
+  ```bash
+  flet build apk --android-signing-key-store upload-keystore.jks
+  ```
+
+  Can also be set via `FLET_ANDROID_SIGNING_KEY_STORE` environment variable.
+</ParamField>
+
+<ParamField path="--android-signing-key-store-password" type="string">
+  Android signing store password.
+
+  ```bash
+  flet build apk --android-signing-key-store-password mypassword
+  ```
+
+  Can also be set via `FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD` environment variable.
+</ParamField>
+
+<ParamField path="--android-signing-key-password" type="string">
+  Android signing key password.
+
+  Can also be set via `FLET_ANDROID_SIGNING_KEY_PASSWORD` environment variable.
+</ParamField>
+
+<ParamField path="--android-signing-key-alias" type="string">
+  Android signing key alias.
+
+  Can also be set via `FLET_ANDROID_SIGNING_KEY_ALIAS` environment variable.
+</ParamField>
+
+### iOS Options
+
+<ParamField path="--ios-team-id" type="string">
+  Apple Developer Team ID for signing iOS app bundle.
+
+  ```bash
+  flet build ipa --ios-team-id XXXXXXXXXX
+  ```
+
+  Required for building `.ipa` files.
+</ParamField>
+
+<ParamField path="--ios-provisioning-profile" type="string">
+  Provisioning profile name or UUID for signing and exporting iOS app bundle.
+
+  ```bash
+  flet build ipa --ios-provisioning-profile "My App Profile"
+  ```
+</ParamField>
+
+<ParamField path="--ios-export-method" type="string">
+  Export method for iOS app bundle.
+
+  Options: `app-store`, `ad-hoc`, `enterprise`, `development`
+
+  Default: `development`
+
+  ```bash
+  flet build ipa --ios-export-method app-store
+  ```
+</ParamField>
+
+<ParamField path="--ios-signing-certificate" type="string">
+  Signing certificate name, SHA-1 hash, or automatic selector.
+
+  ```bash
+  flet build ipa --ios-signing-certificate "iPhone Distribution"
+  ```
+</ParamField>
+
+### Web Options
+
+<ParamField path="--base-url" type="string">
+  Base URL from which the app is served.
+
+  ```bash
+  flet build web --base-url /my-app/
+  ```
+
+  Useful if hosting in a subdirectory.
+
+  Falls back to `tool.flet.web.base_url` in `pyproject.toml`.
+</ParamField>
+
+<ParamField path="--web-renderer" type="enum">
+  Flutter web renderer to use.
+
+  Options: `auto`, `canvaskit`, `skwasm`
+
+  Default: `auto`
+
+  ```bash
+  flet build web --web-renderer canvaskit
+  ```
+
+  - `auto` - Automatically choose based on device
+  - `canvaskit` - WebAssembly-based renderer (best compatibility)
+  - `skwasm` - Experimental WASM renderer (better performance)
+
+  Can also be set via `FLET_WEB_RENDERER` environment variable.
+</ParamField>
+
+<ParamField path="--route-url-strategy" type="enum">
+  Controls how routes are handled in the browser.
+
+  Options: `path`, `hash`
+
+  Default: `path`
+
+  ```bash
+  flet build web --route-url-strategy hash
+  ```
+
+  - `path` - Uses HTML5 history API (`/about`)
+  - `hash` - Uses URL fragments (`/#/about`)
+
+  Can also be set via `FLET_WEB_ROUTE_URL_STRATEGY` environment variable.
+</ParamField>
+
+<ParamField path="--pwa-background-color" type="string">
+  Initial background color for your web app during loading.
+
+  ```bash
+  flet build web --pwa-background-color "#ffffff"
+  ```
+
+  Falls back to `tool.flet.web.pwa_background_color` in `pyproject.toml`.
+</ParamField>
+
+<ParamField path="--pwa-theme-color" type="string">
+  Default color for your web app's user interface (browser UI).
+
+  ```bash
+  flet build web --pwa-theme-color "#2196F3"
+  ```
+
+  Falls back to `tool.flet.web.pwa_theme_color` in `pyproject.toml`.
+</ParamField>
+
+<ParamField path="--no-cdn" type="flag">
+  Disable loading of CanvasKit, Pyodide, and fonts from CDN.
+
+  ```bash
+  flet build web --no-cdn
+  ```
+
+  Use for offline deployments or air-gapped environments.
+
+  Can also be set via `FLET_WEB_NO_CDN` environment variable.
+</ParamField>
+
+<ParamField path="--no-wasm" type="flag">
+  Disable WASM target for web build.
+
+  ```bash
+  flet build web --no-wasm
+  ```
+</ParamField>
+
+### macOS/iOS Options
+
+<ParamField path="--info-plist" type="string[]">
+  Key-value pairs to add to `Info.plist`.
+
+  ```bash
+  flet build macos --info-plist NSCameraUsageDescription="This app uses the camera"
+  ```
+
+  Format: `<key>=<value>|True|False`
+</ParamField>
+
+<ParamField path="--macos-entitlements" type="string[]">
+  Entitlements for macOS builds.
+
+  ```bash
+  flet build macos --macos-entitlements com.apple.security.device.camera=True
+  ```
+
+  Format: `<key>=<value>|True|False`
+</ParamField>
+
+## Advanced Options
+
+### Bundle ID
+
+<ParamField path="--bundle-id" type="string">
+  Bundle ID for the application (e.g., `com.mycompany.app-name`).
+
+  ```bash
+  flet build apk --bundle-id com.example.myapp
+  ```
+
+  Used for iOS, Android, macOS, and Linux.
+</ParamField>
+
+### Splash Screen
+
+<ParamField path="--splash-color" type="string">
+  Background color of app splash screen.
+
+  ```bash
+  flet build apk --splash-color "#2196F3"
+  ```
+</ParamField>
+
+<ParamField path="--splash-dark-color" type="string">
+  Background color in dark mode.
+
+  ```bash
+  flet build apk --splash-dark-color "#1976D2"
+  ```
+</ParamField>
+
+<ParamField path="--no-web-splash" type="flag">
+  Disable splash screen on web platform.
+</ParamField>
+
+<ParamField path="--no-ios-splash" type="flag">
+  Disable splash screen on iOS platform.
+</ParamField>
+
+<ParamField path="--no-android-splash" type="flag">
+  Disable splash screen on Android platform.
+</ParamField>
+
+### Permissions
+
+<ParamField path="--permissions" type="enum[]">
+  Pre-defined cross-platform permissions.
+
+  Options: `location`, `camera`, `microphone`, `photo_library`
+
+  ```bash
+  flet build apk --permissions camera location
+  ```
+
+  Automatically adds platform-specific permission declarations.
+</ParamField>
+
+### Deep Linking
+
+<ParamField path="--deep-linking-scheme" type="string">
+  Deep linking URL scheme (e.g., `https` or `myapp`).
+
+  ```bash
+  flet build apk --deep-linking-scheme myapp
+  ```
+</ParamField>
+
+<ParamField path="--deep-linking-host" type="string">
+  Deep linking URL host.
+
+  ```bash
+  flet build apk --deep-linking-host example.com
+  ```
+</ParamField>
+
+### Python Compilation
+
+<ParamField path="--compile-app" type="flag">
+  Pre-compile app's `.py` files to `.pyc`.
+
+  ```bash
+  flet build apk --compile-app
+  ```
+
+  Slightly improves startup time.
+</ParamField>
+
+<ParamField path="--compile-packages" type="flag">
+  Pre-compile site packages' `.py` files to `.pyc`.
+
+  ```bash
+  flet build apk --compile-packages
+  ```
+</ParamField>
+
+### Cleanup Options
+
+<ParamField path="--cleanup-app" type="flag">
+  Remove unnecessary app files upon packaging.
+
+  ```bash
+  flet build windows --cleanup-app
+  ```
+</ParamField>
+
+<ParamField path="--cleanup-packages" type="flag">
+  Remove unnecessary package files upon packaging.
+
+  ```bash
+  flet build windows --cleanup-packages
+  ```
+</ParamField>
+
+<ParamField path="--exclude" type="string[]">
+  Files and/or directories to exclude from the package.
+
+  ```bash
+  flet build web --exclude tests docs *.md
+  ```
+</ParamField>
+
+### Flutter Options
+
+<ParamField path="--flutter-build-args" type="string[]">
+  Additional arguments for the `flutter build` command.
+
+  ```bash
+  flet build apk --flutter-build-args --dart-define=API_KEY=abc123
+  ```
+</ParamField>
+
+### Build Cache
+
+<ParamField path="--clear-cache" type="flag">
+  Remove any existing build cache before starting the build process.
+
+  ```bash
+  flet build macos --clear-cache
+  ```
+
+  Useful when builds are failing due to cached state.
+</ParamField>
+
+## Configuration File
+
+Many build options can be set in `pyproject.toml`:
+
+```toml
+[project]
+name = "my-app"
+version = "1.0.0"
+description = "My awesome Flet app"
+
+[tool.flet]
+product = "My Awesome App"
+org_name = "com.example"
+company = "Example Corp"
+copyright = "Copyright (c) 2024 Example Corp"
+
+[tool.flet.build]
+build_number = 1
+
+[tool.flet.web]
+renderer = "canvaskit"
+route_url_strategy = "path"
+base_url = "/"
+pwa_background_color = "#ffffff"
+pwa_theme_color = "#2196F3"
+
+[tool.flet.android]
+permissions = ["camera", "location"]
+
+[tool.flet.ios]
+team_id = "XXXXXXXXXX"
+
+[tool.flet.macos]
+entitlements = { "com.apple.security.device.camera" = true }
+```
+
+Command-line arguments override `pyproject.toml` settings.
+
+## Build Output
+
+Build artifacts are placed in:
+
+```
+build/
+├── macos/
+│   └── Build/Products/Release/MyApp.app
+├── windows/
+│   └── x64/runner/Release/
+├── linux/
+│   └── x64/release/bundle/
+├── web/
+│   ├── index.html
+│   └── ...
+├── apk/
+│   └── app-release.apk
+├── aab/
+│   └── app-release.aab
+└── ipa/
+    └── MyApp.ipa
+```
+
+## Example Workflows
+
+### Build Desktop App with Custom Icon
+
+```bash
+flet build macos \
+  --product "My App" \
+  --org com.example \
+  --build-version 1.2.3 \
+  --build-number 42
+```
+
+### Build Signed Android APK
+
+```bash
+flet build apk \
+  --build-version 1.0.0 \
+  --build-number 1 \
+  --android-signing-key-store release.jks \
+  --android-signing-key-alias upload \
+  --android-permissions camera location
+```
+
+### Build Web App for GitHub Pages
+
+```bash
+flet build web \
+  --base-url /my-repo/ \
+  --web-renderer canvaskit \
+  --route-url-strategy hash
+```
+
+### Build iOS App for App Store
+
+```bash
+flet build ipa \
+  --ios-team-id XXXXXXXXXX \
+  --ios-export-method app-store \
+  --build-version 1.0.0 \
+  --build-number 1
+```
+
+## Troubleshooting
+
+### Build Fails with Cache Errors
+
+```bash
+flet build macos --clear-cache
+```
+
+### iOS Build Fails Without Team ID
+
+For `.ipa` builds, you must provide `--ios-team-id`:
+
+```bash
+flet build ipa --ios-team-id XXXXXXXXXX
+```
+
+### Android Build Not Signed
+
+Provide signing credentials:
+
+```bash
+export FLET_ANDROID_SIGNING_KEY_STORE=release.jks
+export FLET_ANDROID_SIGNING_KEY_STORE_PASSWORD=storepass
+export FLET_ANDROID_SIGNING_KEY_PASSWORD=keypass
+export FLET_ANDROID_SIGNING_KEY_ALIAS=upload
+
+flet build apk
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Publish Command" icon="cloud-arrow-up" href="/cli/publish">
+    Deploy web apps
+  </Card>
+  <Card title="Pack Command" icon="box" href="/cli/pack">
+    PyInstaller packaging
+  </Card>
+  <Card title="Distribution Guide" icon="share-nodes" href="/guides/python/packaging">
+    Learn about app distribution
+  </Card>
+  <Card title="Icons & Splash" icon="image" href="/guides/python/icons-splash">
+    Customize app appearance
+  </Card>
+</CardGroup>

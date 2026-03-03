@@ -1,0 +1,595 @@
+---
+title: Dialog and Overlay Controls
+description: Modal dialogs, bottom sheets, and overlay components in Flet
+---
+
+Dialogs and overlays provide a way to display important information, request user decisions, or show temporary content without navigating away from the current view.
+
+## Dialog Types
+
+<CardGroup cols={2}>
+  <Card title="AlertDialog" icon="message-exclamation">
+    Modal dialog for important messages and decisions
+  </Card>
+  <Card title="BottomSheet" icon="window-restore">
+    Sheet that slides up from the bottom
+  </Card>
+  <Card title="SnackBar" icon="comment">
+    Brief message at the bottom of the screen
+  </Card>
+  <Card title="Banner" icon="bullhorn">
+    Persistent message at the top of the screen
+  </Card>
+</CardGroup>
+
+## AlertDialog
+
+Material Design alert dialog for critical information and user decisions.
+
+### Basic AlertDialog
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def close_dialog(e):
+        dialog.open = False
+        page.update()
+    
+    def show_dialog(e):
+        dialog.open = True
+        page.update()
+    
+    dialog = ft.AlertDialog(
+        title=ft.Text("Confirm Action"),
+        content=ft.Text("Are you sure you want to delete this item?"),
+        actions=[
+            ft.TextButton("Cancel", on_click=close_dialog),
+            ft.TextButton("Delete", on_click=close_dialog),
+        ],
+        actions_alignment=ft.MainAxisAlignment.END,
+    )
+    
+    page.overlay.append(dialog)
+    
+    page.add(
+        ft.ElevatedButton("Show Dialog", on_click=show_dialog)
+    )
+
+ft.app(target=main)
+```
+
+### Dialog with Form
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def close_dialog(e):
+        dialog.open = False
+        page.update()
+    
+    def save_settings(e):
+        print(f"Name: {name_field.value}")
+        print(f"Email: {email_field.value}")
+        close_dialog(e)
+    
+    name_field = ft.TextField(label="Name")
+    email_field = ft.TextField(label="Email")
+    
+    dialog = ft.AlertDialog(
+        title=ft.Text("User Settings"),
+        content=ft.Column([
+            name_field,
+            email_field,
+        ], tight=True),
+        actions=[
+            ft.TextButton("Cancel", on_click=close_dialog),
+            ft.TextButton("Save", on_click=save_settings),
+        ],
+    )
+    
+    page.overlay.append(dialog)
+    
+    page.add(
+        ft.ElevatedButton(
+            "Edit Settings",
+            on_click=lambda e: (setattr(dialog, 'open', True), page.update())
+        )
+    )
+
+ft.app(target=main)
+```
+
+## CupertinoAlertDialog
+
+iOS-style alert dialog with distinctive styling.
+
+### Basic Cupertino Dialog
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def close_dialog(e):
+        dialog.open = False
+        page.update()
+    
+    dialog = ft.CupertinoAlertDialog(
+        title=ft.Text("Delete Photo"),
+        content=ft.Text("This photo will be permanently deleted."),
+        actions=[
+            ft.CupertinoDialogAction(
+                text="Cancel",
+                on_click=close_dialog,
+            ),
+            ft.CupertinoDialogAction(
+                text="Delete",
+                is_destructive_action=True,
+                on_click=close_dialog,
+            ),
+        ],
+    )
+    
+    page.overlay.append(dialog)
+    
+    page.add(
+        ft.CupertinoButton(
+            content=ft.Text("Delete Photo"),
+            on_click=lambda e: (setattr(dialog, 'open', True), page.update())
+        )
+    )
+
+ft.app(target=main)
+```
+
+## ActionSheet
+
+Display a list of actions in a bottom sheet.
+
+### Material Bottom Sheet
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def close_sheet(e):
+        sheet.open = False
+        page.update()
+    
+    def action_clicked(action_name):
+        print(f"Action: {action_name}")
+        close_sheet(None)
+    
+    sheet = ft.BottomSheet(
+        content=ft.Container(
+            content=ft.Column([
+                ft.Text("Choose an action", size=20, weight=ft.FontWeight.BOLD),
+                ft.Divider(),
+                ft.ListTile(
+                    leading=ft.Icon(ft.Icons.SHARE),
+                    title=ft.Text("Share"),
+                    on_click=lambda e: action_clicked("Share"),
+                ),
+                ft.ListTile(
+                    leading=ft.Icon(ft.Icons.COPY),
+                    title=ft.Text("Copy"),
+                    on_click=lambda e: action_clicked("Copy"),
+                ),
+                ft.ListTile(
+                    leading=ft.Icon(ft.Icons.DELETE),
+                    title=ft.Text("Delete"),
+                    on_click=lambda e: action_clicked("Delete"),
+                ),
+            ]),
+            padding=20,
+        ),
+    )
+    
+    page.overlay.append(sheet)
+    
+    page.add(
+        ft.ElevatedButton(
+            "Show Actions",
+            on_click=lambda e: (setattr(sheet, 'open', True), page.update())
+        )
+    )
+
+ft.app(target=main)
+```
+
+### Cupertino ActionSheet
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def close_sheet(e):
+        sheet.open = False
+        page.update()
+    
+    sheet = ft.CupertinoActionSheet(
+        title=ft.Text("Choose an action"),
+        message=ft.Text("Select one of the options below"),
+        actions=[
+            ft.CupertinoActionSheetAction(
+                content=ft.Text("Share"),
+                on_click=lambda e: print("Share"),
+            ),
+            ft.CupertinoActionSheetAction(
+                content=ft.Text("Copy"),
+                on_click=lambda e: print("Copy"),
+            ),
+            ft.CupertinoActionSheetAction(
+                content=ft.Text("Delete"),
+                is_destructive_action=True,
+                on_click=lambda e: print("Delete"),
+            ),
+        ],
+        cancel=ft.CupertinoActionSheetAction(
+            content=ft.Text("Cancel"),
+            on_click=close_sheet,
+        ),
+    )
+    
+    page.overlay.append(sheet)
+    
+    page.add(
+        ft.CupertinoButton(
+            content=ft.Text("Show Action Sheet"),
+            on_click=lambda e: (setattr(sheet, 'open', True), page.update())
+        )
+    )
+
+ft.app(target=main)
+```
+
+## SnackBar
+
+Brief messages that appear at the bottom of the screen.
+
+### Basic SnackBar
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def show_snackbar(e):
+        page.snack_bar = ft.SnackBar(
+            content=ft.Text("File saved successfully!"),
+            action="Undo",
+        )
+        page.snack_bar.open = True
+        page.update()
+    
+    page.add(
+        ft.ElevatedButton("Save File", on_click=show_snackbar)
+    )
+
+ft.app(target=main)
+```
+
+### SnackBar with Action
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def undo_action(e):
+        print("Undo clicked")
+        page.snack_bar.open = False
+        page.update()
+    
+    def delete_item(e):
+        page.snack_bar = ft.SnackBar(
+            content=ft.Text("Item deleted"),
+            action="Undo",
+            action_color=ft.Colors.AMBER,
+            on_action=undo_action,
+        )
+        page.snack_bar.open = True
+        page.update()
+    
+    page.add(
+        ft.ElevatedButton("Delete", on_click=delete_item)
+    )
+
+ft.app(target=main)
+```
+
+### Custom SnackBar
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def show_error(e):
+        page.snack_bar = ft.SnackBar(
+            content=ft.Row([
+                ft.Icon(ft.Icons.ERROR, color=ft.Colors.WHITE),
+                ft.Text("An error occurred!", color=ft.Colors.WHITE),
+            ]),
+            bgcolor=ft.Colors.RED_700,
+            duration=3000,
+        )
+        page.snack_bar.open = True
+        page.update()
+    
+    page.add(
+        ft.ElevatedButton("Trigger Error", on_click=show_error)
+    )
+
+ft.app(target=main)
+```
+
+## Banner
+
+Persistent message at the top of the screen.
+
+### Basic Banner
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def close_banner(e):
+        page.banner.open = False
+        page.update()
+    
+    def show_banner(e):
+        page.banner = ft.Banner(
+            leading=ft.Icon(ft.Icons.WARNING, color=ft.Colors.AMBER, size=40),
+            content=ft.Text(
+                "You are offline. Some features may be unavailable."
+            ),
+            actions=[
+                ft.TextButton("Retry", on_click=close_banner),
+                ft.TextButton("Dismiss", on_click=close_banner),
+            ],
+        )
+        page.banner.open = True
+        page.update()
+    
+    page.add(
+        ft.ElevatedButton("Show Banner", on_click=show_banner)
+    )
+
+ft.app(target=main)
+```
+
+## PopupMenuButton
+
+Context menu that appears on button press.
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def menu_item_clicked(e):
+        print(f"Selected: {e.control.text}")
+        page.snack_bar = ft.SnackBar(
+            content=ft.Text(f"Selected: {e.control.text}")
+        )
+        page.snack_bar.open = True
+        page.update()
+    
+    page.add(
+        ft.PopupMenuButton(
+            items=[
+                ft.PopupMenuItem(
+                    text="Settings",
+                    icon=ft.Icons.SETTINGS,
+                    on_click=menu_item_clicked,
+                ),
+                ft.PopupMenuItem(
+                    text="Profile",
+                    icon=ft.Icons.PERSON,
+                    on_click=menu_item_clicked,
+                ),
+                ft.PopupMenuItem(),  # Divider
+                ft.PopupMenuItem(
+                    text="Logout",
+                    icon=ft.Icons.LOGOUT,
+                    on_click=menu_item_clicked,
+                ),
+            ],
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Tooltip
+
+Simple informational popup on hover.
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.Tooltip(
+            message="Click to add a new item",
+            content=ft.IconButton(
+                icon=ft.Icons.ADD,
+                on_click=lambda e: print("Add clicked"),
+            ),
+        ),
+        ft.IconButton(
+            icon=ft.Icons.INFO,
+            tooltip="More information",  # Built-in tooltip
+        ),
+    )
+
+ft.app(target=main)
+```
+
+## Dialog Best Practices
+
+### Use Appropriate Dialog Types
+
+<Tabs>
+  <Tab title="Critical Actions">
+    ```python
+    # Use AlertDialog for important decisions
+    ft.AlertDialog(
+        title=ft.Text("Delete Account"),
+        content=ft.Text(
+            "This action cannot be undone. "
+            "All your data will be permanently deleted."
+        ),
+        actions=[
+            ft.TextButton("Cancel"),
+            ft.TextButton("Delete", style=ft.ButtonStyle(
+                color=ft.Colors.RED
+            )),
+        ],
+    )
+    ```
+  </Tab>
+  <Tab title="Quick Actions">
+    ```python
+    # Use ActionSheet for multiple options
+    ft.CupertinoActionSheet(
+        title=ft.Text("Share Photo"),
+        actions=[
+            ft.CupertinoActionSheetAction(
+                content=ft.Text("Message"),
+            ),
+            ft.CupertinoActionSheetAction(
+                content=ft.Text("Email"),
+            ),
+        ],
+    )
+    ```
+  </Tab>
+  <Tab title="Brief Feedback">
+    ```python
+    # Use SnackBar for non-critical feedback
+    ft.SnackBar(
+        content=ft.Text("Changes saved"),
+        duration=2000,
+    )
+    ```
+  </Tab>
+</Tabs>
+
+### Keep Content Concise
+
+```python
+# Good: Clear and concise
+ft.AlertDialog(
+    title=ft.Text("Save Changes?"),
+    content=ft.Text("You have unsaved changes."),
+    actions=[ft.TextButton("Discard"), ft.TextButton("Save")],
+)
+
+# Avoid: Too much text
+ft.AlertDialog(
+    title=ft.Text("Would you like to save your changes?"),
+    content=ft.Text(
+        "You have made changes to this document. "
+        "If you proceed without saving, all your changes will be lost. "
+        "Are you absolutely certain you want to continue?"
+    ),
+)
+```
+
+### Provide Clear Actions
+
+```python
+# Good: Clear action labels
+ft.AlertDialog(
+    title=ft.Text("Delete File"),
+    actions=[
+        ft.TextButton("Cancel"),
+        ft.TextButton("Delete"),
+    ],
+)
+
+# Avoid: Ambiguous labels
+ft.AlertDialog(
+    title=ft.Text("Delete File"),
+    actions=[
+        ft.TextButton("No"),
+        ft.TextButton("Yes"),
+    ],
+)
+```
+
+### Handle Dismissal
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def on_dialog_dismiss(e):
+        print("Dialog dismissed without action")
+    
+    dialog = ft.AlertDialog(
+        title=ft.Text("Confirm"),
+        content=ft.Text("Continue?"),
+        modal=True,  # Prevent background interaction
+        on_dismiss=on_dialog_dismiss,
+        actions=[
+            ft.TextButton("Cancel"),
+            ft.TextButton("OK"),
+        ],
+    )
+
+ft.app(target=main)
+```
+
+## Comparing Material vs Cupertino
+
+<Tabs>
+  <Tab title="Material">
+    ```python
+    import flet as ft
+    
+    # Material AlertDialog
+    ft.AlertDialog(
+        title=ft.Text("Confirm"),
+        content=ft.Text("Delete this item?"),
+        actions=[
+            ft.TextButton("Cancel"),
+            ft.TextButton("Delete"),
+        ],
+    )
+    ```
+  </Tab>
+  <Tab title="Cupertino">
+    ```python
+    import flet as ft
+    
+    # Cupertino AlertDialog
+    ft.CupertinoAlertDialog(
+        title=ft.Text("Confirm"),
+        content=ft.Text("Delete this item?"),
+        actions=[
+            ft.CupertinoDialogAction(text="Cancel"),
+            ft.CupertinoDialogAction(
+                text="Delete",
+                is_destructive_action=True,
+            ),
+        ],
+    )
+    ```
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+- Learn about [Input Controls](/controls/input) for dialog forms
+- Explore [Navigation Controls](/controls/navigation) for view transitions
+- Check [Material Controls](/controls/material) for more overlay options
+
+## API Reference
+
+Detailed documentation:
+- [AlertDialog API](/api/material/dialog)
+- [BottomSheet API](/api/material/dialog)
+- [SnackBar API](/api/material/dialog)
+- [Banner API](/api/material/dialog)
+- [CupertinoAlertDialog API](/api/cupertino/alert-dialog)
+- [CupertinoActionSheet API](/api/cupertino/alert-dialog)

@@ -1,0 +1,616 @@
+---
+title: Input Controls
+description: Controls for collecting user input in Flet applications
+---
+
+Input controls allow users to enter data, make selections, and interact with your Flet application. Both Material and Cupertino design systems provide comprehensive input controls.
+
+## Text Input
+
+<CardGroup cols={2}>
+  <Card title="TextField" icon="input-text">
+    Material text input field
+  </Card>
+  <Card title="CupertinoTextField" icon="text-cursor">
+    iOS-style text input field
+  </Card>
+</CardGroup>
+
+### Material TextField
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def on_text_change(e):
+        print(f"Text changed: {e.control.value}")
+    
+    def on_submit(e):
+        print(f"Submitted: {e.control.value}")
+    
+    page.add(
+        # Basic text field
+        ft.TextField(
+            label="Name",
+            hint_text="Enter your full name",
+            helper_text="This will be your display name",
+            on_change=on_text_change,
+        ),
+        # Password field
+        ft.TextField(
+            label="Password",
+            password=True,
+            can_reveal_password=True,
+        ),
+        # Email with validation
+        ft.TextField(
+            label="Email",
+            keyboard_type=ft.KeyboardType.EMAIL,
+            autocorrect=False,
+            prefix_icon=ft.Icons.EMAIL,
+        ),
+        # Multiline text
+        ft.TextField(
+            label="Bio",
+            multiline=True,
+            min_lines=3,
+            max_lines=5,
+            max_length=200,
+        ),
+        # With submit handler
+        ft.TextField(
+            label="Search",
+            suffix_icon=ft.Icons.SEARCH,
+            on_submit=on_submit,
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### Cupertino TextField
+
+```python
+import flet as ft
+from flet import cupertino_icons
+
+def main(page: ft.Page):
+    page.add(
+        ft.CupertinoTextField(
+            placeholder_text="Search",
+            prefix=ft.Icon(cupertino_icons.SEARCH),
+            clear_button_visibility_mode=ft.OverlayVisibilityMode.EDITING,
+        ),
+        ft.CupertinoTextField(
+            placeholder_text="Username",
+            prefix=ft.Icon(cupertino_icons.PERSON),
+        ),
+        ft.CupertinoTextField(
+            placeholder_text="Password",
+            password=True,
+            prefix=ft.Icon(cupertino_icons.LOCK),
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### TextField Properties
+
+<Tabs>
+  <Tab title="Validation">
+    ```python
+    import flet as ft
+    
+    def validate_email(e):
+        field = e.control
+        if "@" not in field.value:
+            field.error_text = "Please enter a valid email"
+        else:
+            field.error_text = None
+        field.update()
+    
+    email_field = ft.TextField(
+        label="Email",
+        on_change=validate_email,
+    )
+    ```
+  </Tab>
+  <Tab title="Filtering">
+    ```python
+    import flet as ft
+    
+    # Numbers only
+    phone_field = ft.TextField(
+        label="Phone",
+        keyboard_type=ft.KeyboardType.PHONE,
+        input_filter=ft.NumbersOnlyInputFilter(),
+    )
+    
+    # Custom filter
+    username_field = ft.TextField(
+        label="Username",
+        input_filter=ft.InputFilter(
+            regex_string=r"^[a-zA-Z0-9_]*$",
+            allow=True,
+        ),
+    )
+    ```
+  </Tab>
+  <Tab title="Autofill">
+    ```python
+    import flet as ft
+    
+    ft.TextField(
+        label="Email",
+        autofill_hints=[ft.AutofillHint.EMAIL],
+    )
+    
+    ft.TextField(
+        label="Password",
+        password=True,
+        autofill_hints=[ft.AutofillHint.PASSWORD],
+    )
+    ```
+  </Tab>
+</Tabs>
+
+## Buttons
+
+<CardGroup cols={2}>
+  <Card title="ElevatedButton" icon="rectangle-ad">
+    Raised Material button
+  </Card>
+  <Card title="FilledButton" icon="square">
+    Filled Material button
+  </Card>
+  <Card title="OutlinedButton" icon="square-dashed">
+    Outlined Material button
+  </Card>
+  <Card title="TextButton" icon="text">
+    Flat text button
+  </Card>
+  <Card title="IconButton" icon="circle-dot">
+    Button with only an icon
+  </Card>
+  <Card title="FloatingActionButton" icon="circle-plus">
+    Floating action button
+  </Card>
+</CardGroup>
+
+### Button Examples
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def button_clicked(e):
+        print(f"Button clicked: {e.control.text}")
+    
+    page.add(
+        # Standard buttons
+        ft.ElevatedButton(
+            "Elevated",
+            icon=ft.Icons.ADD,
+            on_click=button_clicked,
+        ),
+        ft.FilledButton(
+            "Filled",
+            icon=ft.Icons.SEND,
+            on_click=button_clicked,
+        ),
+        ft.OutlinedButton(
+            "Outlined",
+            icon=ft.Icons.EDIT,
+            on_click=button_clicked,
+        ),
+        ft.TextButton(
+            "Text",
+            icon=ft.Icons.INFO,
+            on_click=button_clicked,
+        ),
+        # Icon button
+        ft.IconButton(
+            icon=ft.Icons.FAVORITE,
+            icon_color=ft.Colors.PINK,
+            tooltip="Like",
+            on_click=lambda e: print("Liked!"),
+        ),
+        # Disabled button
+        ft.ElevatedButton(
+            "Disabled",
+            disabled=True,
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### Custom Button Styling
+
+```python
+import flet as ft
+
+ft.ElevatedButton(
+    "Custom Style",
+    style=ft.ButtonStyle(
+        color=ft.Colors.WHITE,
+        bgcolor=ft.Colors.BLUE,
+        padding=20,
+        shape=ft.RoundedRectangleBorder(radius=10),
+    ),
+)
+```
+
+## Selection Controls
+
+<CardGroup cols={2}>
+  <Card title="Checkbox" icon="square-check">
+    Binary checkbox selection
+  </Card>
+  <Card title="Radio" icon="circle-dot">
+    Single choice from group
+  </Card>
+  <Card title="Switch" icon="toggle-on">
+    Toggle switch
+  </Card>
+  <Card title="Dropdown" icon="caret-down">
+    Dropdown selection
+  </Card>
+</CardGroup>
+
+### Checkbox
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def checkbox_changed(e):
+        print(f"Checkbox value: {e.control.value}")
+    
+    page.add(
+        ft.Checkbox(
+            label="I agree to the terms",
+            value=False,
+            on_change=checkbox_changed,
+        ),
+        ft.Checkbox(
+            label="Indeterminate state",
+            tristate=True,
+            value=None,
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### Radio
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def radio_changed(e):
+        print(f"Selected: {e.control.value}")
+    
+    page.add(
+        ft.RadioGroup(
+            content=ft.Column([
+                ft.Radio(value="option1", label="Option 1"),
+                ft.Radio(value="option2", label="Option 2"),
+                ft.Radio(value="option3", label="Option 3"),
+            ]),
+            on_change=radio_changed,
+        )
+    )
+
+ft.app(target=main)
+```
+
+### Switch
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def switch_changed(e):
+        print(f"Switch: {e.control.value}")
+    
+    page.add(
+        ft.Switch(
+            label="Enable notifications",
+            value=True,
+            on_change=switch_changed,
+        ),
+        ft.CupertinoSwitch(
+            label="iOS Style",
+            value=False,
+            on_change=switch_changed,
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### Dropdown
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def dropdown_changed(e):
+        print(f"Selected: {e.control.value}")
+    
+    page.add(
+        ft.Dropdown(
+            label="Country",
+            hint_text="Select your country",
+            options=[
+                ft.dropdown.Option("US", "United States"),
+                ft.dropdown.Option("UK", "United Kingdom"),
+                ft.dropdown.Option("CA", "Canada"),
+                ft.dropdown.Option("AU", "Australia"),
+            ],
+            on_change=dropdown_changed,
+        )
+    )
+
+ft.app(target=main)
+```
+
+## Sliders
+
+<CardGroup cols={2}>
+  <Card title="Slider" icon="sliders">
+    Single value slider
+  </Card>
+  <Card title="RangeSlider" icon="sliders">
+    Range selection slider
+  </Card>
+</CardGroup>
+
+### Slider Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def slider_changed(e):
+        slider_value.value = f"Value: {int(e.control.value)}"
+        slider_value.update()
+    
+    slider_value = ft.Text("Value: 50")
+    
+    page.add(
+        ft.Slider(
+            min=0,
+            max=100,
+            value=50,
+            divisions=10,
+            label="{value}",
+            on_change=slider_changed,
+        ),
+        slider_value,
+        ft.CupertinoSlider(
+            min=0,
+            max=100,
+            value=30,
+            on_change=lambda e: print(f"iOS Slider: {e.control.value}"),
+        ),
+    )
+
+ft.app(target=main)
+```
+
+### RangeSlider Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def range_changed(e):
+        range_text.value = f"Range: {int(e.control.start_value)} - {int(e.control.end_value)}"
+        range_text.update()
+    
+    range_text = ft.Text("Range: 20 - 80")
+    
+    page.add(
+        ft.RangeSlider(
+            min=0,
+            max=100,
+            start_value=20,
+            end_value=80,
+            divisions=10,
+            on_change=range_changed,
+        ),
+        range_text,
+    )
+
+ft.app(target=main)
+```
+
+## Date and Time Pickers
+
+<CardGroup cols={2}>
+  <Card title="DatePicker" icon="calendar">
+    Pick a date from calendar
+  </Card>
+  <Card title="TimePicker" icon="clock">
+    Select time
+  </Card>
+</CardGroup>
+
+### DatePicker Example
+
+```python
+import flet as ft
+import datetime
+
+def main(page: ft.Page):
+    def date_picked(e):
+        selected_date.value = f"Selected: {e.control.value.strftime('%Y-%m-%d')}"
+        selected_date.update()
+    
+    selected_date = ft.Text("No date selected")
+    
+    date_picker = ft.DatePicker(
+        first_date=datetime.datetime(2020, 1, 1),
+        last_date=datetime.datetime(2030, 12, 31),
+        on_change=date_picked,
+    )
+    
+    page.overlay.append(date_picker)
+    
+    page.add(
+        ft.ElevatedButton(
+            "Pick Date",
+            icon=ft.Icons.CALENDAR_MONTH,
+            on_click=lambda _: date_picker.pick_date(),
+        ),
+        selected_date,
+    )
+
+ft.app(target=main)
+```
+
+### TimePicker Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def time_picked(e):
+        selected_time.value = f"Selected: {e.control.value}"
+        selected_time.update()
+    
+    selected_time = ft.Text("No time selected")
+    
+    time_picker = ft.TimePicker(
+        on_change=time_picked,
+    )
+    
+    page.overlay.append(time_picker)
+    
+    page.add(
+        ft.ElevatedButton(
+            "Pick Time",
+            icon=ft.Icons.ACCESS_TIME,
+            on_click=lambda _: time_picker.pick_time(),
+        ),
+        selected_time,
+    )
+
+ft.app(target=main)
+```
+
+## Forms
+
+Combine multiple input controls into forms:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def submit_form(e):
+        # Validate all fields
+        if not name_field.value:
+            name_field.error_text = "Name is required"
+            name_field.update()
+            return
+        
+        if not email_field.value or "@" not in email_field.value:
+            email_field.error_text = "Valid email is required"
+            email_field.update()
+            return
+        
+        # Process form
+        print(f"Name: {name_field.value}")
+        print(f"Email: {email_field.value}")
+        print(f"Subscribe: {subscribe_checkbox.value}")
+        
+        # Show success
+        page.snack_bar = ft.SnackBar(ft.Text("Form submitted!"))
+        page.snack_bar.open = True
+        page.update()
+    
+    name_field = ft.TextField(
+        label="Name",
+        hint_text="Your full name",
+        autofocus=True,
+    )
+    
+    email_field = ft.TextField(
+        label="Email",
+        keyboard_type=ft.KeyboardType.EMAIL,
+    )
+    
+    subscribe_checkbox = ft.Checkbox(
+        label="Subscribe to newsletter",
+        value=True,
+    )
+    
+    page.add(
+        ft.Column([
+            ft.Text("Sign Up Form", size=24, weight=ft.FontWeight.BOLD),
+            name_field,
+            email_field,
+            subscribe_checkbox,
+            ft.ElevatedButton(
+                "Submit",
+                on_click=submit_form,
+            ),
+        ])
+    )
+
+ft.app(target=main)
+```
+
+## Input Validation Best Practices
+
+### Real-time Validation
+
+```python
+import re
+
+def validate_email(e):
+    email = e.control.value
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    
+    if not re.match(pattern, email):
+        e.control.error_text = "Invalid email format"
+    else:
+        e.control.error_text = None
+    e.control.update()
+
+ft.TextField(
+    label="Email",
+    on_change=validate_email,
+)
+```
+
+### Accessible Labels
+
+```python
+# Good: Clear labels and hints
+ft.TextField(
+    label="Phone Number",
+    hint_text="(123) 456-7890",
+    helper_text="Enter your 10-digit phone number",
+)
+```
+
+## Next Steps
+
+- Learn about [Layout Controls](/controls/layout) to arrange input forms
+- Explore [Dialogs](/controls/dialogs) for modal input
+- Check [Navigation Controls](/controls/navigation) for multi-step forms
+
+## API Reference
+
+Detailed documentation:
+- [TextField API](/api/material/textfield)
+- [Button API](/api/material/button)
+- [Checkbox API](/api/material/button)
+- [Dropdown API](/api/material/textfield)
+- [Slider API](/api/material/button)
+- [DatePicker API](/api/material/dialog)

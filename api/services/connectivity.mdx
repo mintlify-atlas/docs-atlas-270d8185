@@ -1,0 +1,218 @@
+---
+title: Connectivity
+description: Monitor device network connectivity status
+---
+
+The `Connectivity` service provides device connectivity status and change notifications, allowing you to monitor network connection types.
+
+## Usage
+
+Add the `Connectivity` service to your page overlay and use its methods to check network connectivity:
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    connectivity = ft.Connectivity()
+    page.overlay.append(connectivity)
+    
+    # Get current connectivity
+    types = await connectivity.get_connectivity()
+    print(f"Connected via: {[t.value for t in types]}")
+    
+    await page.update_async()
+
+ft.app(main)
+```
+
+## Methods
+
+### `get_connectivity()`
+
+Returns the current connectivity type(s).
+
+```python
+await connectivity.get_connectivity() -> list[ConnectivityType]
+```
+
+**Returns:** A list of `ConnectivityType` enum values representing the current connectivity types. Multiple types can be active simultaneously (e.g., WiFi and VPN).
+
+**Example:**
+
+```python
+types = await connectivity.get_connectivity()
+
+if ft.ConnectivityType.WIFI in types:
+    print("Connected to WiFi")
+elif ft.ConnectivityType.MOBILE in types:
+    print("Connected via mobile data")
+elif ft.ConnectivityType.NONE in types:
+    print("No internet connection")
+else:
+    print(f"Connected via: {[t.value for t in types]}")
+```
+
+## Events
+
+### `on_change`
+
+Called when the network connectivity changes.
+
+```python
+connectivity.on_change = handle_connectivity_change
+```
+
+The event handler receives a `ConnectivityChangeEvent` with:
+
+- `connectivity` (list[ConnectivityType]): Current connectivity type(s)
+
+**Example:**
+
+```python
+async def handle_connectivity_change(e: ft.ConnectivityChangeEvent):
+    if ft.ConnectivityType.NONE in e.connectivity:
+        print("Lost internet connection")
+        # Show offline message to user
+    elif ft.ConnectivityType.WIFI in e.connectivity:
+        print("Connected to WiFi")
+        # Resume syncing data
+    elif ft.ConnectivityType.MOBILE in e.connectivity:
+        print("Connected via mobile data")
+        # Limit data-heavy operations
+
+connectivity.on_change = handle_connectivity_change
+```
+
+## Enums
+
+### `ConnectivityType`
+
+Enum representing network connectivity types:
+
+- `BLUETOOTH`: Bluetooth connectivity
+- `ETHERNET`: Ethernet connectivity
+- `MOBILE`: Mobile data connectivity (3G, 4G, 5G)
+- `NONE`: No connectivity
+- `OTHER`: Other connectivity types
+- `VPN`: VPN connectivity
+- `WIFI`: Wi-Fi connectivity
+
+## Complete Example
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    page.title = "Connectivity Monitor"
+    
+    status_text = ft.Text(size=20)
+    connection_icon = ft.Icon(size=50)
+    
+    connectivity = ft.Connectivity()
+    page.overlay.append(connectivity)
+    
+    def update_ui(types: list[ft.ConnectivityType]):
+        if ft.ConnectivityType.NONE in types:
+            status_text.value = "No Internet Connection"
+            connection_icon.name = ft.icons.SIGNAL_WIFI_OFF
+            connection_icon.color = ft.colors.RED
+        elif ft.ConnectivityType.WIFI in types:
+            status_text.value = "Connected via WiFi"
+            connection_icon.name = ft.icons.WIFI
+            connection_icon.color = ft.colors.GREEN
+        elif ft.ConnectivityType.MOBILE in types:
+            status_text.value = "Connected via Mobile Data"
+            connection_icon.name = ft.icons.SIGNAL_CELLULAR_ALT
+            connection_icon.color = ft.colors.BLUE
+        elif ft.ConnectivityType.ETHERNET in types:
+            status_text.value = "Connected via Ethernet"
+            connection_icon.name = ft.icons.SETTINGS_ETHERNET
+            connection_icon.color = ft.colors.GREEN
+        else:
+            status_text.value = f"Connected: {', '.join([t.value for t in types])}"
+            connection_icon.name = ft.icons.NETWORK_CHECK
+            connection_icon.color = ft.colors.GREEN
+        
+        # Check for VPN
+        if ft.ConnectivityType.VPN in types:
+            status_text.value += " (VPN Active)"
+    
+    async def check_connectivity_clicked(e):
+        types = await connectivity.get_connectivity()
+        update_ui(types)
+        await page.update_async()
+    
+    def on_connectivity_change(e: ft.ConnectivityChangeEvent):
+        update_ui(e.connectivity)
+        page.update()
+    
+    connectivity.on_change = on_connectivity_change
+    
+    page.add(
+        ft.Column(
+            [
+                connection_icon,
+                status_text,
+                ft.ElevatedButton("Check Connection", on_click=check_connectivity_clicked),
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=20,
+        )
+    )
+    
+    # Initial check
+    types = await connectivity.get_connectivity()
+    update_ui(types)
+    await page.update_async()
+
+ft.app(main)
+```
+
+## Use Cases
+
+### Adaptive Content Loading
+
+```python
+async def load_content():
+    types = await connectivity.get_connectivity()
+    
+    if ft.ConnectivityType.WIFI in types:
+        # Load high-quality images and videos
+        await load_high_quality_content()
+    elif ft.ConnectivityType.MOBILE in types:
+        # Load compressed content to save data
+        await load_compressed_content()
+    elif ft.ConnectivityType.NONE in types:
+        # Show cached content
+        show_offline_content()
+```
+
+### Sync Management
+
+```python
+def on_connectivity_change(e: ft.ConnectivityChangeEvent):
+    if ft.ConnectivityType.NONE in e.connectivity:
+        # Pause syncing
+        sync_manager.pause()
+    elif ft.ConnectivityType.WIFI in e.connectivity:
+        # Resume full sync on WiFi
+        sync_manager.resume(full=True)
+    elif ft.ConnectivityType.MOBILE in e.connectivity:
+        # Resume partial sync on mobile data
+        sync_manager.resume(full=False)
+```
+
+## Platform Availability
+
+The Connectivity service is available on all platforms:
+
+| Platform | Support |
+|----------|--------|
+| Android | ✓ |
+| iOS | ✓ |
+| macOS | ✓ |
+| Windows | ✓ |
+| Linux | ✓ |
+| Web | ✓ |
+
+Note: The available connectivity types may vary depending on the device and platform capabilities.

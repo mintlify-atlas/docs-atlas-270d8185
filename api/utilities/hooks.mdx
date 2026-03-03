@@ -1,0 +1,406 @@
+---
+title: Hooks
+---
+
+Hooks are special functions that let you "hook into" component lifecycle and state management in function components. They follow React-like patterns and must be called at the component's top level.
+
+## Available Hooks
+
+### use_state
+
+Adds state to a function component, similar to React's useState().
+
+```python
+def use_state(
+    initial: StateT | Callable[[], StateT],
+) -> tuple[StateT, Callable[[StateT | Updater], None]]
+```
+
+**Parameters:**
+- `initial`: Initial state value or a function returning it
+
+**Returns:**
+- A tuple containing:
+  - `value`: The current state value
+  - `set_value`: A setter function that accepts either a new value or an updater function
+
+**Example:**
+
+```python
+import flet as ft
+
+@ft.component
+def counter():
+    count, set_count = ft.use_state(0)
+    
+    return ft.Column([
+        ft.Text(f"Count: {count}"),
+        ft.ElevatedButton(
+            "Increment",
+            on_click=lambda _: set_count(count + 1)
+        ),
+        ft.ElevatedButton(
+            "Increment by function",
+            on_click=lambda _: set_count(lambda c: c + 1)
+        ),
+    ])
+```
+
+**When to use:**
+- When you need to track component-specific state
+- When state changes should trigger re-renders
+- For managing simple values, objects, or observables
+
+---
+
+### use_effect
+
+Perform side effects in function components.
+
+```python
+def use_effect(
+    setup: Callable[[], Any | Awaitable[Any]],
+    dependencies: Sequence[Any] | None = None,
+    cleanup: Callable[[], Any | Awaitable[Any]] | None = None,
+)
+```
+
+**Parameters:**
+- `setup`: A function that performs the side effect. Can be sync or async.
+- `dependencies`: If present, the effect only re-runs when dependencies change. If absent, the effect runs only on initial render.
+- `cleanup`: Optional function to clean up after the effect
+
+**Example:**
+
+```python
+import flet as ft
+import asyncio
+
+@ft.component
+def timer():
+    elapsed, set_elapsed = ft.use_state(0)
+    
+    async def start_timer():
+        while True:
+            await asyncio.sleep(1)
+            set_elapsed(lambda e: e + 1)
+    
+    ft.use_effect(
+        setup=lambda: asyncio.create_task(start_timer()),
+        dependencies=[],  # Run once on mount
+        cleanup=lambda: None  # Optional cleanup
+    )
+    
+    return ft.Text(f"Elapsed: {elapsed}s")
+```
+
+**When to use:**
+- For data fetching
+- Setting up subscriptions
+- Managing timers
+- Manually manipulating the DOM
+- Any side effects that need to run after render
+
+---
+
+### use_ref
+
+Preserve a mutable value for the lifetime of the component without causing re-renders.
+
+```python
+def use_ref(
+    initial_value: RefValueT | Callable[[], RefValueT] | None = None,
+) -> MutableRef[RefValueT]
+```
+
+**Parameters:**
+- `initial_value`: Optional value or callable returning the value assigned to `ref.current`
+
+**Returns:**
+- A `MutableRef` object with a `.current` property that can be read and written freely
+
+**Example:**
+
+```python
+import flet as ft
+
+@ft.component
+def input_focus_example():
+    input_ref = ft.use_ref()
+    
+    def focus_input(e):
+        if input_ref.current:
+            input_ref.current.focus()
+    
+    return ft.Column([
+        ft.TextField(ref=input_ref),
+        ft.ElevatedButton("Focus Input", on_click=focus_input),
+    ])
+```
+
+**When to use:**
+- Storing references to controls
+- Keeping track of previous values without triggering re-renders
+- Storing mutable values that shouldn't cause updates
+- Holding timers, intervals, or other imperative handles
+
+---
+
+### use_memo
+
+Memoize a computed value between renders.
+
+```python
+def use_memo(
+    calculate_value: Callable[[], MemoValueT],
+    dependencies: Sequence[Any] | None = None
+) -> MemoValueT
+```
+
+**Parameters:**
+- `calculate_value`: A function that computes the value to be memoized
+- `dependencies`: If present, the value is only recomputed when dependencies change. If absent, computed only on initial render.
+
+**Returns:**
+- A memoized value whose identity is stable between renders
+
+**Example:**
+
+```python
+import flet as ft
+
+@ft.component
+def expensive_list():
+    items, set_items = ft.use_state([1, 2, 3, 4, 5])
+    filter_text, set_filter = ft.use_state("")
+    
+    # Only recompute when items or filter_text changes
+    filtered_items = ft.use_memo(
+        lambda: [i for i in items if str(i).startswith(filter_text)],
+        dependencies=[items, filter_text]
+    )
+    
+    return ft.Column([
+        ft.TextField(
+            label="Filter",
+            on_change=lambda e: set_filter(e.control.value)
+        ),
+        ft.Text(f"Filtered: {filtered_items}"),
+    ])
+```
+
+**When to use:**
+- For expensive computations that don't need to run on every render
+- To preserve object/array identity between renders
+- To optimize performance by avoiding unnecessary recalculations
+
+---
+
+### use_callback
+
+Memoize a function identity between renders.
+
+```python
+def use_callback(
+    fn: Callable[P, R],
+    dependencies: Sequence[Any] | None = None,
+) -> Callable[P, R]
+```
+
+**Parameters:**
+- `fn`: A function to memoize
+- `dependencies`: If present, fn is only re-memoized when dependencies change. If absent, memoized only on initial render.
+
+**Returns:**
+- A memoized version of the function whose identity is stable between renders
+
+**Example:**
+
+```python
+import flet as ft
+
+@ft.component
+def parent_component():
+    count, set_count = ft.use_state(0)
+    
+    # Memoize the callback to prevent child re-renders
+    handle_click = ft.use_callback(
+        lambda: set_count(lambda c: c + 1),
+        dependencies=[]
+    )
+    
+    return ft.Column([
+        ft.Text(f"Count: {count}"),
+        child_component(on_click=handle_click),
+    ])
+```
+
+**When to use:**
+- When passing callbacks to child components
+- To prevent unnecessary re-renders of child components
+- When function identity matters for equality checks
+
+---
+
+### use_context
+
+Access the current context value from a context provider.
+
+```python
+def use_context(context: ContextProvider[T]) -> T
+```
+
+**Parameters:**
+- `context`: A context provider created by `create_context`
+
+**Returns:**
+- The current context value, or the default value if no provider is found
+
+**Example:**
+
+```python
+import flet as ft
+
+# Create a theme context
+ThemeContext = ft.create_context("light")
+
+@ft.component
+def themed_button():
+    theme = ft.use_context(ThemeContext)
+    
+    return ft.ElevatedButton(
+        f"Current theme: {theme}",
+        bgcolor=ft.colors.BLUE if theme == "dark" else ft.colors.WHITE
+    )
+
+@ft.component
+def app():
+    theme, set_theme = ft.use_state("light")
+    
+    def with_theme():
+        return ft.Column([
+            themed_button(),
+            ft.ElevatedButton(
+                "Toggle Theme",
+                on_click=lambda _: set_theme(
+                    "dark" if theme == "light" else "light"
+                )
+            ),
+        ])
+    
+    return ThemeContext(theme, with_theme)
+```
+
+**When to use:**
+- For sharing data across many components without prop drilling
+- For global app state (theme, user, language)
+- When multiple nested components need access to the same value
+
+---
+
+## Helper Functions
+
+### on_mounted
+
+Run exactly once after the component mounts.
+
+```python
+def on_mounted(fn: Callable[[], Any | Awaitable[Any]]) -> None
+```
+
+This is a convenience wrapper around `use_effect` with `dependencies=[]`.
+
+**Example:**
+
+```python
+@ft.component
+def data_loader():
+    data, set_data = ft.use_state(None)
+    
+    async def load_data():
+        # Fetch data from API
+        result = await fetch_api()
+        set_data(result)
+    
+    ft.on_mounted(load_data)
+    
+    return ft.Text(f"Data: {data}")
+```
+
+---
+
+### on_unmounted
+
+Run exactly once when the component unmounts.
+
+```python
+def on_unmounted(fn: Callable[[], Any | Awaitable[Any]]) -> None
+```
+
+This is a convenience wrapper around `use_effect` with `dependencies=[]` and the function as cleanup.
+
+**Example:**
+
+```python
+@ft.component
+def websocket_component():
+    ft.on_unmounted(lambda: print("Component unmounted, closing connection"))
+    
+    return ft.Text("WebSocket Active")
+```
+
+---
+
+### on_updated
+
+Run after each post-mount render (or when dependencies change).
+
+```python
+def on_updated(
+    fn: Callable[[], Any | Awaitable[Any]],
+    dependencies: Sequence[Any] | None = None
+) -> None
+```
+
+**Example:**
+
+```python
+@ft.component
+def logger():
+    count, set_count = ft.use_state(0)
+    
+    ft.on_updated(
+        lambda: print(f"Count changed to {count}"),
+        dependencies=[count]
+    )
+    
+    return ft.ElevatedButton(
+        f"Count: {count}",
+        on_click=lambda _: set_count(count + 1)
+    )
+```
+
+---
+
+## Hook Rules
+
+1. **Only call hooks at the top level**: Don't call hooks inside loops, conditions, or nested functions
+2. **Only call hooks from function components**: Hooks must be called from components decorated with `@ft.component`
+3. **Hook order matters**: Always call hooks in the same order on every render
+
+**Good:**
+```python
+@ft.component
+def my_component():
+    state1, set_state1 = ft.use_state(0)
+    state2, set_state2 = ft.use_state("")
+    # ...
+```
+
+**Bad:**
+```python
+@ft.component
+def my_component():
+    if some_condition:  # ❌ Don't use hooks conditionally
+        state, set_state = ft.use_state(0)
+```

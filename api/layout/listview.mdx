@@ -1,0 +1,351 @@
+---
+title: 'ListView'
+description: 'A scrollable list of controls arranged linearly'
+icon: 'list'
+---
+
+## Overview
+
+ListView is a scrollable list of controls arranged linearly. It is the most commonly used scrolling control and displays its children one after another in the scroll direction. In the cross axis, the children are required to fill the ListView.
+
+ListView is very efficient and can handle thousands of items through lazy rendering when `build_controls_on_demand` is enabled.
+
+## Basic Example
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    page.add(
+        ft.ListView(
+            controls=[ft.Text(f"Item {i}") for i in range(1, 6)],
+        )
+    )
+
+ft.app(main)
+```
+
+## Class Definition
+
+```python
+class ListView(LayoutControl, ScrollableControl, AdaptiveControl):
+    controls: list[Control] = field(default_factory=list)
+    horizontal: bool = False
+    reverse: bool = False
+    spacing: Number = 0
+    item_extent: Optional[Number] = None
+    first_item_prototype: bool = False
+    prototype_item: Optional[Control] = None
+    divider_thickness: Number = 0
+    padding: Optional[PaddingValue] = None
+    clip_behavior: ClipBehavior = ClipBehavior.HARD_EDGE
+    semantic_child_count: Optional[int] = None
+    cache_extent: Optional[Number] = None
+    build_controls_on_demand: bool = True
+```
+
+## Properties
+
+### controls
+
+<ParamField path="controls" type="list[Control]" default="[]">
+  A list of controls to display inside ListView. Controls are arranged linearly in the scroll direction.
+</ParamField>
+
+### horizontal
+
+<ParamField path="horizontal" type="bool" default="False">
+  Whether to layout the controls horizontally.
+  
+  - `False` (default) - Vertical scrolling list
+  - `True` - Horizontal scrolling list
+</ParamField>
+
+### reverse
+
+<ParamField path="reverse" type="bool" default="False">
+  Whether the scroll view scrolls in the reading direction.
+  
+  - If the reading direction is left-to-right and `horizontal` is `True`, the scroll view scrolls from left to right when `reverse` is `False` and from right to left when `reverse` is `True`.
+  
+  - If `horizontal` is `False`, the scroll view scrolls from top to bottom when `reverse` is `False` and from bottom to top when `reverse` is `True`.
+</ParamField>
+
+### spacing
+
+<ParamField path="spacing" type="Number" default="0">
+  The height (or width when `horizontal` is `True`) of the divider between the controls, in pixels.
+  
+  When `divider_thickness` is 0, this creates empty space. When `divider_thickness` is greater than 0, this determines the divider height.
+</ParamField>
+
+### item_extent
+
+<ParamField path="item_extent" type="Number" default="None">
+  A fixed height or width (when `horizontal` is `True`) of an item to optimize rendering.
+  
+  When all items have the same size, setting this property improves scrolling performance significantly.
+  
+  <Note>
+    This property has effect only when `build_controls_on_demand` is `True` or `spacing` is `0`.
+  </Note>
+</ParamField>
+
+### first_item_prototype
+
+<ParamField path="first_item_prototype" type="bool" default="False">
+  Whether the dimensions of the first item of `controls` should be used as a "prototype" for all other items.
+  
+  When `True`, all items will have the same height (or width if horizontal) as the first item, which can improve performance.
+</ParamField>
+
+### prototype_item
+
+<ParamField path="prototype_item" type="Control" default="None">
+  A control to be used as a "prototype" for all items. All items will have the same height (or width if horizontal) as the prototype.
+  
+  <Note>
+    This property has effect only when `build_controls_on_demand` is `True` or `spacing` is `0`.
+  </Note>
+</ParamField>
+
+### divider_thickness
+
+<ParamField path="divider_thickness" type="Number" default="0">
+  If greater than `0`, a `Divider` is used as spacing between list view items.
+  
+  The thickness of the divider line. The `spacing` property determines the total height allocated for the divider.
+</ParamField>
+
+### padding
+
+<ParamField path="padding" type="PaddingValue" default="None">
+  The amount of space by which to inset the children.
+  
+  Can be a single number for uniform padding, or use `ft.padding.all()`, `ft.padding.symmetric()`, or `ft.padding.only()` for more control.
+</ParamField>
+
+### clip_behavior
+
+<ParamField path="clip_behavior" type="ClipBehavior" default="ClipBehavior.HARD_EDGE">
+  How to clip the controls.
+  
+  Options:
+  - `ClipBehavior.HARD_EDGE` - Clip with hard edges
+  - `ClipBehavior.ANTI_ALIAS` - Clip with anti-aliasing
+  - `ClipBehavior.ANTI_ALIAS_WITH_SAVE_LAYER` - Clip with anti-aliasing and save layer
+  - `ClipBehavior.NONE` - No clipping
+</ParamField>
+
+### semantic_child_count
+
+<ParamField path="semantic_child_count" type="int" default="None">
+  The number of children that will contribute semantic information for accessibility.
+  
+  Useful when the actual number of children is different from the semantic count.
+</ParamField>
+
+### cache_extent
+
+<ParamField path="cache_extent" type="Number" default="None">
+  Items that fall in the cache area (before or after the visible area) are laid out even though they are not yet visible on screen.
+  
+  The `cache_extent` describes how many pixels the cache area extends before the leading edge and after the trailing edge of the viewport.
+  
+  The total extent covered is: `cache_extent` before + main axis extent + `cache_extent` after.
+  
+  A larger cache extent improves scrolling smoothness but uses more memory.
+</ParamField>
+
+### build_controls_on_demand
+
+<ParamField path="build_controls_on_demand" type="bool" default="True">
+  Whether the controls should be built lazily/on-demand.
+  
+  When `True` (default), controls are only rendered when they're about to become visible. This is particularly useful when dealing with a large number of controls and dramatically improves performance.
+</ParamField>
+
+## Layout Behavior
+
+### How Children Are Arranged
+
+1. **Scroll Direction**: Children are arranged linearly in the scroll direction (vertical by default, horizontal if `horizontal` is `True`).
+
+2. **Cross Axis**: Children fill the entire width (in vertical mode) or height (in horizontal mode).
+
+3. **Spacing**: The `spacing` property adds gaps between items.
+
+4. **Lazy Rendering**: When `build_controls_on_demand` is `True`, only visible items (plus cache area) are rendered.
+
+### Scrolling
+
+ListView inherits from `ScrollableControl` and is scrollable by default. You can control scrolling behavior:
+
+```python
+ft.ListView(
+    scroll=ft.ScrollMode.ADAPTIVE,  # or AUTO, ALWAYS, HIDDEN
+    auto_scroll=True,
+    controls=[...],
+)
+```
+
+## Examples
+
+### Basic Vertical List
+
+```python
+ft.ListView(
+    height=400,
+    spacing=10,
+    padding=20,
+    controls=[
+        ft.ListTile(
+            leading=ft.Icon(ft.Icons.PERSON),
+            title=ft.Text(f"User {i}"),
+            subtitle=ft.Text(f"user{i}@example.com"),
+        )
+        for i in range(1, 21)
+    ],
+)
+```
+
+### Horizontal Scrolling List
+
+```python
+ft.ListView(
+    horizontal=True,
+    spacing=10,
+    height=150,
+    controls=[
+        ft.Container(
+            width=150,
+            height=150,
+            bgcolor=ft.Colors.AMBER,
+            border_radius=10,
+            alignment=ft.alignment.center,
+            content=ft.Text(f"Card {i}", size=20),
+        )
+        for i in range(1, 11)
+    ],
+)
+```
+
+### List with Dividers
+
+```python
+ft.ListView(
+    height=400,
+    spacing=1,
+    divider_thickness=1,
+    controls=[
+        ft.ListTile(
+            title=ft.Text(f"Item {i}"),
+            trailing=ft.Icon(ft.Icons.ARROW_FORWARD),
+        )
+        for i in range(1, 11)
+    ],
+)
+```
+
+### Large List with Fixed Item Height
+
+```python
+ft.ListView(
+    height=600,
+    item_extent=50,  # Each item is 50px tall
+    build_controls_on_demand=True,
+    controls=[
+        ft.Container(
+            height=50,
+            content=ft.Text(f"Item {i}"),
+            border=ft.border.all(1, ft.Colors.GREY),
+        )
+        for i in range(1, 1001)  # 1000 items!
+    ],
+)
+```
+
+### List with Padding
+
+```python
+ft.ListView(
+    height=400,
+    padding=ft.padding.symmetric(horizontal=20, vertical=10),
+    spacing=5,
+    controls=[
+        ft.ElevatedButton(f"Button {i}")
+        for i in range(1, 21)
+    ],
+)
+```
+
+### Reverse Order List
+
+```python
+ft.ListView(
+    height=300,
+    reverse=True,  # Scrolls from bottom to top
+    controls=[
+        ft.Text(f"Message {i}")
+        for i in range(1, 21)
+    ],
+)
+```
+
+### Chat-Style List
+
+```python
+ft.ListView(
+    height=500,
+    spacing=8,
+    padding=10,
+    reverse=True,  # New messages at bottom
+    auto_scroll=True,
+    controls=[
+        ft.Container(
+            content=ft.Text(f"Message {i}"),
+            bgcolor=ft.Colors.BLUE_100,
+            border_radius=10,
+            padding=10,
+            alignment=ft.alignment.center_left,
+        )
+        for i in range(1, 51)
+    ],
+)
+```
+
+## Performance Optimization
+
+### For Large Lists
+
+When working with thousands of items:
+
+1. **Enable lazy rendering**: Keep `build_controls_on_demand=True` (default)
+2. **Set fixed item size**: Use `item_extent` or `first_item_prototype`
+3. **Adjust cache extent**: Use smaller values to reduce memory usage
+
+```python
+ft.ListView(
+    height=600,
+    item_extent=60,  # Fixed height
+    cache_extent=100,  # Small cache
+    build_controls_on_demand=True,
+    controls=[...],  # Thousands of items
+)
+```
+
+## Use Cases
+
+1. **Contact Lists**: Display user contacts with avatars and details
+2. **Chat Messages**: Show conversation history
+3. **News Feeds**: Display articles or posts
+4. **Settings Menus**: Create scrollable settings pages
+5. **Product Catalogs**: Show products in a list
+6. **Horizontal Galleries**: Create horizontal image galleries
+
+## Related Controls
+
+- [GridView](/api/layout/gridview) - 2D grid layout
+- [Column](/api/layout/column) - Non-scrollable vertical layout
+- [Row](/api/layout/row) - Non-scrollable horizontal layout
+- [Stack](/api/layout/stack) - Overlapping layout

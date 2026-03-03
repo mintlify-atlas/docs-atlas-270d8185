@@ -1,0 +1,212 @@
+---
+title: Clipboard
+description: Access the system clipboard for text, images, and files
+---
+
+The `Clipboard` service provides access to the system clipboard, allowing you to read and write text, images, and file references.
+
+## Usage
+
+Add the `Clipboard` service to your page overlay and use its methods to interact with the clipboard:
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    clipboard = ft.Clipboard()
+    page.overlay.append(clipboard)
+    
+    # Copy text to clipboard
+    await clipboard.set("Hello, World!")
+    
+    # Read text from clipboard
+    text = await clipboard.get()
+    print(text)  # "Hello, World!"
+    
+    await page.update_async()
+
+ft.app(main)
+```
+
+## Methods
+
+### `set()`
+
+Stores text data on the clipboard.
+
+```python
+await clipboard.set(value: str) -> None
+```
+
+<ParamField path="value" type="str" required>
+  The string data to be stored on the clipboard.
+</ParamField>
+
+**Example:**
+
+```python
+await clipboard.set("Copy this text")
+```
+
+### `get()`
+
+Retrieves text data from the clipboard.
+
+```python
+await clipboard.get() -> Optional[str]
+```
+
+**Returns:** The string data retrieved from the clipboard, or `None` if the clipboard is empty or does not contain string data.
+
+**Example:**
+
+```python
+text = await clipboard.get()
+if text:
+    print(f"Clipboard contains: {text}")
+```
+
+### `set_image()`
+
+Stores image bytes on the clipboard.
+
+```python
+await clipboard.set_image(value: bytes) -> None
+```
+
+<ParamField path="value" type="bytes" required>
+  The image data (in bytes) to be stored on the clipboard.
+</ParamField>
+
+**Platform Support:** Android, iOS, Web
+
+**Raises:** `FletUnsupportedPlatformException` if called on desktop platforms.
+
+**Example:**
+
+```python
+with open("image.png", "rb") as f:
+    image_bytes = f.read()
+    await clipboard.set_image(image_bytes)
+```
+
+### `get_image()`
+
+Retrieves image data from the clipboard.
+
+```python
+await clipboard.get_image() -> Optional[bytes]
+```
+
+**Returns:** The image data retrieved from the clipboard as bytes, or `None` if the clipboard is empty or does not contain image data.
+
+**Example:**
+
+```python
+image_data = await clipboard.get_image()
+if image_data:
+    with open("clipboard_image.png", "wb") as f:
+        f.write(image_data)
+```
+
+### `set_files()`
+
+Stores file references on the clipboard.
+
+```python
+await clipboard.set_files(files: list[str]) -> bool
+```
+
+<ParamField path="files" type="list[str]" required>
+  A list of file paths to store on the clipboard.
+</ParamField>
+
+**Returns:** `True` if the operation succeeded, otherwise `False`.
+
+**Platform Support:** macOS, Windows, Linux
+
+**Raises:** `FletUnsupportedPlatformException` if called on web or mobile platforms.
+
+**Example:**
+
+```python
+success = await clipboard.set_files([
+    "/path/to/file1.txt",
+    "/path/to/file2.pdf"
+])
+if success:
+    print("Files copied to clipboard")
+```
+
+### `get_files()`
+
+Retrieves file references from the clipboard.
+
+```python
+await clipboard.get_files() -> list[str]
+```
+
+**Returns:** A list of file references available in the clipboard. On Android these are typically content URIs.
+
+**Platform Support:** Android, macOS, Windows, Linux
+
+**Raises:** `FletUnsupportedPlatformException` if called on web or iOS platforms.
+
+**Example:**
+
+```python
+files = await clipboard.get_files()
+for file_path in files:
+    print(f"File in clipboard: {file_path}")
+```
+
+## Complete Example
+
+```python
+import flet as ft
+
+async def main(page: ft.Page):
+    page.title = "Clipboard Demo"
+    
+    clipboard = ft.Clipboard()
+    page.overlay.append(clipboard)
+    
+    text_input = ft.TextField(label="Text to copy", value="Hello, Clipboard!")
+    output_text = ft.Text()
+    
+    async def copy_text(e):
+        await clipboard.set(text_input.value)
+        output_text.value = "Text copied to clipboard!"
+        await page.update_async()
+    
+    async def paste_text(e):
+        text = await clipboard.get()
+        if text:
+            text_input.value = text
+            output_text.value = f"Pasted: {text}"
+        else:
+            output_text.value = "Clipboard is empty"
+        await page.update_async()
+    
+    page.add(
+        text_input,
+        ft.Row([
+            ft.ElevatedButton("Copy", on_click=copy_text),
+            ft.ElevatedButton("Paste", on_click=paste_text),
+        ]),
+        output_text,
+    )
+
+ft.app(main)
+```
+
+## Platform Availability
+
+| Method | Android | iOS | macOS | Windows | Linux | Web |
+|--------|---------|-----|-------|---------|-------|-----|
+| `set()` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `get()` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `set_image()` | ✓ | ✓ | ✗ | ✗ | ✗ | ✓ |
+| `get_image()` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `set_files()` | ✗ | ✗ | ✓ | ✓ | ✓ | ✗ |
+| `get_files()` | ✓ | ✗ | ✓ | ✓ | ✓ | ✗ |

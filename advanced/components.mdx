@@ -1,0 +1,292 @@
+---
+title: Component-Based Architecture
+description: Learn how to build reusable, composable components in Flet using the @component decorator and functional programming patterns.
+---
+
+Flet's component system enables you to build reusable, composable UI elements using a functional programming approach similar to React. Components help you organize complex applications into manageable, testable pieces.
+
+## What is a Component?
+
+A component is a Python function decorated with `@ft.component` that returns Flet controls. Components can use hooks to manage state, side effects, and lifecycle events.
+
+```python
+import flet as ft
+
+@ft.component
+def Counter():
+    count, set_count = ft.use_state(0)
+    
+    return ft.Column([
+        ft.Text(f"Count: {count}"),
+        ft.ElevatedButton(
+            "Increment",
+            on_click=lambda _: set_count(count + 1)
+        )
+    ])
+
+ft.run(lambda page: page.render(Counter))
+```
+
+## Component Decorator
+
+The `@ft.component` decorator transforms a function into a Flet component. Internally, it:
+
+- Marks the function as a component (`__is_component__ = True`)
+- Creates a `Component` wrapper that manages hook state and lifecycle
+- Enables the function to use hooks like `use_state`, `use_effect`, etc.
+- Tracks observable dependencies and schedules updates
+
+**Location:** `flet/components/component_decorator.py:10`
+
+```python
+@ft.component
+def MyComponent(text: str, size: int = 16):
+    return ft.Text(text, size=size)
+
+# Usage
+page.render(lambda: MyComponent("Hello", size=20))
+```
+
+## Component Lifecycle
+
+Components go through several lifecycle phases:
+
+### 1. Mount
+
+When a component is first added to the page, the `did_mount()` method is called. This is where initial effects (with empty dependency arrays) run.
+
+**Location:** `flet/components/component.py:329`
+
+### 2. Update
+
+When component props change or state updates are triggered, the `update()` method re-renders the component body and patches changes to the session.
+
+**Location:** `flet/components/component.py:98`
+
+### 3. Unmount
+
+When a component is removed, `will_unmount()` runs cleanup functions from effects, detaches observable subscriptions, and clears hook state.
+
+**Location:** `flet/components/component.py:338`
+
+## Composing Components
+
+Components can be nested and composed to build complex UIs:
+
+```python
+@ft.component
+def UserCard(name: str, email: str):
+    return ft.Container(
+        content=ft.Column([
+            ft.Text(name, weight=ft.FontWeight.BOLD),
+            ft.Text(email, color=ft.Colors.GREY),
+        ]),
+        padding=10,
+        border=ft.border.all(1, ft.Colors.OUTLINE),
+        border_radius=8,
+    )
+
+@ft.component
+def UserList():
+    users = [
+        {"name": "Alice", "email": "alice@example.com"},
+        {"name": "Bob", "email": "bob@example.com"},
+    ]
+    
+    return ft.Column([
+        UserCard(name=user["name"], email=user["email"])
+        for user in users
+    ])
+```
+
+## Component Props
+
+Components accept arguments just like regular Python functions. Props can be any Python type:
+
+```python
+@ft.component
+def Button(text: str, on_click: callable = None, disabled: bool = False):
+    return ft.ElevatedButton(
+        text=text,
+        on_click=on_click,
+        disabled=disabled,
+    )
+```
+
+## Component Keys
+
+Keys help Flet identify which components have changed, been added, or removed. Pass a `key` to help preserve component state across renders:
+
+```python
+@ft.component
+def TodoItem(id: int, text: str):
+    checked, set_checked = ft.use_state(False)
+    return ft.Checkbox(label=text, value=checked, on_change=lambda _: set_checked(not checked))
+
+# Usage with keys
+items = [
+    TodoItem(id=1, text="Buy milk", key="todo-1"),
+    TodoItem(id=2, text="Walk dog", key="todo-2"),
+]
+```
+
+## Memoization
+
+Use `ft.memo()` to skip re-rendering when props haven't changed:
+
+**Location:** `flet/components/memo.py:4`
+
+```python
+@ft.component
+def ExpensiveComponent(data: list):
+    # This component only re-renders when 'data' changes
+    processed = process_large_dataset(data)
+    return ft.Text(f"Processed {len(processed)} items")
+
+MemoizedComponent = ft.memo(ExpensiveComponent)
+```
+
+When you wrap a component with `ft.memo()`, Flet performs a shallow comparison of props. If props are unchanged, the previous render result is reused.
+
+## Observable Props
+
+Components automatically subscribe to `Observable` objects passed as props:
+
+```python
+from flet.components.observable import Observable
+
+shared_state = Observable(0)
+
+@ft.component
+def Counter1():
+    count = shared_state.value
+    return ft.Text(f"Counter 1: {count}")
+
+@ft.component  
+def Counter2():
+    count = shared_state.value
+    return ft.Text(f"Counter 2: {count}")
+
+# Both components update when shared_state changes
+```
+
+## Real-World Example: Dialog Component
+
+Here's a complete example showing a reusable dialog component that loads user data:
+
+```python
+import asyncio
+import httpx
+import flet as ft
+
+@ft.component
+def UserDialogContent():
+    loading, set_loading = ft.use_state(True)
+    name, set_name = ft.use_state("")
+    email, set_email = ft.use_state("")
+    error, set_error = ft.use_state("")
+
+    async def load_user():
+        set_loading(True)
+        set_error("")
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                r = await client.get("https://jsonplaceholder.typicode.com/users/1")
+                r.raise_for_status()
+                data = r.json()
+                set_name(data["name"])
+                set_email(data["email"])
+        except Exception as e:
+            set_error(str(e))
+        finally:
+            set_loading(False)
+
+    # Load data when component mounts
+    ft.use_effect(lambda: asyncio.create_task(load_user()), [])
+
+    return ft.Column(
+        tight=True,
+        controls=[
+            ft.Text("User Panel", weight=ft.FontWeight.BOLD, size=18),
+            ft.ProgressRing(visible=loading),
+            ft.Text(f"Name: {name}"),
+            ft.Text(f"Email: {email}"),
+            ft.Text(error, color=ft.Colors.RED) if error else ft.Container(),
+        ],
+    )
+
+@ft.component
+def App():
+    dlg_ref = ft.use_ref(None)
+
+    if dlg_ref.current is None:
+        dlg_ref.current = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("User Information"),
+            content=UserDialogContent(),
+            actions=[ft.TextButton("Close", on_click=lambda e: e.page.pop_dialog())],
+        )
+
+    def open_dialog():
+        if dlg_ref.current:
+            ft.context.page.show_dialog(dlg_ref.current)
+
+    return ft.Container(
+        padding=20,
+        content=ft.Column([
+            ft.Text("Main App", size=22, weight=ft.FontWeight.BOLD),
+            ft.ElevatedButton("Open User Panel", on_click=open_dialog),
+        ]),
+    )
+
+ft.run(lambda page: page.render(App))
+```
+
+## Best Practices
+
+1. **Keep components small and focused** - Each component should do one thing well
+2. **Use descriptive names** - Component names should clearly indicate what they render
+3. **Leverage composition** - Build complex UIs by composing simple components
+4. **Pass callbacks for interactions** - Use props to pass event handlers down to child components
+5. **Use memoization wisely** - Only memoize components with expensive render logic
+6. **Follow hook rules** - Always call hooks at the top level, never in conditionals or loops
+
+## Migration from UserControl
+
+If you're coming from `UserControl`, here's how to migrate:
+
+**Old (UserControl):**
+```python
+class Counter(ft.UserControl):
+    def __init__(self):
+        super().__init__()
+        self.count = 0
+    
+    def build(self):
+        return ft.Column([
+            ft.Text(f"Count: {self.count}"),
+            ft.ElevatedButton("Increment", on_click=self.increment)
+        ])
+    
+    def increment(self, e):
+        self.count += 1
+        self.update()
+```
+
+**New (Component):**
+```python
+@ft.component
+def Counter():
+    count, set_count = ft.use_state(0)
+    
+    return ft.Column([
+        ft.Text(f"Count: {count}"),
+        ft.ElevatedButton("Increment", on_click=lambda _: set_count(count + 1))
+    ])
+```
+
+## Next Steps
+
+- Learn about [Hooks](/advanced/hooks) for state and side effects
+- Explore [Testing](/advanced/testing) components
+- Build [Custom Controls](/advanced/extensions) for platform-specific features

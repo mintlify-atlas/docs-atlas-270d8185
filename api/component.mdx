@@ -1,0 +1,465 @@
+---
+title: "Component"
+description: "Component class API reference for Flet framework"
+---
+
+## Overview
+
+Functional component wrapper used by the component renderer. A component keeps hook state, tracks observable argument dependencies, renders a function body into controls, and schedules updates/effects through the active page session.
+
+**Source:** `flet.components.component:60`
+
+<Info>
+Components enable a reactive, functional programming model in Flet similar to React hooks. They allow you to build reusable UI pieces with encapsulated state and lifecycle.
+</Info>
+
+## Class Signature
+
+```python
+from flet.components import Component
+
+@control("C")
+class Component(BaseControl):
+    """Functional component wrapper used by the component renderer."""
+```
+
+## Creating Components
+
+Use the `@component` decorator to create functional components:
+
+```python
+from flet import component
+import flet as ft
+
+@component
+def counter_component():
+    count, set_count = ft.use_state(0)
+    
+    def increment(e):
+        set_count(count + 1)
+    
+    return ft.Column([
+        ft.Text(f"Count: {count}"),
+        ft.ElevatedButton("Increment", on_click=increment)
+    ])
+```
+
+## Internal Structure
+
+<Warning>
+The following properties are internal to the component system. Do not modify them directly.
+</Warning>
+
+### Component State
+
+<ParamField path="fn" type="Callable[..., Any]">
+  The component function being wrapped.
+  
+  **Source:** `component.py:70`
+  
+  **Metadata:** `skip=True`
+</ParamField>
+
+<ParamField path="args" type="tuple[Any, ...]">
+  Positional arguments passed to the component function.
+  
+  **Source:** `component.py:71`
+  
+  **Metadata:** `skip=True`
+</ParamField>
+
+<ParamField path="kwargs" type="dict[str, Any]">
+  Keyword arguments passed to the component function.
+  
+  **Source:** `component.py:72`
+  
+  **Metadata:** `skip=True`
+</ParamField>
+
+<ParamField path="memoized" type="bool" default="False">
+  Whether this component is memoized (only re-renders when props change).
+  
+  **Source:** `component.py:80`
+  
+  **Metadata:** `skip=True`
+</ParamField>
+
+<ParamField path="_state" type="_ComponentState">
+  Internal mutable state backing the component instance.
+  
+  **Source:** `component.py:76`
+  
+  Stores:
+  - Hook registry and cursor
+  - Memoization snapshots
+  - Mount flags
+  - Observable subscriptions
+  
+  **Metadata:** `skip=True`
+</ParamField>
+
+<ParamField path="_b" type="Any">
+  The rendered body (output) of the component.
+  
+  **Source:** `component.py:83`
+</ParamField>
+
+## Methods
+
+### Lifecycle Methods
+
+<ParamField path="update" type="() -> None">
+  Render component body and patch changed output to the session.
+  
+  **Source:** `component.py:98`
+  
+  This method:
+  1. Resets hook cursor
+  2. Detaches old observable subscriptions
+  3. Subscribes to new observables
+  4. Renders the component function
+  5. Freezes the output
+  6. Memoizes if needed
+  7. Patches changes to session
+  8. Runs render effects
+  
+  ```python
+  # Typically called automatically by the framework
+  component.update()
+  ```
+</ParamField>
+
+<ParamField path="before_update" type="() -> None">
+  Called before the component is updated.
+  
+  **Source:** `component.py:144`
+  
+  Checks memoization and re-renders if:
+  - Component is dirty (state changed)
+  - Not memoized
+  - Props (args/kwargs) have changed
+</ParamField>
+
+<ParamField path="did_mount" type="() -> None">
+  Mark component mounted and run mount-time effects.
+  
+  **Source:** `component.py:329`
+  
+  Called after component is added to the page tree. Triggers all effect hooks for initial execution.
+</ParamField>
+
+<ParamField path="will_unmount" type="() -> None">
+  Mark component unmounted, detach observable listeners, and run cleanups.
+  
+  **Source:** `component.py:338`
+  
+  Called before component is removed from the page tree. Executes cleanup functions from all effect hooks.
+</ParamField>
+
+### Hook Management
+
+<ParamField path="use_hook" type="(default: Callable[[], HookTypeT]) -> HookTypeT">
+  Return hook instance for current render slot, creating it if missing.
+  
+  **Source:** `component.py:258`
+  
+  **Parameters:**
+  - `default` (Callable): Factory function to initialize a new hook
+  
+  **Returns:** Hook instance bound to the current hook cursor position
+  
+  This is the internal mechanism used by all `use_*` hooks like `use_state`, `use_effect`, etc.
+</ParamField>
+
+### Internal Update Scheduling
+
+<ParamField path="_schedule_update" type="() -> None">
+  Mark component dirty and enqueue a session update.
+  
+  **Source:** `component.py:181`
+  
+  Called when component state changes (e.g., from `set_state` in `use_state`).
+</ParamField>
+
+<ParamField path="_schedule_effect" type="(hook: EffectHook, is_cleanup: bool = False) -> None">
+  Enqueue effect or effect-cleanup execution in session scheduler.
+  
+  **Source:** `component.py:190`
+  
+  **Parameters:**
+  - `hook` (EffectHook): Effect hook to execute
+  - `is_cleanup` (bool): Whether to run hook cleanup instead of effect body
+</ParamField>
+
+### Observable Subscriptions
+
+<ParamField path="_subscribe_observable_args" type="(args: tuple[Any, ...], kwargs: dict[str, Any]) -> None">
+  Attach subscriptions for observable positional/keyword arguments.
+  
+  **Source:** `component.py:202`
+  
+  Automatically subscribes to any `Observable` objects passed as props.
+</ParamField>
+
+<ParamField path="_attach_observable_subscription" type="(observable: Observable) -> ObservableSubscription">
+  Subscribe component updates to an observable argument.
+  
+  **Source:** `component.py:218`
+  
+  **Parameters:**
+  - `observable` (Observable): Observable object to subscribe to
+  
+  **Returns:** Created observable subscription
+</ParamField>
+
+<ParamField path="_detach_observable_subscriptions" type="() -> None">
+  Dispose and clear all observable subscriptions for this component.
+  
+  **Source:** `component.py:249`
+</ParamField>
+
+## Component State (_ComponentState)
+
+Internal state structure for components:
+
+```python
+@dataclass
+class _ComponentState:
+    hooks: list[Hook] = field(default_factory=list)
+    hook_cursor: int = 0
+    mounted: bool = False
+    is_dirty: bool = False
+    observable_subscriptions: list[ObservableSubscription] = field(default_factory=list)
+    last_args: tuple[Any, ...] = field(default_factory=tuple)
+    last_kwargs: dict[str, Any] = field(default_factory=dict)
+    last_b: Any = None
+```
+
+## Renderer
+
+The `Renderer` class coordinates functional component rendering and context stacks.
+
+**Source:** `component.py:362`
+
+### Renderer Methods
+
+<ParamField path="render" type="(root_fn: Callable[..., Any], *args, **kwargs) -> Any">
+  Render a root callable within this renderer context/frame.
+  
+  **Source:** `component.py:427`
+  
+  **Parameters:**
+  - `root_fn`: Callable producing component output
+  - `*args`: Positional arguments forwarded to root_fn
+  - `**kwargs`: Keyword arguments forwarded to root_fn
+  
+  **Returns:** Value returned by root_fn
+</ParamField>
+
+<ParamField path="render_component" type="(fn: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any], key=None) -> Component">
+  Create a frozen Component wrapper for a function call.
+  
+  **Source:** `component.py:444`
+  
+  **Parameters:**
+  - `fn`: Component function decorated with @component
+  - `args`: Positional arguments for the component function
+  - `kwargs`: Keyword arguments for the component function
+  - `key`: Optional identity key
+  
+  **Returns:** Component wrapper ready for control lifecycle
+  
+  **Raises:** `ValueError` if fn is not marked as a component
+</ParamField>
+
+<ParamField path="set_memo" type="() -> None">
+  Mark next rendered component as memoized.
+  
+  **Source:** `component.py:378`
+</ParamField>
+
+<ParamField path="push_context" type="(key: object, value: object) -> None">
+  Push a context value for the given key.
+  
+  **Source:** `component.py:385`
+  
+  **Parameters:**
+  - `key`: Context identity token
+  - `value`: Context value to make active
+</ParamField>
+
+<ParamField path="pop_context" type="(key: object) -> None">
+  Pop current context value for key and remove empty stacks.
+  
+  **Source:** `component.py:397`
+  
+  **Parameters:**
+  - `key`: Context identity token
+</ParamField>
+
+## Usage Examples
+
+### Basic Component
+
+```python
+import flet as ft
+from flet import component
+
+@component
+def greeting(name: str):
+    return ft.Text(f"Hello, {name}!", size=24)
+
+def main(page: ft.Page):
+    page.add(
+        greeting("Alice"),
+        greeting("Bob")
+    )
+
+ft.run(main)
+```
+
+### Stateful Component with Hooks
+
+```python
+import flet as ft
+from flet import component
+
+@component
+def todo_list():
+    todos, set_todos = ft.use_state([])
+    input_ref = ft.use_ref()
+    
+    def add_todo(e):
+        if input_ref.current.value:
+            set_todos(todos + [input_ref.current.value])
+            input_ref.current.value = ""
+            page.update()
+    
+    return ft.Column([
+        ft.Row([
+            ft.TextField(
+                ref=input_ref,
+                hint_text="Enter todo",
+                expand=True
+            ),
+            ft.IconButton(
+                icon=ft.Icons.ADD,
+                on_click=add_todo
+            )
+        ]),
+        ft.Column([
+            ft.Text(todo) for todo in todos
+        ])
+    ])
+
+def main(page: ft.Page):
+    page.add(todo_list())
+
+ft.run(main)
+```
+
+### Memoized Component
+
+```python
+import flet as ft
+from flet import component, memo
+
+@memo
+@component
+def expensive_component(data: list):
+    # This only re-renders when 'data' changes
+    processed = [item.upper() for item in data]
+    return ft.Column([
+        ft.Text(item) for item in processed
+    ])
+
+def main(page: ft.Page):
+    data = ["apple", "banana", "cherry"]
+    page.add(expensive_component(data))
+
+ft.run(main)
+```
+
+### Component with Effects
+
+```python
+import flet as ft
+from flet import component
+import asyncio
+
+@component
+def timer_component():
+    count, set_count = ft.use_state(0)
+    
+    async def increment_timer():
+        while True:
+            await asyncio.sleep(1)
+            set_count(count + 1)
+    
+    # Start timer on mount
+    ft.use_effect(
+        lambda: page.run_task(increment_timer),
+        deps=[]  # Empty deps = run once on mount
+    )
+    
+    return ft.Text(f"Elapsed: {count}s", size=30)
+
+def main(page: ft.Page):
+    page.add(timer_component())
+
+ft.run(main)
+```
+
+### Component with Observable Props
+
+```python
+import flet as ft
+from flet import component
+from flet.components import Observable
+
+@component
+def display_component(value: Observable):
+    # Automatically re-renders when observable changes
+    return ft.Text(f"Value: {value}", size=24)
+
+def main(page: ft.Page):
+    observable_value = Observable(0)
+    
+    def increment(e):
+        observable_value.set(observable_value.get() + 1)
+    
+    page.add(
+        display_component(observable_value),
+        ft.ElevatedButton(
+            "Increment",
+            on_click=increment
+        )
+    )
+
+ft.run(main)
+```
+
+## Component Lifecycle
+
+1. **Creation**: Component function is called with props (args/kwargs)
+2. **Initialization**: Hooks are initialized on first render
+3. **Mounting**: `did_mount()` is called, mount effects run
+4. **Rendering**: Component function executes, returns controls
+5. **Updating**: When state/props change, component re-renders
+6. **Unmounting**: `will_unmount()` is called, cleanup functions run
+
+## Best Practices
+
+1. **Hook Order**: Always call hooks in the same order on every render
+2. **Memoization**: Use `@memo` for expensive components that don't need frequent updates
+3. **Effects**: Use empty dependency array `[]` for mount-only effects
+4. **Cleanup**: Return cleanup functions from effects to prevent memory leaks
+5. **Props**: Keep props immutable; use observables for reactive data
+
+## See Also
+
+- [Hooks](/api/utilities/hooks) - Available hooks for components
+- [Observable](/api/component) - Reactive data containers
+- [@component decorator](/api/component) - Component decorator
+- [@memo decorator](/api/component) - Memoization decorator
+- [Page](/api/page) - Top-level page container

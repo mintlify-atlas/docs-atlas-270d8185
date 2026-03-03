@@ -1,0 +1,611 @@
+---
+title: Events and State
+description: Event handling, state management, and reactive updates in Flet
+---
+
+Flet apps respond to user interactions through events and maintain application state. This page explains how to handle events and manage state effectively.
+
+## Event Handling
+
+Events are triggered by user interactions like clicks, text input, or system events. Every event handler receives an `Event` object:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def button_clicked(e):
+        # e is the event object
+        print(f"Button clicked! Event: {e}")
+        print(f"Control: {e.control}")
+        print(f"Data: {e.data}")
+    
+    page.add(
+        ft.Button("Click me", on_click=button_clicked)
+    )
+
+ft.run(main)
+```
+
+### Common Event Types
+
+<Tabs>
+  <Tab title="Click Events">
+    Handle button clicks and taps:
+    
+    ```python
+import flet as ft
+
+def main(page: ft.Page):
+    def handle_click(e):
+        page.add(ft.Text("Button clicked!"))
+    
+    def handle_long_press(e):
+        page.add(ft.Text("Button long-pressed!"))
+    
+    page.add(
+        ft.ElevatedButton(
+            "Press me",
+            on_click=handle_click,
+            on_long_press=handle_long_press,
+        )
+    )
+    ```
+  </Tab>
+  
+  <Tab title="Input Events">
+    Handle text input and changes:
+    
+    ```python
+import flet as ft
+
+def main(page: ft.Page):
+    result = ft.Text()
+    
+    def on_change(e):
+        result.value = f"Typing: {e.control.value}"
+        page.update()
+    
+    def on_submit(e):
+        result.value = f"Submitted: {e.control.value}"
+        page.update()
+    
+    page.add(
+        ft.TextField(
+            label="Enter text",
+            on_change=on_change,
+            on_submit=on_submit,
+        ),
+        result,
+    )
+    ```
+  </Tab>
+  
+  <Tab title="Selection Events">
+    Handle selection changes:
+    
+    ```python
+import flet as ft
+
+def main(page: ft.Page):
+    def dropdown_changed(e):
+        page.add(ft.Text(f"Selected: {e.control.value}"))
+    
+    def checkbox_changed(e):
+        page.add(ft.Text(f"Checked: {e.control.value}"))
+    
+    page.add(
+        ft.Dropdown(
+            options=[
+                ft.dropdown.Option("Option 1"),
+                ft.dropdown.Option("Option 2"),
+            ],
+            on_change=dropdown_changed,
+        ),
+        ft.Checkbox(
+            label="Agree",
+            on_change=checkbox_changed,
+        ),
+    )
+    ```
+  </Tab>
+  
+  <Tab title="Hover Events">
+    Handle mouse hover:
+    
+    ```python
+import flet as ft
+
+def main(page: ft.Page):
+    def on_hover(e):
+        e.control.bgcolor = (
+            ft.Colors.BLUE_100 if e.data == "true" else ft.Colors.WHITE
+        )
+        e.control.update()
+    
+    page.add(
+        ft.Container(
+            content=ft.Text("Hover over me"),
+            padding=20,
+            border_radius=10,
+            on_hover=on_hover,
+        )
+    )
+    ```
+  </Tab>
+</Tabs>
+
+### Event Object Properties
+
+The event object contains information about the event:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def handle_event(e):
+        print(f"Control that triggered event: {e.control}")
+        print(f"Event data: {e.data}")
+        print(f"Event name: {e.name}")
+        print(f"Page reference: {e.page}")
+    
+    page.add(
+        ft.TextField(label="Type here", on_change=handle_event)
+    )
+
+ft.run(main)
+```
+
+### Page-Level Events
+
+The Page object provides system-level events:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    # Keyboard events
+    def on_keyboard(e):
+        page.add(ft.Text(
+            f"Key: {e.key}, Ctrl: {e.ctrl}, Shift: {e.shift}, Alt: {e.alt}"
+        ))
+    
+    page.on_keyboard_event = on_keyboard
+    
+    # Resize events
+    def on_resize(e):
+        page.add(ft.Text(f"Page resized to: {e.width}x{e.height}"))
+    
+    page.on_resize = on_resize
+    
+    # Route change events
+    def on_route_change(e):
+        page.add(ft.Text(f"Route changed to: {e.route}"))
+    
+    page.on_route_change = on_route_change
+    
+    # Connection events
+    def on_connect(e):
+        print("User connected")
+    
+    def on_disconnect(e):
+        print("User disconnected")
+    
+    page.on_connect = on_connect
+    page.on_disconnect = on_disconnect
+
+ft.run(main)
+```
+
+## State Management
+
+State represents the data that can change over time in your application.
+
+### Local State
+
+State stored in Python variables:
+
+```python
+import flet as ft
+
+ft.context.disable_auto_update()
+
+def main(page: ft.Page):
+    page.title = "Counter Example"
+    
+    # State variable
+    count = 0
+    
+    txt_number = ft.TextField(value="0", text_align=ft.TextAlign.RIGHT, width=100)
+    
+    def minus_click(e):
+        nonlocal count
+        count -= 1
+        txt_number.value = str(count)
+        page.update()
+    
+    def plus_click(e):
+        nonlocal count
+        count += 1
+        txt_number.value = str(count)
+        page.update()
+    
+    page.add(
+        ft.Row([
+            ft.IconButton(ft.Icons.REMOVE, on_click=minus_click),
+            txt_number,
+            ft.IconButton(ft.Icons.ADD, on_click=plus_click),
+        ], alignment=ft.MainAxisAlignment.CENTER)
+    )
+
+ft.run(main)
+```
+
+### Control State
+
+State stored in control properties:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    counter = ft.Text(value="0", size=50)
+    
+    def increment(e):
+        # State is in counter.value
+        current = int(counter.value)
+        counter.value = str(current + 1)
+        counter.update()
+    
+    page.add(
+        ft.Column([
+            counter,
+            ft.FilledButton("Increment", on_click=increment),
+        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+    )
+
+ft.run(main)
+```
+
+### Using Data Attribute
+
+Store custom data on controls:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    def button_clicked(e):
+        # Access custom data
+        btn_data = e.control.data
+        page.add(ft.Text(f"Clicked: {btn_data['name']}, ID: {btn_data['id']}"))
+    
+    page.add(
+        ft.Column([
+            ft.Button(
+                "Button 1",
+                data={"name": "First", "id": 1},
+                on_click=button_clicked,
+            ),
+            ft.Button(
+                "Button 2",
+                data={"name": "Second", "id": 2},
+                on_click=button_clicked,
+            ),
+        ])
+    )
+
+ft.run(main)
+```
+
+### Class-Based State Management
+
+Organize state using classes:
+
+```python
+import flet as ft
+from dataclasses import dataclass
+
+@dataclass
+class AppState:
+    count: int = 0
+    username: str = ""
+    items: list = None
+    
+    def __post_init__(self):
+        if self.items is None:
+            self.items = []
+
+def main(page: ft.Page):
+    # Create app state
+    state = AppState()
+    
+    counter_text = ft.Text(f"Count: {state.count}")
+    
+    def increment(e):
+        state.count += 1
+        counter_text.value = f"Count: {state.count}"
+        counter_text.update()
+    
+    def add_item(e):
+        state.items.append(f"Item {len(state.items) + 1}")
+        page.add(ft.Text(state.items[-1]))
+    
+    page.add(
+        counter_text,
+        ft.FilledButton("Increment", on_click=increment),
+        ft.FilledButton("Add Item", on_click=add_item),
+    )
+
+ft.run(main)
+```
+
+## Reactive Updates
+
+Flet provides mechanisms for automatic UI updates when state changes.
+
+### Manual Updates
+
+Explicitly call `update()` after changing state:
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    text = ft.Text("Hello")
+    page.add(text)
+    
+    def change_text(e):
+        text.value = "World"
+        text.update()  # Must call update
+    
+    page.add(ft.Button("Change", on_click=change_text))
+
+ft.run(main)
+```
+
+### Component State Hooks
+
+Use the component decorator for reactive state:
+
+```python
+import flet as ft
+
+@ft.component
+def Counter():
+    # use_state returns (value, setter)
+    count, set_count = ft.use_state(0)
+    
+    return ft.Column([
+        ft.Text(f"Count: {count}", size=50),
+        ft.FilledButton(
+            "Increment",
+            on_click=lambda e: set_count(count + 1)  # Auto-updates UI
+        ),
+    ])
+
+def main(page: ft.Page):
+    page.add(Counter())
+
+ft.run(main)
+```
+
+### Complete Component Example
+
+A full example using the component pattern:
+
+```python
+import flet as ft
+
+@ft.component
+def App():
+    count, set_count = ft.use_state(0)
+    
+    return ft.View(
+        floating_action_button=ft.FloatingActionButton(
+            icon=ft.Icons.ADD,
+            on_click=lambda e: set_count(count + 1)
+        ),
+        controls=[
+            ft.SafeArea(
+                ft.Container(
+                    ft.Text(value=f"{count}", size=50),
+                    alignment=ft.Alignment.CENTER,
+                ),
+                expand=True,
+            )
+        ],
+    )
+
+ft.run(lambda page: page.render_views(App))
+```
+
+<Note>
+Components automatically re-render when state changes via `use_state` setters.
+</Note>
+
+## Async Event Handlers
+
+Use async functions for asynchronous operations:
+
+```python
+import flet as ft
+import asyncio
+
+async def main(page: ft.Page):
+    result = ft.Text("Click to load")
+    progress = ft.ProgressBar(visible=False)
+    
+    async def load_data(e):
+        # Show loading indicator
+        progress.visible = True
+        result.value = "Loading..."
+        page.update()
+        
+        # Simulate async operation
+        await asyncio.sleep(2)
+        
+        # Update with result
+        result.value = "Data loaded!"
+        progress.visible = False
+        page.update()
+    
+    page.add(
+        result,
+        progress,
+        ft.FilledButton("Load Data", on_click=load_data),
+    )
+
+ft.run(main)
+```
+
+## Background Tasks
+
+Run long operations without blocking the UI:
+
+### Using run_thread
+
+```python
+import flet as ft
+import time
+
+def main(page: ft.Page):
+    progress = ft.ProgressBar(value=0, width=400)
+    status = ft.Text("Ready")
+    
+    def long_task():
+        for i in range(101):
+            progress.value = i / 100
+            status.value = f"Processing: {i}%"
+            page.update()
+            time.sleep(0.05)
+        status.value = "Complete!"
+        page.update()
+    
+    def start_task(e):
+        page.run_thread(long_task)
+    
+    page.add(
+        progress,
+        status,
+        ft.FilledButton("Start Task", on_click=start_task),
+    )
+
+ft.run(main)
+```
+
+### Using run_task
+
+```python
+import flet as ft
+import asyncio
+
+async def main(page: ft.Page):
+    progress = ft.ProgressBar(value=0, width=400)
+    status = ft.Text("Ready")
+    
+    async def async_task():
+        for i in range(101):
+            progress.value = i / 100
+            status.value = f"Processing: {i}%"
+            page.update()
+            await asyncio.sleep(0.05)
+        status.value = "Complete!"
+        page.update()
+    
+    def start_task(e):
+        page.run_task(async_task)
+    
+    page.add(
+        progress,
+        status,
+        ft.FilledButton("Start Task", on_click=start_task),
+    )
+
+ft.run(main)
+```
+
+## State Persistence
+
+### Using Session Storage
+
+Store state in the browser session:
+
+```python
+import flet as ft
+from flet.controls.services.shared_preferences import SharedPreferences
+
+async def main(page: ft.Page):
+    prefs = SharedPreferences()
+    
+    # Load saved state
+    saved_count = await prefs.get_async("count")
+    count = int(saved_count) if saved_count else 0
+    
+    counter = ft.Text(str(count))
+    
+    async def increment(e):
+        nonlocal count
+        count += 1
+        counter.value = str(count)
+        
+        # Save state
+        await prefs.set_async("count", str(count))
+        counter.update()
+    
+    page.add(
+        counter,
+        ft.FilledButton("Increment", on_click=increment),
+    )
+
+ft.run(main)
+```
+
+## Best Practices
+
+<Warning>
+**Avoid these common mistakes:**
+
+1. Forgetting to call `update()` after changing state
+2. Updating the entire page when only one control changed
+3. Storing large objects in control `data` attributes
+4. Running long operations in event handlers without threading
+</Warning>
+
+### Performance Tips
+
+```python
+import flet as ft
+
+def main(page: ft.Page):
+    # Good: Update only changed controls
+    text1 = ft.Text("Text 1")
+    text2 = ft.Text("Text 2")
+    
+    def update_text1(e):
+        text1.value = "Updated"
+        text1.update()  # Update only text1
+    
+    # Bad: Updating entire page
+    def update_text2_bad(e):
+        text2.value = "Updated"
+        page.update()  # Updates everything
+    
+    # Good: Batch updates
+    def update_both(e):
+        text1.value = "Updated 1"
+        text2.value = "Updated 2"
+        page.update(text1, text2)  # Batch update
+
+ft.run(main)
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Routing" icon="route" href="/concepts/routing">
+    Learn about navigation and routing in multi-page apps
+  </Card>
+  <Card title="Theming" icon="palette" href="/concepts/theming">
+    Customize your app's appearance with themes
+  </Card>
+</CardGroup>
